@@ -10,3 +10,24 @@
 
     Layout och funktionalitet bestäms under projektet.
 */
+
+import QtQuick
+import QtQuick.Controls
+
+
+// Appens huvudfönster.
+ApplicationWindow {
+    visible: true
+    width: 800
+    height: 600
+    title: "Second Brain"
+
+// Tillfällig rubrik.
+    Label {
+        anchors.centerIn: parent
+        text: "Second Brain"
+        font.pixelSize: 32
+
+    }
+
+}
