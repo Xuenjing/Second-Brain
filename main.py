@@ -17,10 +17,16 @@ from pathlib import Path
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
+from backend import Backend
+
 
 # Starta Qt-applikationen och skapa motorn som läser QML.
 app = QGuiApplication(sys.argv)
 engine = QQmlApplicationEngine()
+
+# Gör Python-objektet tillgängligt i QML under namnet "backend".
+backend = Backend()
+engine.rootContext().setContextProperty("backend", backend)
 
 # Hitta qml/main.qml
 qml_file = Path(__file__).resolve().parent / "qml" / "main.qml"

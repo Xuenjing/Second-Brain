@@ -22,12 +22,37 @@ ApplicationWindow {
     height: 600
     title: "Second Brain"
 
-// Tillfällig rubrik.
-    Label {
+    Column {
         anchors.centerIn: parent
-        text: "Second Brain"
-        font.pixelSize: 32
+        spacing: 12
 
+        TextField {
+            id: inputField
+            width: 300
+            placeholderText: "Skriv ett meddelande"
+        }
+    
+        Button {
+            text: "Skicka"
+
+            // Skicka textfältets innehåll till en slot i Python.
+            onClicked: {
+                backend.receive_text(inputField.text)
+            }
+        }
+
+        Label {
+            id: replyLabel
+            text: ""
+        }
     }
 
+    Connections {
+        target: backend
+
+        // Ta emot Python-signalens svar och visa det i gränssittet.
+        function onReplyReady(reply) {
+            replyLabel.text = reply
+        }
+    }
 }
