@@ -11,6 +11,7 @@ Databaslösning och schema bestäms tillsammans under projektet.
 
 import sqlite3
 from datetime import datetime
+from pathlib import Path
 
 def initialize_database():
     '''
@@ -55,13 +56,37 @@ def get_all_knowledge():
     connection.close()
     return rows
 
+def add_txt_file_to_database(file_path):
+    '''
+    Receieve, read and add the contents of a .txt file to the knowledge database,
+    unless the file does not exist or is empty
+    '''
+    path = Path(file_path)
+    if not path.exists():
+        return False
+    if path.suffix.lower() != ".txt":
+        return False
+    text = path.read_text(encoding="utf-8")
 
-# test av databasfunktioner
+    if not text.strip():
+        return False
+    add_knowledge(
+        text,
+        source = path.name
+    )
+    return True
+
+
+# testing database methods
 if __name__ == "__main__":
     initialize_database()
 
-    add_knowledge("Matsalen öppnar kl 10", source="manual") # lägg till databasen
+    add_knowledge("Matsalen öppnar kl 10", source="manual") # add to database
 
-    all_knowledge = get_all_knowledge() # hämta och skriv ut hela databasen
+    add_txt_file_to_database("test.txt") # add contents of txt-file to db
+    add_txt_file_to_database("test2.txt") # try to an empty .txt-file
+    add_txt_file_to_database("test3.txt") # try to add a non-existing .txt-file
+
+    all_knowledge = get_all_knowledge() # get and print entire database
     for row in all_knowledge:
         print(row)
