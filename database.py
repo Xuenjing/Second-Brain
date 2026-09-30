@@ -12,6 +12,7 @@ Databaslösning och schema bestäms tillsammans under projektet.
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+import json
 
 def initialize_database():
     '''
@@ -24,42 +25,66 @@ def initialize_database():
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     text TEXT NOT NULL UNIQUE,
     source TEXT,
-    created_at TEXT)
+    created_at TEXT,
+    embedding TEXT)
     """)
 
     connection.commit()
     connection.close()
 
-def add_knowledge(text, source="manual"):
+def add_knowledge(text, embedding, source="manual"):
     '''
+    Connect to knowledge.db och add a post if it is not already inserted
+    Converts the embedding to json-format
     Anslut till knowledge.db och lägg till text om den inte redan finns inlagd
     '''
     connection = sqlite3.connect("knowledge.db")
     cursor = connection.cursor()
     created_at = datetime.now().isoformat()
+    embedding_json = json.dumps(embedding.tolist()) # convert embedding to json
     cursor.execute(
         '''
-        INSERT OR IGNORE INTO knowledge (text, source, created_at)
-        VALUES (?, ?, ?)
+        INSERT OR IGNORE INTO knowledge (text, source, created_at, embedding)
+        VALUES (?, ?, ?, ?)
         ''',
-        (text, source, created_at)
+        (text, source, created_at, embedding_json)
     )
 
     connection.commit()
     connection.close()
 
 def get_all_knowledge():
+    '''
+    Get all posts from knowledge.db as a dictionary
+    Converts embedding JSON back into a python list
+    '''
     connection = sqlite3.connect("knowledge.db")
     cursor = connection.cursor()
-    cursor.execute("SELECT id, text, source, created_at FROM knowledge")
-    rows = cursor.fetchall() # hämta alla rader som matchar select
+    cursor.execute("""
+        SELECT id, text, source, created_at, embedding
+        FROM knowledge
+        """)
+    rows = cursor.fetchall() # fetch all rows matching select
     connection.close()
-    return rows
+    
+    knowledge = []
+    for row_id, text, source, created_at, embedding_json in rows:
+        embedding = json.loads(embedding_json) # converts JSON format back into a python list
+        knowledge.append({
+            "id": row_id,
+            "text": text,
+            "source": source,
+            "created_at": created_at,
+            "embedding": embedding
+        })
 
-def add_txt_file_to_database(file_path):
+    return knowledge
+
+def add_txt_file_to_database(file_path, model):
     '''
     Receieve, read and add the contents of a .txt file to the knowledge database,
-    unless the file does not exist or is empty
+    unless the file does not exist or is empty.
+    Creates an embedding before storing.
     '''
     path = Path(file_path)
     if not path.exists():
@@ -70,8 +95,12 @@ def add_txt_file_to_database(file_path):
 
     if not text.strip():
         return False
+
+    embedding = model.encode(text)
+    
     add_knowledge(
         text,
+        embedding,
         source = path.name
     )
     return True
@@ -79,14 +108,30 @@ def add_txt_file_to_database(file_path):
 
 # testing database methods
 if __name__ == "__main__":
+
+    from sentence_transformers import SentenceTransformer
+
+    model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+    text = "The school opens at 8.00AM."
+    embedding = model.encode(text)
+
     initialize_database()
 
-    add_knowledge("Matsalen öppnar kl 10", source="manual") # add to database
+    add_knowledge(text, embedding, source="manual") # add to database
 
-    add_txt_file_to_database("test.txt") # add contents of txt-file to db
-    add_txt_file_to_database("test2.txt") # try to an empty .txt-file
-    add_txt_file_to_database("test3.txt") # try to add a non-existing .txt-file
+    # add contents of txt-file to db(1), try to add an empty file (2), and a non-existing file (3)
+    add_txt_file_to_database("test.txt", model)
+    add_txt_file_to_database("test2.txt", model)
+    add_txt_file_to_database("test3.txt", model)
 
-    all_knowledge = get_all_knowledge() # get and print entire database
+    all_knowledge = get_all_knowledge() # get entire database
+
+    # print it
     for row in all_knowledge:
-        print(row)
+        print({
+            "id": row["id"],
+            "text": row["text"],
+            "source": row["source"],
+            "created_at": row["created_at"],
+            "embedding_length": len(row["embedding"])
+        })
