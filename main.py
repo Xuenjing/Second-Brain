@@ -11,6 +11,9 @@ RAG → retrieval + context + LLM
 SQLite → lagring
 '''
 
+import time
+startup_start = time.perf_counter()
+
 import sys
 from pathlib import Path
 
@@ -63,6 +66,13 @@ quit_action.triggered.connect(app.quit)
 
 tray_icon.setContextMenu(tray_menu)
 tray_icon.show()
+
+startup_end = time.perf_counter()
+
+print(
+    f"Total application startup: "
+    f"{startup_end - startup_start:.3f} seconds"
+)
 
 # Håll appen igång tills användaren väljer Avsluta i tray-menyn.
 sys.exit(app.exec())
