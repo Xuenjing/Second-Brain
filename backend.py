@@ -13,6 +13,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 
 from retrieval import retrieve_knowledge
 from llm.local_provider import LocalLLMProvider
+from performance import measure_time
 
 
 class Backend(QObject):
@@ -29,6 +30,7 @@ class Backend(QObject):
 
     # QML anropar denna metod och skickar med texten från användaren.
     @Slot(str)
+    @measure_time
     def receive_text(self, text):
         # Sök efter kunskap som matchar frågan från QML.
         results = retrieve_knowledge(text)

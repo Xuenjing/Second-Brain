@@ -1,8 +1,10 @@
 from sentence_transformers import SentenceTransformer, util
 from database import get_all_knowledge
+from performance import measure_time
 
 model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
+@measure_time
 def retrieve_knowledge(query):
     '''
     Get the knowledge.db

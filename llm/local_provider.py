@@ -1,4 +1,5 @@
 from transformers import pipeline
+from performance import measure_time
 
 class LocalLLMProvider:
     '''
@@ -6,6 +7,8 @@ class LocalLLMProvider:
     with generate(prompt) without the calling code needing to know about pipeline(),
     the model or result parsing
     '''
+    
+    @measure_time
     def __init__(self, model_name):
         self.model_name = model_name
 
@@ -14,6 +17,7 @@ class LocalLLMProvider:
             model = self.model_name
         )
 
+    @measure_time
     def generate(self, prompt):
         messages = [
             {
