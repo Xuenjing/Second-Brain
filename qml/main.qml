@@ -103,8 +103,11 @@ ApplicationWindow {
                     border.width: 1
                 }
 
-                // Öppna dialogen för sparad kunskap.
-                onClicked: knowledgeViewDialog.open()
+                // Öppna dialogen och hämta aktuella poster från databasen.
+                onClicked: {
+                    knowledgeViewDialog.open()
+                    backend.load_all_knowledge()
+                }
             }
         }
 
@@ -213,7 +216,7 @@ ApplicationWindow {
         title: "Lägg till kunskap"
         modal: true
         width: 500
-        height: 350
+        height: 400
 
         anchors.centerIn: parent
         parent: root.contentItem
@@ -293,7 +296,11 @@ ApplicationWindow {
                             : "#2563EB"
                     }
 
-                    // Kopplas till databasen senare.
+                    // Skicka texten till Python för att spara den.
+                    onClicked: {
+                        knowledgeSaveStatus.text = ""
+                        backend.add_manual_knowledge(knowledgeInput.text)
+                    }
                 }
 
                 Button {
@@ -351,6 +358,14 @@ ApplicationWindow {
                     onClicked: knowledgeDialog.close()
                 }
             }
+            // Visa besked från Python om sparandet.
+            Label {
+                id: knowledgeSaveStatus
+                width: parent.width
+                text: ""
+                color: "#F1F5F9"
+                wrapMode: Text.WordWrap
+            }
         }
     }
 
@@ -388,7 +403,7 @@ ApplicationWindow {
                 readOnly: true
                 wrapMode: TextArea.Wrap
                 textFormat: TextEdit.PlainText
-                placeholderText: "Sparad kunskap visas här när backend är inkopplad."
+                placeholderText: "Sparad kunskap visas här."
                 color: "#F1F5F9"
                 placeholderTextColor: "#94A3B8"
                 font.pixelSize: 14
@@ -444,6 +459,23 @@ ApplicationWindow {
         // Lägg till Python-svaret efter användarens fråga.
         function onReplyReady(reply) {
             chatDisplay.append("Assistent: " + reply + "\n")
+        }
+
+        // Ta emot beskedet om kunskapen sparades.
+        function onKnowledgeSaveResult(message) {
+            knowledgeSaveStatus.text = message
+        }
+
+        // Ta emot databasens poster och visa text och källa.
+        function onKnowledgeLoaded(posts) {
+            if (posts.length === 0) {
+                knowledgeDisplay.text = "Kunskapsbasen är tom."
+                return
+            }
+
+            knowledgeDisplay.text = posts.map(function(post) {
+                return post.text + "\nKälla: " + post.source
+            }).join("\n\n")
         }
     }
 }

@@ -88,7 +88,7 @@ class Backend(QObject):
                 "created_at": item["created_at"]
             })
 
-        self.knowledgeLoaded.emit(knowledge)
+        self.knowledgeLoaded.emit(knowledge_data)
 
     @Slot (str)
     def add_manual_knowledge(self, text):
