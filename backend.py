@@ -14,6 +14,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 from retrieval import retrieve_knowledge
 from llm.local_provider import LocalLLMProvider
 from performance import measure_time
+from database import get_all_knowledge
 
 
 class Backend(QObject):
@@ -27,6 +28,8 @@ class Backend(QObject):
 
     # Signal från Python till QML med texten som ska visas.
     replyReady = Signal(str)
+
+    knowledgeLoaded = Signal(list)
 
     # QML anropar denna metod och skickar med texten från användaren.
     @Slot(str)
@@ -67,3 +70,21 @@ class Backend(QObject):
 
         # Bekräfta i gränssnittet att anropet har körts.
         self.replyReady.emit(answer)
+
+    @Slot()
+    def load_all_knowledge(self):
+        '''
+        Get all knowledge from database and send it to QML as a dictionary
+        '''
+        knowledge = get_all_knowledge()
+
+        knowledge_data = []
+        for item in knowledge:
+            knowledge_data.append({
+                "id": item["id"],
+                "text": item["text"],
+                "source": item["source"],
+                "created_at": item["created_at"]
+            })
+
+        self.knowledgeLoaded.emit(knowledge)
