@@ -37,6 +37,12 @@ def retrieve_knowledge(query):
 
     return filtered_results[:top_k]
 
+def create_embedding(text):
+    '''
+    Helper function to create embeddings for text
+    '''
+    return model.encode(text)
+
 if __name__ == "__main__":
     results = retrieve_knowledge("When does school open?")
 

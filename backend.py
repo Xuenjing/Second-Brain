@@ -11,10 +11,10 @@ Exakt struktur bestäms under projektets gång.
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from retrieval import retrieve_knowledge
+from retrieval import retrieve_knowledge, create_embedding
 from llm.local_provider import LocalLLMProvider
 from performance import measure_time
-from database import get_all_knowledge
+from database import get_all_knowledge, add_knowledge
 
 
 class Backend(QObject):
@@ -30,6 +30,7 @@ class Backend(QObject):
     replyReady = Signal(str)
 
     knowledgeLoaded = Signal(list)
+    knowledgeSaveResult = Signal(str)
 
     # QML anropar denna metod och skickar med texten från användaren.
     @Slot(str)
@@ -88,3 +89,23 @@ class Backend(QObject):
             })
 
         self.knowledgeLoaded.emit(knowledge)
+
+    @Slot (str)
+    def add_manual_knowledge(self, text):
+        '''
+        Receives text from QML and if not empty,
+        embeds the text and adds it to the knowledge database
+        '''
+        if not text.strip():
+            self.knowledgeSaveResult.emit("No knowledge was added.")
+            return
+
+        embedding = create_embedding(text)
+
+        add_knowledge(
+            text, 
+            embedding,
+            source="manual"
+        )
+
+        self.knowledgeSaveResult.emit("Knowledge added.")
