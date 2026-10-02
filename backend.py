@@ -15,6 +15,7 @@ from retrieval import retrieve_knowledge, create_embedding
 from llm.local_provider import LocalLLMProvider
 from performance import measure_time
 from database import get_all_knowledge, add_knowledge
+from datetime import datetime
 
 
 class Backend(QObject):
@@ -81,11 +82,14 @@ class Backend(QObject):
 
         knowledge_data = []
         for item in knowledge:
+            # format created at to: "YYYY-MM-DD H-M"
+            created_at = datetime.fromisoformat(item["created_at"])
+            formatted_created_at = created_at.strftime("%Y-%m-%d %H:%M")
             knowledge_data.append({
                 "id": item["id"],
                 "text": item["text"],
                 "source": item["source"],
-                "created_at": item["created_at"]
+                "created_at": formatted_created_at
             })
 
         self.knowledgeLoaded.emit(knowledge_data)

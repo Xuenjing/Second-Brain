@@ -474,7 +474,7 @@ ApplicationWindow {
             }
 
             knowledgeDisplay.text = posts.map(function(post) {
-                return post.text + "\nKälla: " + post.source
+                return post.text + "\nKälla: " + post.source + " | Skapad: " + post.created_at
             }).join("\n\n")
         }
     }
