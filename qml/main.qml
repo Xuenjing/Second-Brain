@@ -13,6 +13,7 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs 
 
 
 // Appens huvudfönster.
@@ -327,7 +328,7 @@ ApplicationWindow {
                         border.width: 1
                     }
 
-                    // Kopplas senare.
+                    onClicked: textFileDialog.open() 
                 }
 
                 Button {
@@ -450,6 +451,16 @@ ApplicationWindow {
 
                 onClicked: knowledgeViewDialog.close()
             }
+        }
+    }
+
+    FileDialog {
+        id: textFileDialog
+        title: "Välj en textfil"
+        nameFilters: ["Text files (*.txt)"]
+
+        onAccepted: {
+            backend.add_txt_knowledge(selectedFile.toString())
         }
     }
 
