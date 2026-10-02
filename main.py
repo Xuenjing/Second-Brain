@@ -20,20 +20,32 @@ from pathlib import Path
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QStyle
 from PySide6.QtQml import QQmlApplicationEngine
 
+backend_import_start = time.perf_counter()
 from backend import Backend
+backend_import_end = time.perf_counter()
 
+print(
+    f"Backend import: "
+    f"{backend_import_end - backend_import_start:.3f} seconds"
+)
 
 # Starta Qt-applikationen och skapa motorn som läser QML.
 app = QApplication(sys.argv)
 engine = QQmlApplicationEngine()
 
 # Gör Python-objektet tillgängligt i QML under namnet "backend".
+backend_start = time.perf_counter()
 backend = Backend()
+backend_end = time.perf_counter()
+print(f"Backend creation: {backend_end - backend_start:.3f} seconds")
 engine.rootContext().setContextProperty("backend", backend)
 
 # Hitta qml/main.qml
 qml_file = Path(__file__).resolve().parent / "qml" / "main.qml"
+qml_start = time.perf_counter()
 engine.load(str(qml_file))
+qml_end = time.perf_counter()
+print(f"QML load: {qml_end - qml_start:.3f} seconds")
 
 # Avsluta med ett fel om QML-fönstret inte kunde skapas.
 if not engine.rootObjects():
