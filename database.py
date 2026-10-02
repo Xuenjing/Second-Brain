@@ -36,7 +36,7 @@ def add_knowledge(text, embedding, source="manual"):
     '''
     Connect to knowledge.db och add a post if it is not already inserted
     Converts the embedding to json-format
-    Anslut till knowledge.db och lägg till text om den inte redan finns inlagd
+    Returns true if rows were added, false if not
     '''
     connection = sqlite3.connect("knowledge.db")
     cursor = connection.cursor()
@@ -50,8 +50,12 @@ def add_knowledge(text, embedding, source="manual"):
         (text, source, created_at, embedding_json)
     )
 
+    added = cursor.rowcount > 0
+
     connection.commit()
     connection.close()
+
+    return added
 
 def get_all_knowledge():
     '''

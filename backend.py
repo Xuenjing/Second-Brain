@@ -9,13 +9,14 @@ Tänkt ansvar:
 Exakt struktur bestäms under projektets gång.
 """
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QObject, Signal, Slot, QUrl
 
 from retrieval import retrieve_knowledge, create_embedding
 from llm.local_provider import LocalLLMProvider
 from performance import measure_time
 from database import get_all_knowledge, add_knowledge
 from datetime import datetime
+from pathlib import Path
 
 
 class Backend(QObject):
@@ -106,10 +107,36 @@ class Backend(QObject):
 
         embedding = create_embedding(text)
 
-        add_knowledge(
+        added = add_knowledge(
             text, 
             embedding,
             source="manual"
         )
 
-        self.knowledgeSaveResult.emit("Knowledge added.")
+        if added:
+            self.knowledgeSaveResult.emit("Knowledge added.")
+        else:
+            self.knowledgeSaveResult.emit("No new knowledge was added.")
+
+    @Slot(str)
+    def add_txt_knowledge(self, file_path):
+        local_path = QUrl(file_path).toLocalFile() # convert to local windows file path
+        path = Path(local_path)
+        text = path.read_text(encoding="utf-8")
+
+        # sort the text into chunks if text can be split into paragraphs
+        chunks = [chunk.strip() for chunk in text.split("\n\n") if chunk.strip()]
+
+        added_count = 0
+
+        # create embeddings
+        for chunk in chunks:
+            embedding = create_embedding(chunk)
+            # commit to db
+            added = add_knowledge(chunk, embedding, source=path.name)
+            if added: added_count += 1
+
+        if added_count == 0:
+            self.knowledgeSaveResult.emit("No new knowledge was added.")
+        else:
+            self.knowledgeSaveResult.emit("Text file imported.")
