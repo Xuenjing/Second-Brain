@@ -8,13 +8,14 @@ Tänkt ansvar:
 
 Exakt struktur bestäms under projektets gång.
 """
+import sqlite3
 
 from PySide6.QtCore import QObject, Signal, Slot, QUrl
 
 from retrieval import retrieve_knowledge, create_embedding
 from llm.local_provider import LocalLLMProvider
 from performance import measure_time
-from database import get_all_knowledge, add_knowledge, search_knowledge
+from database import get_all_knowledge, add_knowledge, search_knowledge, edit_knowledge
 from datetime import datetime
 from pathlib import Path
 
@@ -33,6 +34,10 @@ class Backend(QObject):
 
     knowledgeLoaded = Signal(list)
     knowledgeSaveResult = Signal(str)
+
+    # Send the edit result to QML.
+    # Bool is used to check whether saving succeeded.
+    knowledgeEditResult = Signal(bool, str)
 
     # QML anropar denna metod och skickar med texten från användaren.
     @Slot(str)
@@ -120,6 +125,40 @@ class Backend(QObject):
 
         self.knowledgeLoaded.emit(knowledge_data)
 
+    @Slot(int, str)
+    def edit_saved_knowledge(self, knowledge_id, new_text):
+        """Update a post and its embedding."""
+        new_text = new_text.strip()
+
+        # Reject empty text.
+        if not new_text:
+            self.knowledgeEditResult.emit(
+                False, "Texten får inte vara tom."
+            )
+            return
+
+        # Create an embedding that matches the updated text.
+        embedding = create_embedding(new_text)
+
+        try:
+            updated = edit_knowledge(
+                knowledge_id, new_text, embedding
+            )
+        except sqlite3.IntegrityError:
+            self.knowledgeEditResult.emit(
+                False, "Det finns redan en post med samma text."
+            )
+            return
+
+        if updated:
+            self.knowledgeEditResult.emit(
+                True, "Kunskapsposten har uppdaterats."
+            )
+        else:
+            self.knowledgeEditResult.emit(
+                False, "Kunskapsposten kunde inte hittas."
+            )
+    
     @Slot (str)
     def add_manual_knowledge(self, text):
         '''

@@ -131,22 +131,23 @@ def edit_knowledge(knowledge_id, new_text, new_embedding) -> bool:
     and then to a JSON string
     '''
     connection = sqlite3.connect("knowledge.db")
-    cursor = connection.cursor()
-    embedding_json = json.dumps(new_embedding.tolist())
-    cursor.execute("""
-    UPDATE knowledge
-    SET text = ?, embedding = ?
-    WHERE id = ?
-    
-    """, (new_text, embedding_json, knowledge_id))
 
-    # true if updated, false if not
-    updated = cursor.rowcount > 0
+    try:
+        # Commit on success and roll back if an error occurs.
+        with connection:
+            cursor = connection.cursor()
+            embedding_json = json.dumps(new_embedding.tolist())
+            cursor.execute("""
+            UPDATE knowledge
+            SET text = ?, embedding = ?
+            WHERE id = ?
+            
+            """, (new_text, embedding_json, knowledge_id))
 
-    connection.commit()
-    connection.close()
-
-    return updated
+            # true if updated, false if not
+            return cursor.rowcount > 0
+    finally:
+        connection.close()
 
 def search_knowledge(search_term) -> list:
     '''
