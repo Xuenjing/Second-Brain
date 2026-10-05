@@ -394,17 +394,16 @@ ApplicationWindow {
             padding: 16
         }
 
-        // Scrollbar yta för poster som senare skickas från Python.
-        contentItem: ScrollView {
-            clip: true
-            contentWidth: availableWidth
+        // Keep the search field separate from the results list.
+        contentItem: Item {
+            TextField {
+                id: knowledgeSearchField
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: 44
+                placeholderText: "Sök bland sparad kunskap"
 
-            TextArea {
-                id: knowledgeDisplay
-                readOnly: true
-                wrapMode: TextArea.Wrap
-                textFormat: TextEdit.PlainText
-                placeholderText: "Sparad kunskap visas här."
                 color: "#F1F5F9"
                 placeholderTextColor: "#94A3B8"
                 font.pixelSize: 14
@@ -413,6 +412,69 @@ ApplicationWindow {
                 background: Rectangle {
                     color: "#0B1220"
                     radius: 8
+                    border.color: knowledgeSearchField.activeFocus
+                        ? "#38BDF8" : "#2B405C"
+                    border.width: 1
+                }
+
+                // Update the results without replacing the search field.
+                onTextEdited: backend.search_saved_knowledge(text)
+            }
+
+            ListView {
+                id: knowledgeList
+                anchors.top: knowledgeSearchField.bottom
+                anchors.topMargin: 16
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                clip: true
+                spacing: 12
+                model: []
+
+                ScrollBar.vertical: ScrollBar {}
+
+                delegate: Rectangle {
+                    id: postItem
+                    required property var modelData
+
+                    width: knowledgeList.width
+                    height: postContent.height + 24
+                    color: "#0B1220"
+                    radius: 8
+
+                    Column {
+                        id: postContent
+                        x: 12
+                        y: 12
+                        width: parent.width - 24
+                        spacing: 8
+
+                        Label {
+                            width: parent.width
+                            text: postItem.modelData.text
+                            textFormat: Text.PlainText
+                            wrapMode: Text.WordWrap
+                            color: "#F1F5F9"
+                        }
+
+                        Label {
+                            width: parent.width
+                            text: "Källa: " + postItem.modelData.source
+                                + " | Skapad: " + postItem.modelData.created_at
+                            textFormat: Text.PlainText
+                            wrapMode: Text.WordWrap
+                            color: "#94A3B8"
+                            font.pixelSize: 12
+                        }
+                    }
+                }
+
+                Label {
+                    anchors.centerIn: parent
+                    visible: knowledgeList.count === 0
+                    text: "Inga kunskapsposter att visa."
+                    color: "#94A3B8"
                 }
             }
         }
@@ -477,16 +539,9 @@ ApplicationWindow {
             knowledgeSaveStatus.text = message
         }
 
-        // Ta emot databasens poster och visa text och källa.
+        // Keep all post data, including the id, in the list model.
         function onKnowledgeLoaded(posts) {
-            if (posts.length === 0) {
-                knowledgeDisplay.text = "Kunskapsbasen är tom."
-                return
-            }
-
-            knowledgeDisplay.text = posts.map(function(post) {
-                return post.text + "\nKälla: " + post.source + " | Skapad: " + post.created_at
-            }).join("\n\n")
+            knowledgeList.model = posts
         }
     }
 }
