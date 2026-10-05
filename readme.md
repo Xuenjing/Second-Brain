@@ -1,71 +1,209 @@
 # Second Brain
 
-Projekt för LIA-perioden 2026-09-28 till 2026-11-20.
+Second Brain is a desktop application with the purpose to provide a local knowledge base where users can store information and later retrieve it through natural-language questions.
 
-## Syfte
+The application combines local knowledge storage, semantic search, retrieval and language models to provide answers based on information stored in the knowledge base.
 
-Utveckla ett Python-baserat kunskapsverktyg med ett QML-gränssnitt.
+## Current functionality
 
-Projektets exakta krav, arkitektur och tekniska lösningar kommer
-att definieras tillsammans under LIA-perioden.
+The current prototype supports:
 
-## Funktioner / Egenskaper
+- Manual knowledge input through the user interface
+- Import of `.txt` files
+- Local storage using SQLite
+- Storage of source information and creation timestamps
+- Embedding generation for stored knowledge
+- Semantic retrieval using cosine similarity
+- Retrieval-Augmented Generation (RAG)
+- Local language model integration
+- Knowledge base viewer
+- Duplicate handling for stored knowledge
+- System tray support
+- Communication between QML and Python using Qt signals and slots
 
-Applikationen ska kunna lagra information i en databas som fungerar som ett slags "second brain". Den lagrade kunskapen ska sedan kunna användas och sökas genom ett chattliknande gränssnitt.
+## Architecture
 
-En möjlig lösning är att låta interaktionen ske genom en kedja av:
+The application currently consists of several main parts:
 
-- Embeddings
-- RAG (Retrieval-Augmented Generation)
-- LLM (Large Language Model)
+### User interface
 
-Den exakta implementationen bestäms under projektets gång.
+The user interface is built with QML and Qt Quick.
 
-## Preliminär teknik
+QML communicates with the Python backend through PySide6 using signals and slots.
+
+### Backend
+
+The Python backend handles communication between the user interface and the underlying application logic.
+
+Its responsibilities currently include:
+
+- Receiving user questions
+- Adding knowledge manually
+- Importing text files
+- Loading knowledge for the user interface
+- Performing retrieval
+- Sending context to the language model
+- Returning generated answers to the user interface
+
+### Knowledge storage
+
+SQLite is currently used as the local knowledge database.
+
+Knowledge entries can contain:
+
+- Text
+- Source
+- Creation timestamp
+- Embedding
+
+Duplicate text entries are prevented by the database.
+
+### Embeddings and retrieval
+
+Embeddings are currently generated using:
+
+`paraphrase-multilingual-MiniLM-L12-v2`
+
+The user's question is converted into an embedding and compared with stored knowledge using cosine similarity.
+
+Relevant entries are selected using a similarity threshold and top-k retrieval.
+
+The retrieved entries are then used as context for the language model.
+
+### Language model
+
+The current local language model is:
+
+`Qwen/Qwen3-4B-Instruct-2507`
+
+The language model is accessed through a separate provider class rather than directly from the rest of the application.
+
+This is intended to make it possible to replace the current local model with another local model, an external provider or an internal Saab AI solution in the future.
+
+## Current project structure
+
+The project currently contains components such as:
+
+```text
+Second-Brain---LIA-PROJECT/
+│
+├── main.py
+├── backend.py
+├── database.py
+├── retrieval.py
+├── performance.py
+│
+├── llm/
+│   ├── __init__.py
+│   └── local_provider.py
+│
+├── qml/
+│   └── main.qml
+│
+└── README.md
+```
+
+The structure is still under development and may change as the project grows.
+
+## Performance
+
+Initial performance measurements have shown that model loading and local language-model inference currently account for most of the application's startup and response time.
+
+Recent measurements showed approximately:
+
+- Backend import and embedding-related initialization: ~28 seconds
+- Local LLM initialization: ~20 seconds
+- QML loading: <1 second
+- Total application startup: ~50 seconds
+
+Retrieval itself is currently significantly faster than local LLM generation.
+
+Further work will investigate:
+
+- Smaller or faster local language models
+- GPU inference
+- External AI providers
+- Model-loading performance
+
+## Planned development
+
+Current areas being considered for further development include:
+
+- Search within the knowledge base
+- Editing stored knowledge
+- Deleting stored knowledge
+- Sorting knowledge by date
+- Testing retrieval with larger datasets
+- Evaluation of similarity threshold and top-k values
+- External LLM provider support
+- GPU support and performance testing
+- Unit and integration testing
+- Improved project structure
+- License documentation
+- Email import
+- Voice input
+- Optional language switching
+
+## Language conventions
+
+The project uses English for:
+
+- Source code
+- Variable and function names
+- Technical documentation
+- README documentation
+
+The application interface and user-provided knowledge may be written in Swedish.
+
+Support for switching interface language may be investigated later.
+
+## Technology
+
+Current technologies and libraries include:
 
 - Python
-- PySide6 / QML
-- Git / GitHub
+- PySide6
+- QML / Qt Quick
 - SQLite
-- sentence-transformers
+- Sentence Transformers
 - Hugging Face Transformers
-- Qwen2.5-3B-Instruct
+- PyTorch
+- Qwen
 
-De exakta biblioteken och tekniska besluten dokumenteras allt eftersom de fattas.
+## Documentation
 
-## Struktur
+Official documentation used during development:
 
-- `main.py` – applikationens startpunkt
-- `backend.py` – kommunikation mellan Python och QML
-- `database.py` – datalagring
-- `qml/` – användargränssnitt
+- Python documentation
+- PySide6 documentation
+- Qt / QML documentation
+- SQLite documentation
+- Sentence Transformers documentation
+- Hugging Face Transformers documentation
+- PyTorch documentation
 
-## Status
+## Project status
 
-Projektstruktur skapad inför projektstart.
-Implementation påbörjas under LIA-perioden.
+The project is currently in active development.
 
+A first end-to-end prototype is working, including:
 
-## Referenser
+```text
+User question
+      ↓
+QML interface
+      ↓
+Python backend
+      ↓
+Semantic retrieval
+      ↓
+Relevant knowledge
+      ↓
+Language model
+      ↓
+Generated answer
+      ↓
+QML interface
+```
 
-### Python
-- [Python Documentation](https://docs.python.org/3/)
-- [Python Tutorial](https://docs.python.org/3/tutorial/)
-
-### PySide6 / QML
-- [Qt for Python / PySide6](https://doc.qt.io/qtforpython-6/)
-- [PySide6 Getting Started](https://doc.qt.io/qtforpython-6/quickstart.html)
-- [QML Reference](https://doc.qt.io/qt-6/qmlreference.html)
-- [QML Tutorial](https://doc.qt.io/qt-6/qml-tutorial.html)
-- [Qt Quick](https://doc.qt.io/qt-6/qtquick-index.html)
-
-### Databas
-- [SQLite Documentation](https://www.sqlite.org/docs.html)
-- [SQLite SQL Language](https://sqlite.org/lang.html)
-
-### AI / RAG
-- [Sentence Transformers](https://www.sbert.net/)
-- [Sentence Transformers Quickstart](https://www.sbert.net/docs/quickstart.html)
-- [Hugging Face Transformers](https://huggingface.co/docs/transformers/index)
-- [Transformers Quickstart](https://huggingface.co/docs/transformers/quicktour)
-- [Qwen2.5-3B-Instruct](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct)
+The next phase of development focuses on improving knowledge management, retrieval quality, model performance and provider flexibility.
