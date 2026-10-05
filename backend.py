@@ -14,7 +14,7 @@ from PySide6.QtCore import QObject, Signal, Slot, QUrl
 from retrieval import retrieve_knowledge, create_embedding
 from llm.local_provider import LocalLLMProvider
 from performance import measure_time
-from database import get_all_knowledge, add_knowledge
+from database import get_all_knowledge, add_knowledge, search_knowledge
 from datetime import datetime
 from pathlib import Path
 
@@ -91,6 +91,31 @@ class Backend(QObject):
                 "text": item["text"],
                 "source": item["source"],
                 "created_at": formatted_created_at
+            })
+
+        self.knowledgeLoaded.emit(knowledge_data)
+
+    @Slot(str)
+    def search_saved_knowledge(self, search):
+        """Find posts matching the text or source and send them to QML."""
+        search = search.strip()
+
+        # Show all posts when the search field is empty.
+        if not search:
+            self.load_all_knowledge()
+            return
+
+        knowledge = search_knowledge(search)
+
+        knowledge_data = []
+        for item in knowledge:
+            created_at = datetime.fromisoformat(item["created_at"])
+
+            knowledge_data.append({
+                "id": item["id"],
+                "text": item["text"],
+                "source": item["source"],
+                "created_at": created_at.strftime("%Y-%m-%d %H:%M")
             })
 
         self.knowledgeLoaded.emit(knowledge_data)
