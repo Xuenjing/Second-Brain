@@ -109,6 +109,75 @@ def add_txt_file_to_database(file_path, model):
     )
     return True
 
+def delete_knowledge(knowledge_id) -> bool:
+    '''
+    Delete a knowledge post from the database
+    '''
+    connection = sqlite3.connect("knowledge.db")
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM knowledge WHERE id = ?", (knowledge_id,))
+
+    # true if something was removed, false if not
+    deleted = cursor.rowcount > 0
+
+    connection.commit()
+    connection.close()
+    return deleted
+
+def edit_knowledge(knowledge_id, new_text, new_embedding) -> bool:
+    '''
+    Updates knowledge posts by receiving new text and new embedding
+    from backend, and then making the NumPy array into a python list,
+    and then to a JSON string
+    '''
+    connection = sqlite3.connect("knowledge.db")
+    cursor = connection.cursor()
+    embedding_json = json.dumps(new_embedding.tolist())
+    cursor.execute("""
+    UPDATE knowledge
+    SET text = ?, embedding = ?
+    WHERE id = ?
+    
+    """, (new_text, embedding_json, knowledge_id))
+
+    # true if updated, false if not
+    updated = cursor.rowcount > 0
+
+    connection.commit()
+    connection.close()
+
+    return updated
+
+def search_knowledge(search_term) -> list:
+    '''
+    Returns all knowledge entries that match the search term
+    in either the text or source fields.
+    '''
+    connection = sqlite3.connect("knowledge.db")
+    cursor = connection.cursor()
+
+    cursor.execute("""
+    SELECT id, text, source, created_at
+    FROM knowledge
+    WHERE text LIKE ? OR source LIKE ?
+    """, (f"%{search_term}%", f"%{search_term}%"))
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    results = []
+
+    for row_id, text, source, created_at in rows:
+
+        results.append({
+            "id": row_id,
+            "text": text,
+            "source": source,
+            "created_at": created_at
+        })
+
+    return results
+
 
 # testing database methods
 if __name__ == "__main__":
@@ -139,3 +208,4 @@ if __name__ == "__main__":
             "created_at": row["created_at"],
             "embedding_length": len(row["embedding"])
         })
+
