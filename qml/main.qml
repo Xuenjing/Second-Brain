@@ -439,7 +439,7 @@ ApplicationWindow {
                     required property var modelData
 
                     width: knowledgeList.width
-                    height: postContent.height + 24
+                    height: Math.max(postContent.height, editPostButton.height) + 24
                     color: "#0B1220"
                     radius: 8
 
@@ -447,7 +447,7 @@ ApplicationWindow {
                         id: postContent
                         x: 12
                         y: 12
-                        width: parent.width - 24
+                        width: parent.width - editPostButton.width - 36
                         spacing: 8
 
                         Label {
@@ -466,6 +466,45 @@ ApplicationWindow {
                             wrapMode: Text.WordWrap
                             color: "#94A3B8"
                             font.pixelSize: 12
+                        }
+                    }
+
+                    Button {
+                        id: editPostButton
+                        text: "Redigera"
+                        width: 100
+                        height: 40
+
+                        // Place the button to the right of the post text.
+                        anchors.right: parent.right
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        hoverEnabled: true
+
+                        contentItem: Text {
+                            text: editPostButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Match the other buttons with rounded corners and hover feedback.
+                        background: Rectangle {
+                            radius: 8
+                            color: editPostButton.down ? "#243B55"
+                                : editPostButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: "#38BDF8"
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            editKnowledgeDialog.knowledgeId = postItem.modelData.id
+                            editKnowledgeInput.text = postItem.modelData.text
+                            editKnowledgeStatus.text = ""
+                            editKnowledgeDialog.open()
                         }
                     }
                 }
@@ -516,6 +555,141 @@ ApplicationWindow {
         }
     }
 
+    Dialog {
+        id: editKnowledgeDialog
+        title: "Redigera kunskap"
+        property int knowledgeId: -1
+
+        modal: true
+        width: Math.min(500, root.width - 48)
+        height: Math.min(380, root.height - 48)
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        background: Rectangle {
+            color: "#152238"
+            radius: 12
+            border.color: "#2B405C"
+        }
+
+        header: Label {
+            text: editKnowledgeDialog.title
+            color: "#F1F5F9"
+            font.pixelSize: 18
+            font.bold: true
+            padding: 16
+        }
+
+        contentItem: Item {
+            ScrollView {
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: editKnowledgeStatus.top
+                anchors.bottomMargin: 12
+                contentWidth: availableWidth
+                clip: true
+
+                TextArea {
+                    id: editKnowledgeInput
+                    placeholderText: "Ändra kunskapspostens text"
+                    wrapMode: TextArea.Wrap
+                    textFormat: TextEdit.PlainText
+                    color: "#F1F5F9"
+                    placeholderTextColor: "#94A3B8"
+                    padding: 12
+
+                    background: Rectangle {
+                        color: "#0B1220"
+                        radius: 8
+                    }
+                }
+            }
+
+            // Display feedback from the backend.
+            Label {
+                id: editKnowledgeStatus
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                text: ""
+                color: "#F1F5F9"
+                wrapMode: Text.WordWrap
+            }
+        }
+
+        footer: Item {
+            implicitHeight: 64
+
+            Row {
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 12
+
+                Button {
+                    id: saveEditButton
+                    text: "Spara"
+                    width: 100
+                    height: 40
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: saveEditButton.text
+                        color: "#FFFFFF"
+                        font.pixelSize: 14
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+                        color: saveEditButton.down ? "#1D4ED8"
+                            : saveEditButton.hovered ? "#3B82F6"
+                            : "#2563EB"
+                    }
+
+                    // Send the post id and updated text to Python.
+                    onClicked: {
+                        editKnowledgeStatus.text = ""
+                        backend.edit_saved_knowledge(
+                            editKnowledgeDialog.knowledgeId,
+                            editKnowledgeInput.text
+                        )
+                    }
+                }
+
+                Button {
+                    id: cancelEditButton
+                    text: "Avbryt"
+                    width: 100
+                    height: 40
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: cancelEditButton.text
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+                        color: cancelEditButton.down ? "#243B55"
+                            : cancelEditButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#2B405C"
+                        border.width: 1
+                    }
+
+                    onClicked: editKnowledgeDialog.close()
+                }
+            }
+        }
+    }
+
     FileDialog {
         id: textFileDialog
         title: "Välj en textfil"
@@ -542,6 +716,15 @@ ApplicationWindow {
         // Keep all post data, including the id, in the list model.
         function onKnowledgeLoaded(posts) {
             knowledgeList.model = posts
+        }
+
+        // Show the edit result and refresh the current search on success.
+        function onKnowledgeEditResult(success, message) {
+            editKnowledgeStatus.text = message
+
+            if (success) {
+                backend.search_saved_knowledge(knowledgeSearchField.text)
+            }
         }
     }
 }
