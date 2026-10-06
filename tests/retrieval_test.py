@@ -1,3 +1,9 @@
+"""
+Run this test from the project root with:
+
+python -m tests.retrieval_test
+"""
+
 '''
 BENCHMARK MED TVÅ OLIKA QWEN-MODELLER
 
