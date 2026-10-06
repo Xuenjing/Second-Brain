@@ -1,0 +1,399 @@
+Huvudreceptionen öppnar klockan 07:30 på vardagar och stänger klockan 18:00.
+
+Besökare måste registrera sig i receptionen innan de går vidare in i byggnaden.
+
+Receptionen kan utfärda tillfälliga passerkort till registrerade besökare.
+
+Besöksbrickor ska bäras synligt under hela besöket.
+
+Besöksparkeringen vid huvudentrén har 25 platser.
+
+Personalparkeringen bakom byggnad B har 80 platser.
+
+Cykelparkeringen finns på den östra sidan av byggnad A.
+
+Central IT-support nås via internnummer 1234.
+
+Central IT-support är bemannad mellan 07:00 och 17:00 på vardagar.
+
+Mötesrum Orion ligger på våning 3 i byggnad C.
+
+Mötesrum Orion har plats för 12 personer.
+
+Mötesrum Orion har videokonferensutrustning och två stora skärmar.
+
+Mötesrum Vega ligger på våning 2 i byggnad B och har plats för 8 personer.
+
+Mötesrum Luna ligger på våning 1 i byggnad A och har plats för 6 personer.
+
+Konferenssalen Atlas ligger på våning 1 i byggnad D.
+
+Konferenssalen Atlas har plats för 60 personer och måste bokas minst två arbetsdagar i förväg.
+
+Huvudmatsalen öppnar för lunch klockan 11:00 och stänger klockan 14:00.
+
+Huvudmatsalen har 140 sittplatser.
+
+HR-avdelningen ligger på våning 2 i byggnad B.
+
+HR-mottagningen har drop-in på tisdagar mellan 13:00 och 15:00.
+
+Brandövning genomförs första måndagen varje månad.
+
+Vid brandlarm ska byggnaden lämnas via närmaste markerade nödutgång och hissar får inte användas.
+
+Stockholm är Sveriges största stad. Göteborg är Sveriges näst största stad. Malmö är Sveriges tredje största stad.
+
+Specialkost ska anmälas senast klockan 09:00 samma dag.
+
+Reservdatorer kan lånas i maximalt fem arbetsdagar.
+
+Reception 1 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Reception 2 öppnar klockan 9:00 och stänger klockan 18:00.
+
+Reception 3 öppnar klockan 7:00 och stänger klockan 16:00.
+
+Reception 4 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Reception 5 öppnar klockan 9:00 och stänger klockan 18:00.
+
+Reception 6 öppnar klockan 7:00 och stänger klockan 16:00.
+
+Reception 7 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Reception 8 öppnar klockan 9:00 och stänger klockan 18:00.
+
+Reception 9 öppnar klockan 7:00 och stänger klockan 16:00.
+
+Reception 10 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Reception 11 öppnar klockan 9:00 och stänger klockan 18:00.
+
+Reception 12 öppnar klockan 7:00 och stänger klockan 16:00.
+
+Reception 13 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Reception 14 öppnar klockan 9:00 och stänger klockan 18:00.
+
+Reception 15 öppnar klockan 7:00 och stänger klockan 16:00.
+
+Reception 16 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Reception 17 öppnar klockan 9:00 och stänger klockan 18:00.
+
+Reception 18 öppnar klockan 7:00 och stänger klockan 16:00.
+
+Reception 19 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Reception 20 öppnar klockan 9:00 och stänger klockan 18:00.
+
+Reception 21 öppnar klockan 7:00 och stänger klockan 16:00.
+
+Reception 22 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Reception 23 öppnar klockan 9:00 och stänger klockan 18:00.
+
+Reception 24 öppnar klockan 7:00 och stänger klockan 16:00.
+
+Reception 25 öppnar klockan 8:00 och stänger klockan 17:00.
+
+Besöksparkering 1 finns vid byggnad A.
+
+Besöksparkering 2 finns vid byggnad B.
+
+Besöksparkering 3 finns vid byggnad C.
+
+Besöksparkering 4 finns vid byggnad D.
+
+Besöksparkering 5 finns vid byggnad E.
+
+Besöksparkering 6 finns vid byggnad A.
+
+Besöksparkering 7 finns vid byggnad B.
+
+Besöksparkering 8 finns vid byggnad C.
+
+Besöksparkering 9 finns vid byggnad D.
+
+Besöksparkering 10 finns vid byggnad E.
+
+Besöksparkering 11 finns vid byggnad A.
+
+Besöksparkering 12 finns vid byggnad B.
+
+Besöksparkering 13 finns vid byggnad C.
+
+Besöksparkering 14 finns vid byggnad D.
+
+Besöksparkering 15 finns vid byggnad E.
+
+Besöksparkering 16 finns vid byggnad A.
+
+Besöksparkering 17 finns vid byggnad B.
+
+Besöksparkering 18 finns vid byggnad C.
+
+Besöksparkering 19 finns vid byggnad D.
+
+Besöksparkering 20 finns vid byggnad E.
+
+Besöksparkering 21 finns vid byggnad A.
+
+Besöksparkering 22 finns vid byggnad B.
+
+Besöksparkering 23 finns vid byggnad C.
+
+Besöksparkering 24 finns vid byggnad D.
+
+Besöksparkering 25 finns vid byggnad E.
+
+IT-support för avdelning 1 nås via internnummer 1201.
+
+IT-support för avdelning 2 nås via internnummer 1202.
+
+IT-support för avdelning 3 nås via internnummer 1203.
+
+IT-support för avdelning 4 nås via internnummer 1204.
+
+IT-support för avdelning 5 nås via internnummer 1205.
+
+IT-support för avdelning 6 nås via internnummer 1206.
+
+IT-support för avdelning 7 nås via internnummer 1207.
+
+IT-support för avdelning 8 nås via internnummer 1208.
+
+IT-support för avdelning 9 nås via internnummer 1209.
+
+IT-support för avdelning 10 nås via internnummer 1210.
+
+IT-support för avdelning 11 nås via internnummer 1211.
+
+IT-support för avdelning 12 nås via internnummer 1212.
+
+IT-support för avdelning 13 nås via internnummer 1213.
+
+IT-support för avdelning 14 nås via internnummer 1214.
+
+IT-support för avdelning 15 nås via internnummer 1215.
+
+IT-support för avdelning 16 nås via internnummer 1216.
+
+IT-support för avdelning 17 nås via internnummer 1217.
+
+IT-support för avdelning 18 nås via internnummer 1218.
+
+IT-support för avdelning 19 nås via internnummer 1219.
+
+IT-support för avdelning 20 nås via internnummer 1220.
+
+IT-support för avdelning 21 nås via internnummer 1221.
+
+IT-support för avdelning 22 nås via internnummer 1222.
+
+IT-support för avdelning 23 nås via internnummer 1223.
+
+IT-support för avdelning 24 nås via internnummer 1224.
+
+IT-support för avdelning 25 nås via internnummer 1225.
+
+Mötesrum 1 måste bokas minst 2 timmar i förväg.
+
+Mötesrum 2 måste bokas minst 3 timmar i förväg.
+
+Mötesrum 3 måste bokas minst 4 timmar i förväg.
+
+Mötesrum 4 måste bokas minst 5 timmar i förväg.
+
+Mötesrum 5 måste bokas minst 1 timmar i förväg.
+
+Mötesrum 6 måste bokas minst 2 timmar i förväg.
+
+Mötesrum 7 måste bokas minst 3 timmar i förväg.
+
+Mötesrum 8 måste bokas minst 4 timmar i förväg.
+
+Mötesrum 9 måste bokas minst 5 timmar i förväg.
+
+Mötesrum 10 måste bokas minst 1 timmar i förväg.
+
+Mötesrum 11 måste bokas minst 2 timmar i förväg.
+
+Mötesrum 12 måste bokas minst 3 timmar i förväg.
+
+Mötesrum 13 måste bokas minst 4 timmar i förväg.
+
+Mötesrum 14 måste bokas minst 5 timmar i förväg.
+
+Mötesrum 15 måste bokas minst 1 timmar i förväg.
+
+Mötesrum 16 måste bokas minst 2 timmar i förväg.
+
+Mötesrum 17 måste bokas minst 3 timmar i förväg.
+
+Mötesrum 18 måste bokas minst 4 timmar i förväg.
+
+Mötesrum 19 måste bokas minst 5 timmar i förväg.
+
+Mötesrum 20 måste bokas minst 1 timmar i förväg.
+
+Mötesrum 21 måste bokas minst 2 timmar i förväg.
+
+Mötesrum 22 måste bokas minst 3 timmar i förväg.
+
+Mötesrum 23 måste bokas minst 4 timmar i förväg.
+
+Mötesrum 24 måste bokas minst 5 timmar i förväg.
+
+Mötesrum 25 måste bokas minst 1 timmar i förväg.
+
+Matsal 1 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 2 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 3 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 4 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 5 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 6 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 7 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 8 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 9 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 10 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 11 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 12 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 13 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 14 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 15 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 16 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 17 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 18 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 19 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 20 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 21 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 22 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 23 serverar lunch mellan klockan 11:30 och 14:30.
+
+Matsal 24 serverar lunch mellan klockan 10:30 och 13:30.
+
+Matsal 25 serverar lunch mellan klockan 11:30 och 14:30.
+
+Besökare till säkerhetszon 1 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 2 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 3 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 4 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 5 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 6 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 7 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 8 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 9 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 10 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 11 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 12 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 13 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 14 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 15 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 16 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 17 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 18 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 19 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 20 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 21 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 22 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 23 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 24 måste bära besöksbricka och ledsagas av behörig personal.
+
+Besökare till säkerhetszon 25 måste bära besöksbricka och ledsagas av behörig personal.
+
+Byggnad A innehåller huvudreceptionen, cafeterian och flera mindre mötesrum. Besökare kommer normalt in via huvudentrén och registrerar sig i receptionen innan de går vidare.
+
+Byggnad B innehåller huvudmatsalen, HR-avdelningen och flera kontorsytor. Personalparkeringen ligger bakom byggnad B och är större än besöksparkeringen vid huvudentrén.
+
+För ett externt möte i Orion måste mötesrummet bokas i kalendern och de externa deltagarna föranmälas i receptionen.
+
+En anställd som tappar sitt passerkort ska omedelbart rapportera det så att kortet kan spärras. Ett tillfälligt passerkort kan därefter utfärdas via receptionen.
+
+Besöksparkeringen vid huvudentrén har 25 platser, medan personalparkeringen bakom byggnad B har 80 platser. Handikapparkering finns direkt till vänster om huvudentrén.
+
+Mötesrum Orion ligger på våning 3 i byggnad C och rymmer 12 personer. Det är utrustat med videokonferenssystem och två stora skärmar.
+
+Konferenssalen Atlas ligger på våning 1 i byggnad D, har plats för 60 personer och måste bokas minst två arbetsdagar i förväg.
+
+Vid ett brandlarm ska personal och besökare lämna byggnaden via närmaste nödutgång och gå till respektive återsamlingsplats. Hissar får inte användas under evakuering.
+
+Huvudmatsalen serverar lunch mellan 11:00 och 14:00 och har 140 sittplatser. Cafeterian öppnar 07:30 och stänger 16:00.
+
+En ny medarbetare måste genomföra säkerhetsintroduktion innan full behörighet ges och får introduktionsmaterial under sin första arbetsdag.
+
+Avdelning 1 ligger på våning 2 i byggnad A och använder möteszon 1.
+
+Avdelning 2 ligger på våning 3 i byggnad B och använder möteszon 2.
+
+Avdelning 3 ligger på våning 4 i byggnad C och använder möteszon 3.
+
+Avdelning 4 ligger på våning 5 i byggnad D och använder möteszon 4.
+
+Avdelning 5 ligger på våning 1 i byggnad E och använder möteszon 1.
+
+Avdelning 6 ligger på våning 2 i byggnad A och använder möteszon 2.
+
+Avdelning 7 ligger på våning 3 i byggnad B och använder möteszon 3.
+
+Avdelning 8 ligger på våning 4 i byggnad C och använder möteszon 4.
+
+Avdelning 9 ligger på våning 5 i byggnad D och använder möteszon 1.
+
+Avdelning 10 ligger på våning 1 i byggnad E och använder möteszon 2.
+
+Avdelning 11 ligger på våning 2 i byggnad A och använder möteszon 3.
+
+Avdelning 12 ligger på våning 3 i byggnad B och använder möteszon 4.
+
+Avdelning 13 ligger på våning 4 i byggnad C och använder möteszon 1.
+
+Avdelning 14 ligger på våning 5 i byggnad D och använder möteszon 2.
+
+Avdelning 15 ligger på våning 1 i byggnad E och använder möteszon 3.

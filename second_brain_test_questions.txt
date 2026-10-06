@@ -1,0 +1,76 @@
+Kontrollfrågor / facit
+
+1. När öppnar huvudreceptionen på vardagar?
+Facit: 07:30.
+
+2. Hur många platser finns på besöksparkeringen vid huvudentrén?
+Facit: 25 platser.
+
+3. Hur många platser finns på personalparkeringen bakom byggnad B?
+Facit: 80 platser.
+
+4. Var finns cykelparkeringen?
+Facit: På den östra sidan av byggnad A.
+
+5. Vilket internnummer har central IT-support?
+Facit: 1234.
+
+6. När är central IT-support bemannad?
+Facit: 07:00–17:00 på vardagar.
+
+7. Var ligger mötesrum Orion och hur många personer rymmer det?
+Facit: Våning 3 i byggnad C, 12 personer.
+
+8. Vilket mötesrum har videokonferensutrustning och två stora skärmar?
+Facit: Orion.
+
+9. Var ligger konferenssalen Atlas och hur långt i förväg måste den bokas?
+Facit: Våning 1 i byggnad D, minst två arbetsdagar i förväg.
+
+10. När öppnar huvudmatsalen för lunch?
+Facit: 11:00.
+
+11. Hur många sittplatser har huvudmatsalen?
+Facit: 140.
+
+12. Var ligger HR-avdelningen?
+Facit: Våning 2 i byggnad B.
+
+13. När har HR drop-in?
+Facit: Tisdagar 13:00–15:00.
+
+14. När genomförs brandövningen?
+Facit: Första måndagen varje månad.
+
+15. Vad ska en besökare bära under hela besöket?
+Facit: En synlig besöksbricka.
+
+16. Vad ska göras om ett passerkort tappas bort?
+Facit: Det ska rapporteras omedelbart så att kortet kan spärras.
+
+17. Vad måste göras inför ett externt möte i Orion?
+Facit: Rummet ska bokas och externa deltagare ska föranmälas i receptionen.
+
+18. Vad ska göras vid brandlarm?
+Facit: Lämna via närmaste nödutgång och använd inte hiss.
+
+19. Vilka är Sveriges tre största städer i rangordning?
+Facit: Stockholm, Göteborg, Malmö.
+
+20. Hur får man ett tillfälligt passerkort?
+Facit: Via receptionen.
+
+21. Hur länge får en reservdator lånas?
+Facit: Maximalt fem arbetsdagar.
+
+22. När ska specialkost anmälas?
+Facit: Senast 09:00 samma dag.
+
+23. Hur många personer rymmer Atlas jämfört med Orion?
+Facit: Atlas 60, Orion 12.
+
+24. Vilken parkering är störst, besöksparkeringen eller personalparkeringen?
+Facit: Personalparkeringen, 80 platser mot 25.
+
+25. Vilken byggnad innehåller huvudmatsalen och HR-avdelningen?
+Facit: Byggnad B.
