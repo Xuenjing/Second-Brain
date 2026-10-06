@@ -57,16 +57,23 @@ def add_knowledge(text, embedding, source="manual"):
 
     return added
 
-def get_all_knowledge():
+def get_all_knowledge(sort_order="desc"):
     '''
     Get all posts from knowledge.db as a dictionary
     Converts embedding JSON back into a python list
     '''
     connection = sqlite3.connect("knowledge.db")
     cursor = connection.cursor()
-    cursor.execute("""
+
+    if sort_order == "asc":
+        order = "asc"
+    else:
+        order = "desc"
+
+    cursor.execute(f"""
         SELECT id, text, source, created_at, embedding
         FROM knowledge
+        ORDER BY created_at {order}
         """)
     rows = cursor.fetchall() # fetch all rows matching select
     connection.close()
