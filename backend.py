@@ -24,10 +24,11 @@ class Backend(QObject):
 
     def __init__(self):
         super().__init__()
-
-        self.llm = LocalLLMProvider(
-            "Qwen/Qwen3-4B-Instruct-2507"
-            )
+        # lighter and faster model
+        self.llm = LocalLLMProvider("Qwen/Qwen3-0.6B")
+        
+        # more demanding model
+        # self.llm = LocalLLMProvider("Qwen/Qwen3-4B-Instruct-2507")
 
     # Signal från Python till QML med texten som ska visas.
     replyReady = Signal(str)
@@ -62,7 +63,10 @@ class Backend(QObject):
             for result in results
         )
 
+        # no_think to remove thinking mode from model
         prompt = f"""
+    /no_think
+    
     Use only the information in the context below to answer the question.
 
     CONTEXT:

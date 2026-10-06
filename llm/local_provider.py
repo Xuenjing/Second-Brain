@@ -28,11 +28,15 @@ class LocalLLMProvider:
 
         result = self.generator(
             messages,
-            max_new_tokens = 50,
+            max_new_tokens = 100,
             do_sample = False
         )
 
         # First dictionary in list -> list with chat messages -> last message (assistant) -> content
         answer = result[0]["generated_text"][-1]["content"]
+
+        # strip away /think from answer if disabling thinking mode
+        if "</think>" in answer:
+            answer = answer.split("</think>", 1)[1].strip()
 
         return answer
