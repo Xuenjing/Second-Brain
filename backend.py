@@ -86,12 +86,12 @@ class Backend(QObject):
         # Bekräfta i gränssnittet att anropet har körts.
         self.replyReady.emit(answer)
 
-    @Slot()
-    def load_all_knowledge(self):
+    @Slot(str)
+    def load_all_knowledge(self, sort_order="desc"):
         '''
         Get all knowledge from database and send it to QML as a dictionary
         '''
-        knowledge = get_all_knowledge()
+        knowledge = get_all_knowledge(sort_order)
 
         knowledge_data = []
         for item in knowledge:

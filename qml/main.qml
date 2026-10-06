@@ -107,7 +107,7 @@ ApplicationWindow {
                 // Öppna dialogen och hämta aktuella poster från databasen.
                 onClicked: {
                     knowledgeViewDialog.open()
-                    backend.load_all_knowledge()
+                    backend.load_all_knowledge("desc")
                 }
             }
         }
@@ -421,10 +421,69 @@ ApplicationWindow {
                 onTextEdited: backend.search_saved_knowledge(text)
             }
 
+            // a row of up/down arrows to sort posts by date added
+            Row {
+                id: sortButtons
+                anchors.top: knowledgeSearchField.bottom
+                anchors.topMargin: 6
+                anchors.right: parent.right
+                spacing: 2
+
+                Button {
+                    id: sortAscendingButton
+                    width: 30
+                    height: 30
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: "↑"
+                        color: sortAscendingButton.hovered ? "#F1F5F9" : "#94A3B8"
+                        font.pixelSize: 18
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 6
+                        color: sortAscendingButton.hovered ? "#1E3350" : "transparent"
+                    }
+
+                    onClicked: backend.load_all_knowledge("asc")
+
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Äldst först"
+                }
+
+                Button {
+                    id: sortDescendingButton
+                    width: 30
+                    height: 30
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: "↓"
+                        color: sortDescendingButton.hovered ? "#F1F5F9" : "#94A3B8"
+                        font.pixelSize: 18
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 6
+                        color: sortDescendingButton.hovered ? "#1E3350" : "transparent"
+                    }
+
+                    onClicked: backend.load_all_knowledge("desc")
+
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Nyast först"
+                }
+            }
+
             ListView {
                 id: knowledgeList
-                anchors.top: knowledgeSearchField.bottom
-                anchors.topMargin: 16
+                anchors.top: sortButtons.bottom
+                anchors.topMargin: 6
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
