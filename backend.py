@@ -15,7 +15,7 @@ from PySide6.QtCore import QObject, Signal, Slot, QUrl
 from retrieval import retrieve_knowledge, create_embedding
 from llm.local_provider import LocalLLMProvider
 from performance import measure_time
-from database import get_all_knowledge, add_knowledge, search_knowledge, edit_knowledge
+from database import get_all_knowledge, add_knowledge, search_knowledge, edit_knowledge, delete_knowledge
 from datetime import datetime
 from pathlib import Path
 
@@ -39,6 +39,9 @@ class Backend(QObject):
     # Send the edit result to QML.
     # Bool is used to check whether saving succeeded.
     knowledgeEditResult = Signal(bool, str)
+
+    # Send the deletion result to QML.
+    knowledgeDeleteResult = Signal(bool, str)
 
     # QML anropar denna metod och skickar med texten från användaren.
     @Slot(str)
@@ -160,6 +163,20 @@ class Backend(QObject):
             )
         else:
             self.knowledgeEditResult.emit(
+                False, "Kunskapsposten kunde inte hittas."
+            )
+
+    @Slot(int)
+    def delete_saved_knowledge(self, knowledge_id):
+        """Delete the selected knowledge post."""
+        deleted = delete_knowledge(knowledge_id)
+
+        if deleted:
+            self.knowledgeDeleteResult.emit(
+                True, "Kunskapsposten har tagits bort."
+            )
+        else:
+            self.knowledgeDeleteResult.emit(
                 False, "Kunskapsposten kunde inte hittas."
             )
     

@@ -439,7 +439,7 @@ ApplicationWindow {
                     required property var modelData
 
                     width: knowledgeList.width
-                    height: Math.max(postContent.height, editPostButton.height) + 24
+                    height: Math.max(postContent.height, postActions.height) + 24
                     color: "#0B1220"
                     radius: 8
 
@@ -447,7 +447,7 @@ ApplicationWindow {
                         id: postContent
                         x: 12
                         y: 12
-                        width: parent.width - editPostButton.width - 36
+                        width: parent.width - postActions.width - 36
                         spacing: 8
 
                         Label {
@@ -469,42 +469,81 @@ ApplicationWindow {
                         }
                     }
 
-                    Button {
-                        id: editPostButton
-                        text: "Redigera"
+                    Column {
+                        id: postActions
                         width: 100
-                        height: 40
+                        spacing: 8
 
                         // Place the button to the right of the post text.
                         anchors.right: parent.right
                         anchors.rightMargin: 12
                         anchors.verticalCenter: parent.verticalCenter
 
-                        hoverEnabled: true
+                        Button {
+                            id: editPostButton
+                            text: "Redigera"
+                            width: 100
+                            height: 40
 
-                        contentItem: Text {
-                            text: editPostButton.text
-                            color: "#F1F5F9"
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
+                            hoverEnabled: true
+
+                            contentItem: Text {
+                                text: editPostButton.text
+                                color: "#F1F5F9"
+                                font.pixelSize: 14
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            // Match the other buttons with rounded corners and hover feedback.
+                            background: Rectangle {
+                                radius: 8
+                                color: editPostButton.down ? "#243B55"
+                                    : editPostButton.hovered ? "#1E3350"
+                                    : "#152238"
+                                border.color: "#38BDF8"
+                                border.width: 1
+                            }
+
+                            onClicked: {
+                                editKnowledgeDialog.knowledgeId = postItem.modelData.id
+                                editKnowledgeInput.text = postItem.modelData.text
+                                editKnowledgeStatus.text = ""
+                                editKnowledgeDialog.open()
+                            }
                         }
 
-                        // Match the other buttons with rounded corners and hover feedback.
-                        background: Rectangle {
-                            radius: 8
-                            color: editPostButton.down ? "#243B55"
-                                : editPostButton.hovered ? "#1E3350"
-                                : "#152238"
-                            border.color: "#38BDF8"
-                            border.width: 1
-                        }
+                        Button {
+                            id: deletePostButton
+                            text: "Ta bort"
+                            width: 100
+                            height: 40
+                            hoverEnabled: true
 
-                        onClicked: {
-                            editKnowledgeDialog.knowledgeId = postItem.modelData.id
-                            editKnowledgeInput.text = postItem.modelData.text
-                            editKnowledgeStatus.text = ""
-                            editKnowledgeDialog.open()
+                            contentItem: Text {
+                                text: deletePostButton.text
+                                color: "#FCA5A5"
+                                font.pixelSize: 14
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            background: Rectangle {
+                                radius: 8
+                                color: deletePostButton.down ? "#7F1D1D"
+                                    : deletePostButton.hovered ? "#552020"
+                                    : "#152238"
+                                border.color: "#F87171"
+                                border.width: 1
+                            }
+
+                            // Ask for confirmation before deleting the selected post.
+                            onClicked: {
+                                deleteKnowledgeDialog.knowledgeId = postItem.modelData.id
+                                deleteKnowledgeDialog.postText = postItem.modelData.text
+                                deleteKnowledgeStatus.text = ""
+                                deleteKnowledgeDialog.open()
+                            }
                         }
                     }
                 }
@@ -690,6 +729,131 @@ ApplicationWindow {
         }
     }
 
+    Dialog {
+        id: deleteKnowledgeDialog
+        title: "Ta bort kunskap"
+        property int knowledgeId: -1
+        property string postText: ""
+
+        modal: true
+        width: Math.min(500, root.width - 48)
+        height: Math.min(320, root.height - 48)
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        background: Rectangle {
+            color: "#152238"
+            radius: 12
+            border.color: "#2B405C"
+        }
+
+        header: Label {
+            text: deleteKnowledgeDialog.title
+            color: "#F1F5F9"
+            font.pixelSize: 18
+            font.bold: true
+            padding: 16
+        }
+
+        contentItem: Column {
+            spacing: 12
+
+            Label {
+                width: parent.width
+                text: "Vill du ta bort den här kunskapsposten?"
+                color: "#F1F5F9"
+                wrapMode: Text.WordWrap
+            }
+
+            Label {
+                width: parent.width
+                text: deleteKnowledgeDialog.postText
+                textFormat: Text.PlainText
+                maximumLineCount: 4
+                elide: Text.ElideRight
+                wrapMode: Text.WordWrap
+                color: "#94A3B8"
+            }
+
+            // Show feedback if the post could not be deleted.
+            Label {
+                id: deleteKnowledgeStatus
+                width: parent.width
+                text: ""
+                color: "#FCA5A5"
+                wrapMode: Text.WordWrap
+            }
+        }
+
+        footer: Item {
+            implicitHeight: 64
+
+            Row {
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 12
+
+                Button {
+                    id: confirmDeleteButton
+                    text: "Ta bort"
+                    width: 100
+                    height: 40
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: confirmDeleteButton.text
+                        color: "#FFFFFF"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+                        color: confirmDeleteButton.down ? "#991B1B"
+                            : confirmDeleteButton.hovered ? "#EF4444"
+                            : "#DC2626"
+                    }
+
+                    // Delete only after the user confirms.
+                    onClicked: {
+                        deleteKnowledgeStatus.text = ""
+                        backend.delete_saved_knowledge(
+                            deleteKnowledgeDialog.knowledgeId
+                        )
+                    }
+                }
+
+                Button {
+                    id: cancelDeleteButton
+                    text: "Avbryt"
+                    width: 100
+                    height: 40
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: cancelDeleteButton.text
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+                        color: cancelDeleteButton.down ? "#243B55"
+                            : cancelDeleteButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#2B405C"
+                    }
+
+                    onClicked: deleteKnowledgeDialog.close()
+                }
+            }
+        }
+    }
+
     FileDialog {
         id: textFileDialog
         title: "Välj en textfil"
@@ -724,6 +888,16 @@ ApplicationWindow {
 
             if (success) {
                 backend.search_saved_knowledge(knowledgeSearchField.text)
+            }
+        }
+
+        // Close the dialog and refresh the current search after deletion.
+        function onKnowledgeDeleteResult(success, message) {
+            if (success) {
+                deleteKnowledgeDialog.close()
+                backend.search_saved_knowledge(knowledgeSearchField.text)
+            } else {
+                deleteKnowledgeStatus.text = message
             }
         }
     }
