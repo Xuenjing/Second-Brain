@@ -14,11 +14,13 @@ from datetime import datetime
 from pathlib import Path
 import json
 
+DATABASE_PATH = "knowledge.db"
+
 def initialize_database():
     '''
     Skapar kunskapsdatabasen om den inte redan är skapad
     '''
-    connection = sqlite3.connect("knowledge.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS knowledge (
@@ -38,7 +40,7 @@ def add_knowledge(text, embedding, source="manual"):
     Converts the embedding to json-format
     Returns true if rows were added, false if not
     '''
-    connection = sqlite3.connect("knowledge.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
     created_at = datetime.now().isoformat()
     embedding_json = json.dumps(embedding.tolist()) # convert embedding to json
@@ -62,7 +64,7 @@ def get_all_knowledge(sort_order="desc"):
     Get all posts from knowledge.db as a dictionary
     Converts embedding JSON back into a python list
     '''
-    connection = sqlite3.connect("knowledge.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
 
     if sort_order == "asc":
@@ -120,7 +122,7 @@ def delete_knowledge(knowledge_id) -> bool:
     '''
     Delete a knowledge post from the database
     '''
-    connection = sqlite3.connect("knowledge.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
     cursor.execute("DELETE FROM knowledge WHERE id = ?", (knowledge_id,))
 
@@ -137,7 +139,7 @@ def edit_knowledge(knowledge_id, new_text, new_embedding) -> bool:
     from backend, and then making the NumPy array into a python list,
     and then to a JSON string
     '''
-    connection = sqlite3.connect("knowledge.db")
+    connection = sqlite3.connect(DATABASE_PATH)
 
     try:
         # Commit on success and roll back if an error occurs.
@@ -161,7 +163,7 @@ def search_knowledge(search_term) -> list:
     Returns all knowledge entries that match the search term
     in either the text or source fields.
     '''
-    connection = sqlite3.connect("knowledge.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
 
     cursor.execute("""
