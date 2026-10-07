@@ -207,3 +207,15 @@ QML interface
 ```
 
 The next phase of development focuses on improving knowledge management, retrieval quality, model performance and provider flexibility.
+
+## Licensing
+
+Main dependencies include:
+
+- PySide6 / Qt – LGPLv3, GPLv3, or commercial licensing depending on component and usage.
+- Sentence Transformers – Apache License 2.0.
+- Hugging Face Transformers – Apache License 2.0.
+- Qwen3-0.6B – Apache License 2.0.
+- PyTorch – BSD-style license; bundled third-party components may use additional licenses.
+- NumPy – modified BSD license.
+- scikit-learn – BSD 3-Clause license.
