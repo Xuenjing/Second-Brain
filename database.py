@@ -93,6 +93,7 @@ def get_all_knowledge(sort_order="desc"):
 
     return knowledge
 
+# NOT CURRENTLY IN USE: FLAGGED FOR REMOVAL ???
 def add_txt_file_to_database(file_path, model):
     '''
     Receieve, read and add the contents of a .txt file to the knowledge database,

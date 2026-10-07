@@ -205,10 +205,32 @@ class Backend(QObject):
 
     @Slot(str)
     def add_txt_knowledge(self, file_path):
+        '''
+        Receives a txt file from QML, and after passing safeguards, 
+        splits it into chunks and adds them to the database.
+        '''
         local_path = QUrl(file_path).toLocalFile() # convert to local windows file path
         path = Path(local_path)
-        text = path.read_text(encoding="utf-8")
 
+        # safeguards
+        if path.suffix.lower() != ".txt":
+            self.knowledgeSaveResult.emit("Only .txt files are supported.")
+            return
+        if not path.exists():
+            self.knowledgeSaveResult.emit("The selected file does not exist.")
+            return
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            self.knowledgeSaveResult.emit("The file could not be read as UTF-8.") # catch unicode errors
+            return
+        except OSError:
+            self.knowledgeSaveResult.emit("The file could not be read.")
+            return
+        if not text.strip():
+            self.knowledgeSaveResult.emit("The file is empty.")
+            return
+        
         # sort the text into chunks if text can be split into paragraphs
         chunks = [chunk.strip() for chunk in text.split("\n\n") if chunk.strip()]
 
@@ -224,4 +246,4 @@ class Backend(QObject):
         if added_count == 0:
             self.knowledgeSaveResult.emit("No new knowledge was added.")
         else:
-            self.knowledgeSaveResult.emit("Text file imported.")
+            self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from text file.")
