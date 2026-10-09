@@ -26,17 +26,28 @@ class LocalLLMProvider:
             }
         ]
 
-        result = self.generator(
+        # format the text message to what Qwen expects
+        formatted_prompt = self.generator.tokenizer.apply_chat_template(
             messages,
+            tokenize = False, # return the formatted text (not the token ID)
+            add_generation_prompt = True, # mark the assistent's turn to answer
+            enable_thinking = False # remove thinking mode without specifically adding it to the message
+        )
+
+        result = self.generator(
+            formatted_prompt,
             max_new_tokens = 100,
             do_sample = False
         )
 
-        # First dictionary in list -> list with chat messages -> last message (assistant) -> content
-        answer = result[0]["generated_text"][-1]["content"]
+        # first dictionary in list -> full generated text containing prompt and answer
+        generated_text = result[0]["generated_text"]
+        # remove the prompt and keep only the answer
+        answer = generated_text[len(formatted_prompt):].strip()
 
+        # NOT NEEDED WITH FORMATTED PROMPT: FEEL FREE TO REMOVE
         # strip away /think from answer if disabling thinking mode
-        if "</think>" in answer:
-            answer = answer.split("</think>", 1)[1].strip()
+        # if "</think>" in answer:
+        #     answer = answer.split("</think>", 1)[1].strip()
 
         return answer

@@ -72,11 +72,14 @@ class Backend(QObject):
             for result in results
         )
 
-        # no_think to remove thinking mode from model
+
         prompt = f"""
-    /no_think
-    
-    Use only the information in the context below to answer the question.
+        Use only the information in the context below to answer the question.
+
+        Rules:
+        - Answer only using information from the context.
+        - If the answer is not available in the context, say so clearly.
+        - Do not make up information.
 
     CONTEXT:
     {context}
