@@ -15,7 +15,7 @@ from PySide6.QtCore import QObject, Signal, Slot, QUrl
 from retrieval import retrieve_knowledge, create_embedding
 from llm.local_provider import LocalLLMProvider
 from performance import measure_time
-from database import get_all_knowledge, add_knowledge, search_knowledge, edit_knowledge, delete_knowledge
+from database import get_all_knowledge, add_knowledge, search_knowledge, edit_knowledge, delete_knowledge, initialize_database
 from datetime import datetime
 from pathlib import Path
 
@@ -24,6 +24,9 @@ class Backend(QObject):
 
     def __init__(self):
         super().__init__()
+
+        initialize_database()
+
         # lighter and faster model
         self.llm = LocalLLMProvider("Qwen/Qwen3-0.6B")
         
