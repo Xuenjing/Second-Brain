@@ -28,7 +28,10 @@ class Backend(QObject):
         initialize_database()
 
         # lighter and faster model
-        self.llm = LocalLLMProvider("Qwen/Qwen3-0.6B")
+        # self.llm = LocalLLMProvider("Qwen/Qwen3-0.6B")
+
+        # medium model
+        self.llm = LocalLLMProvider("Qwen/Qwen3-1.7B")
         
         # more demanding model
         # self.llm = LocalLLMProvider("Qwen/Qwen3-4B-Instruct-2507")
