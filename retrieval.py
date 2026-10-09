@@ -13,7 +13,7 @@ def retrieve_knowledge(query):
     return only top_k results if they also exceed the similarity_threshold
     '''
     top_k = 5 # how many posts should be returned
-    similarity_threshold = 0.5 # to not return irrelevant posts
+    similarity_threshold = 0.45 # to not return irrelevant posts
 
     knowledge = get_all_knowledge()
 
