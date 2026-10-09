@@ -12,8 +12,8 @@ def retrieve_knowledge(query):
     Make a cosine similarity between the query and each post in the db
     return only top_k results if they also exceed the similarity_threshold
     '''
-    top_k = 2 # how many posts should be returned
-    similarity_threshold = 0.4 # to not return irrelevant posts
+    top_k = 5 # how many posts should be returned
+    similarity_threshold = 0.45 # to not return irrelevant posts
 
     knowledge = get_all_knowledge()
 

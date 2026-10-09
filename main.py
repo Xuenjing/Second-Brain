@@ -19,6 +19,7 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QStyle
 from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtQuickControls2 import QQuickStyle
 
 backend_import_start = time.perf_counter()
 from backend import Backend
@@ -29,32 +30,36 @@ print(
     f"{backend_import_end - backend_import_start:.3f} seconds"
 )
 
-# Starta Qt-applikationen och skapa motorn som läser QML.
+# Use a style that supports custom QML controls.
+QQuickStyle.setStyle("Basic")
+
+# Start Qt application and create the engine that loads QML.
 app = QApplication(sys.argv)
 engine = QQmlApplicationEngine()
 
-# Gör Python-objektet tillgängligt i QML under namnet "backend".
 backend_start = time.perf_counter()
 backend = Backend()
 backend_end = time.perf_counter()
 print(f"Backend creation: {backend_end - backend_start:.3f} seconds")
+
+# Make the Python object available to QML under the name "backend". 
 engine.rootContext().setContextProperty("backend", backend)
 
-# Hitta qml/main.qml
+# Find qml/main.qml
 qml_file = Path(__file__).resolve().parent / "qml" / "main.qml"
 qml_start = time.perf_counter()
 engine.load(str(qml_file))
 qml_end = time.perf_counter()
 print(f"QML load: {qml_end - qml_start:.3f} seconds")
 
-# Avsluta med ett fel om QML-fönstret inte kunde skapas.
+# Exit with an error code if the QML window could not be created.
 if not engine.rootObjects():
     sys.exit(1)
 
-# Hämta huvudfönstret som skapades av QML.
+# Get the main window that QML created.
 window = engine.rootObjects()[0]
 
-# Låt processen fortsätta även när huvudfönstret stängs.
+# Let the process continue even when the main window is closed. 
 app.setQuitOnLastWindowClosed(False)
 
 def show_window():
@@ -62,12 +67,12 @@ def show_window():
     window.raise_()
     window.requestActivate()
 
-# Använder en inbyggd Qt-ikon tillfälligt tills vi väljer en egen senare.
+# Use a built-in Qt icon until we choose our own.
 icon = app.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
 tray_icon = QSystemTrayIcon(icon, app)
 tray_icon.setToolTip("Second Brain")
 
-# Högerklicksmeny för tray-ikonen.
+# Right click menu for the tray icon.
 tray_menu = QMenu()
 
 open_action = tray_menu.addAction("Öppna")
@@ -86,5 +91,5 @@ print(
     f"{startup_end - startup_start:.3f} seconds"
 )
 
-# Håll appen igång tills användaren väljer Avsluta i tray-menyn.
+# Keep the app running until the user selects Exit from the tray menu.
 sys.exit(app.exec())

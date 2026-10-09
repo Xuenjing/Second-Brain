@@ -1,6 +1,12 @@
 from retrieval import retrieve_knowledge
 from llm.local_provider import LocalLLMProvider
 
+"""
+Run this test from the project root with:
+
+python -m tests.rag_test
+"""
+
 '''
 Test of an isolated RAG pipeline.
 

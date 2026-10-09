@@ -1,3 +1,9 @@
+"""
+Run this test from the project root with:
+
+python -m tests.local_llm_test
+"""
+
 '''
 Local LLM candidate:
 Qwen/Qwen3-4B-Instruct-2507
