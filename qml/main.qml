@@ -16,6 +16,10 @@ import QtQuick.Dialogs
 // Main application window.
 ApplicationWindow {
     id: root
+
+    // Track whether a question is being processed.
+    property bool isThinking: false
+
     visible: true
     width: 800
     height: 600
@@ -109,11 +113,69 @@ ApplicationWindow {
         }
 
         // Conversation title.
-        Label {
-            text: "Chatt"
-            font.pixelSize: 16
-            font.bold: true
-            color: "#F1F5F9"
+        // Keep the chat heading and thinking indicator on the same line.
+        Item {
+            width: parent.width
+            height: 32
+
+            Label {
+                id: chatHeading
+                text: "Chatt"
+                font.pixelSize: 16
+                font.bold: true
+                color: "#F1F5F9"
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            // Show an animated indicator while processing a question.
+            Row {
+                anchors.left: chatHeading.right
+                anchors.leftMargin: 16
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 8
+                visible: root.isThinking
+
+                // Show a rotating blue ring while processing.
+                Item {
+                    width: 24
+                    height: 24
+
+                    Rectangle {
+                        id: thinkingRing
+                        anchors.centerIn: parent
+                        width: 20
+                        height: 20
+                        radius: 10
+                        color: "transparent"
+                        border.color: "#38BDF8"
+                        border.width: 2
+
+                        Rectangle {
+                            width: 6
+                            height: 6
+                            radius: 3
+                            color: "#F1F5F9"
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: -2
+                        }
+
+                        RotationAnimator on rotation {
+                            from: 0
+                            to: 360
+                            duration: 1000
+                            loops: Animation.Infinite
+                            running: root.isThinking
+                        }
+                    }
+                }
+
+                Label {
+                    text: "Tänker…"
+                    color: "#94A3B8"
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
         }
 
         // Allow scrolling through the conversation.
@@ -175,6 +237,10 @@ ApplicationWindow {
             Button {
                 id: sendButton
                 text: "Skicka"
+
+                // Prevent sending another question while processing.
+                enabled: !root.isThinking
+
                 height: 44
                 width: 100
                 hoverEnabled: true
@@ -1058,6 +1124,16 @@ ApplicationWindow {
             } else {
                 deleteKnowledgeStatus.text = message
             }
+        }
+
+        // Show or hide the thinking indicator.
+        function onThinkingChanged(thinking) {
+            root.isThinking = thinking
+        }
+
+        // Display an error message in the chat.
+        function onReplyFailed(message) {
+            chatDisplay.append("Fel: " + message + "\n")
         }
     }
 }

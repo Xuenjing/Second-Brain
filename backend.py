@@ -10,7 +10,7 @@ Exakt struktur bestäms under projektets gång.
 """
 import sqlite3
 
-from PySide6.QtCore import QObject, Signal, Slot, QUrl
+from PySide6.QtCore import QObject, Signal, Slot, QUrl, QThread
 
 from retrieval import retrieve_knowledge, create_embedding
 from llm.local_provider import LocalLLMProvider
@@ -20,10 +20,64 @@ from datetime import datetime
 from pathlib import Path
 
 
+class Thinker(QThread):
+    """Process a question without blocking the interface."""
+
+    answerReady = Signal(str)
+    answerFailed = Signal(str)
+
+    def __init__(self, llm, question):
+        super().__init__()
+        self.llm = llm
+        self.question = question
+
+    def run(self):
+        try:
+            results = retrieve_knowledge(self.question)
+
+            if not results:
+                self.answerReady.emit(
+                    "Det finns inte tillräcklig information i kunskapsbasen."
+                )
+                return
+
+            context = "\n".join(
+                result["text"] for result in results
+            )
+
+            prompt = f"""
+Use only the information in the context below to answer the question.
+
+Rules:
+- Answer only using information from the context.
+- If the answer is not available in the context, say so clearly.
+- Do not make up information.
+
+CONTEXT:
+{context}
+
+QUESTION:
+{self.question}
+
+ANSWER:
+"""
+
+            answer = self.llm.generate(prompt)
+            self.answerReady.emit(answer)
+
+        except Exception as error:
+            print(f"Answer generation failed: {error}")
+            self.answerFailed.emit(
+                "Svaret kunde inte skapas. Försök igen."
+            )
+
 class Backend(QObject):
 
     def __init__(self):
         super().__init__()
+
+        # Keep a reference to the background thread.
+        self.thinker = None
 
         initialize_database()
 
@@ -39,6 +93,12 @@ class Backend(QObject):
     # Signal från Python till QML med texten som ska visas.
     replyReady = Signal(str)
 
+    # Send True when processing starts and False when it finishes.
+    thinkingChanged = Signal(bool)
+
+    # Send an error message to QML.
+    replyFailed = Signal(str)
+
     knowledgeLoaded = Signal(list)
     knowledgeSaveResult = Signal(str)
 
@@ -49,51 +109,42 @@ class Backend(QObject):
     # Send the deletion result to QML.
     knowledgeDeleteResult = Signal(bool, str)
 
-    # QML anropar denna metod och skickar med texten från användaren.
     @Slot(str)
-    @measure_time
     def receive_text(self, text):
-        # Sök efter kunskap som matchar frågan från QML.
-        results = retrieve_knowledge(text)
+        """Start processing a question in the background."""
+        text = text.strip()
 
-        if not results:
-            self.replyReady.emit(
-                "Det finns inte tillräcklig information i kunskapsbasen."
-                )
+        # Ignore empty questions or requests while already processing.
+        if not text or self.thinker is not None:
             return
 
-        # Visa träffarna i terminalen för kontroll.
-        print("Retrieved:")
-        for result in results:
-            print(result)
+        self.thinker = Thinker(self.llm, text)
 
-        context = "\n".join(
-            result["text"]
-            for result in results
-        )
+        # Receive the answer, errors and notification that the thread ended.
+        self.thinker.answerReady.connect(self.handle_answer)
+        self.thinker.answerFailed.connect(self.handle_error)
+        self.thinker.finished.connect(self.finish_thinking)
 
+        # Show the thinking indicator and start the background work.
+        self.thinkingChanged.emit(True)
+        self.thinker.start()
 
-        prompt = f"""
-        Use only the information in the context below to answer the question.
-
-        Rules:
-        - Answer only using information from the context.
-        - If the answer is not available in the context, say so clearly.
-        - Do not make up information.
-
-    CONTEXT:
-    {context}
-
-    QUESTION:
-    {text}
-
-    ANSWER:
-    """
-
-        answer = self.llm.generate(prompt)
-
-        # Bekräfta i gränssnittet att anropet har körts.
+    @Slot(str)
+    def handle_answer(self, answer):
+        """Send the answer to QML."""
         self.replyReady.emit(answer)
+
+    @Slot(str)
+    def handle_error(self, message):
+        """Send the error message to QML."""
+        self.replyFailed.emit(message)
+
+    @Slot()
+    def finish_thinking(self):
+        """Clean up after the background thread has finished."""
+        self.thinker.deleteLater()
+        self.thinker = None
+        self.thinkingChanged.emit(False)
 
     @Slot(str)
     def load_all_knowledge(self, sort_order="desc"):
