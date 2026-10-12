@@ -10,7 +10,7 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Dialogs 
+import QtQuick.Dialogs
 
 
 // Main application window.
@@ -110,7 +110,94 @@ ApplicationWindow {
                     backend.load_all_knowledge("desc")
                 }
             }
+
+            // Adds a dropdown menu for selection of LLM
+            ComboBox {
+                id: modelSelector
+
+                width: 305
+                height: 40
+
+                model: [
+                    "Qwen3 0.6B — Snabb",
+                    "Qwen3 1.7B — Rekommenderas",
+                    "Qwen3 4B — Långsam"
+                ]
+
+                currentIndex: 1
+
+                contentItem: Text {
+                    text: modelSelector.displayText
+                    color: "#F1F5F9"
+                    font.pixelSize: 14
+
+                    leftPadding: 12
+                    rightPadding: 32
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                }
+
+                background: Rectangle {
+                    color: "#152238"
+                    radius: 8
+                    border.color: modelSelector.activeFocus ? "#38BDF8" : "#2B405C"
+                    border.width: 1
+                }
+
+                // Dictates how every row in dropdown should act
+                delegate: ItemDelegate {
+                    width: ListView.view.width
+                    height: 40
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: modelData
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: 12
+                    }
+
+                    // if/elif/else for marked and hover
+                    background: Rectangle {
+                        radius: 6
+                        
+                        color: parent.highlighted
+                            ? "#1E3350"
+                            : parent.hovered
+                                ? "#1A2C45"
+                                : "#152238"
+                    }
+                }
+
+                // The popup when the dropdown is clicked
+                popup: Popup {
+                    y: modelSelector.height + 4
+                    width: modelSelector.width
+                    padding: 1
+
+                    contentItem: ListView {
+                        implicitHeight: contentHeight
+                        clip: true
+
+                        model: modelSelector.popup.visible
+                            ? modelSelector.delegateModel
+                            : null
+
+                        currentIndex: modelSelector.highlightedIndex
+                    }
+
+                    background: Rectangle {
+                        color: "#152238"
+                        radius: 8
+                        border.color: "#2B405C"
+                        border.width: 1
+                    }
+                }
+            }
         }
+
 
         // Conversation title.
         // Keep the chat heading and thinking indicator on the same line.
