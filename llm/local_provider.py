@@ -10,7 +10,7 @@ class LocalLLMProvider:
     '''
     
     @measure_time
-    def __init__(self, model_name):
+    def __init__(self, model_name: str) -> None:
         self.model_name = model_name
 
         self.generator = pipeline(
@@ -31,8 +31,23 @@ class LocalLLMProvider:
 
 
     @measure_time
-    def generate(self, prompt):
+    def generate(self, prompt: str) -> str:
+        '''
+        Generates an answer based on provided prompt using the local language model.
+        System messages defines behaviours of the assistant.
+        The user message is defined by the prompt.
+        Messages are then converted to a format expected by the language model,
+        with thinking_mode disabled, and then generated into a response using model settings.
+        
+        '''
         messages = [
+            {
+                "role": "system",
+                "content": (
+                    "Always answer in the same language as the user's QUESTION. "
+                    "Use the language of the QUESTION, not the language used in the instructions or context."
+                    )
+            },
             {
                 "role": "user",
                 "content": prompt
@@ -42,20 +57,21 @@ class LocalLLMProvider:
         # format the text message to what Qwen expects
         formatted_prompt = self.generator.tokenizer.apply_chat_template(
             messages,
-            tokenize = False, # return the formatted text (not the token ID)
+            tokenize = False, # keep results as text and let pipeline handle tokenization
             add_generation_prompt = True, # mark the assistent's turn to answer
-            enable_thinking = False # remove thinking mode without specifically adding it to the message
+            enable_thinking = False # disable thinking mode without specifically adding it to the message
         )
 
+        # generate text using configuration settings
         result = self.generator(
             formatted_prompt,
             generation_config=self.generation_config,
             clean_up_tokenization_spaces=False
         )
 
-        # first dictionary in list -> full generated text containing prompt and answer
+        # pipeline returns original prompt followed by generated text
         generated_text = result[0]["generated_text"]
-        # remove the prompt and keep only the answer
+        # remove the prompt and keep only the assistant's answer
         answer = generated_text[len(formatted_prompt):].strip()
 
         return answer
