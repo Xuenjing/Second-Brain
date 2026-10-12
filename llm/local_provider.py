@@ -1,3 +1,4 @@
+from copy import deepcopy
 from transformers import pipeline
 from performance import measure_time
 
@@ -16,6 +17,18 @@ class LocalLLMProvider:
             "text-generation",
             model = self.model_name
         )
+
+        # creates a copy of the original settings of the model
+        self.generation_config = deepcopy(self.generator.model.generation_config)
+
+        self.generation_config.max_new_tokens = 100 # limits response length
+        self.generation_config.do_sample = False # deterministic answers
+
+        # standard settings -> not used while do_sample = False, but prevents error messages
+        self.generation_config.temperature = 1.0
+        self.generation_config.top_p = 1.0
+        self.generation_config.top_k = 50
+
 
     @measure_time
     def generate(self, prompt):
@@ -36,18 +49,13 @@ class LocalLLMProvider:
 
         result = self.generator(
             formatted_prompt,
-            max_new_tokens = 100,
-            do_sample = False
+            generation_config=self.generation_config,
+            clean_up_tokenization_spaces=False
         )
 
         # first dictionary in list -> full generated text containing prompt and answer
         generated_text = result[0]["generated_text"]
         # remove the prompt and keep only the answer
         answer = generated_text[len(formatted_prompt):].strip()
-
-        # NOT NEEDED WITH FORMATTED PROMPT: FEEL FREE TO REMOVE
-        # strip away /think from answer if disabling thinking mode
-        # if "</think>" in answer:
-        #     answer = answer.split("</think>", 1)[1].strip()
 
         return answer
