@@ -5,7 +5,8 @@ from functools import wraps
 
 def measure_time(func):
     '''
-    Measure and print execution time of target function
+    Measure and print execution time of a function.
+    Elapsed execution time is expressed in seconds.
     '''
     @wraps(func)
     def wrapper(*args, **kwargs):

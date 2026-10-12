@@ -1,14 +1,11 @@
 '''
-Fusklapp 
+Application entry point for Second Brain.
 
-QML → UI
-PySide6 → kopplar Python till Qt/QML
-Signal → Python skickar till QML
-Slot → QML anropar Python
-Embedding → text → vektor
-Cosine similarity → jämför semantisk likhet
-RAG → retrieval + context + LLM
-SQLite → lagring
+Initializes Qt application, creates the Python backend,
+loads the QML user interface, exposes the backend to QML and configures
+the system tray functionality.
+
+Startup timings are printed to help identify performance bottlenecks.
 '''
 
 import time
@@ -62,7 +59,10 @@ window = engine.rootObjects()[0]
 # Let the process continue even when the main window is closed. 
 app.setQuitOnLastWindowClosed(False)
 
-def show_window():
+def show_window() -> None:
+    '''
+    Restore and activate the main application window.
+    '''
     window.showNormal()
     window.raise_()
     window.requestActivate()
