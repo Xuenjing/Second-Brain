@@ -1,24 +1,22 @@
 """
-Databaslager för kunskapsbasen.
+Database layer for the Second Brain knowledge base.
 
-Tänkt ansvar:
-- lagra kunskap
-- läsa lagrad kunskap
-- eventuellt lagra embeddings
-
-Databaslösning och schema bestäms tillsammans under projektet.
+This module handles initialization, storage, retrieval, editing,
+deletion and searching of knowledge entries stored in SQLite.
+Embeddings are serialized as JSON before being stored in the database.
 """
 
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 import json
+import numpy as np
 
 DATABASE_PATH = "knowledge.db"
 
-def initialize_database():
+def initialize_database() -> None:
     '''
-    Skapar kunskapsdatabasen om den inte redan är skapad
+    Creates the SQLite knowledge database unless already created.
     '''
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
@@ -34,16 +32,17 @@ def initialize_database():
     connection.commit()
     connection.close()
 
-def add_knowledge(text, embedding, source="manual"):
+def add_knowledge(text: str, embedding: np.ndarray, source: str = "manual") -> bool:
     '''
-    Connect to knowledge.db och add a post if it is not already inserted
-    Converts the embedding to json-format
-    Returns true if rows were added, false if not
+    Add a knowledge entry to the database.
+    Embedding is converted from NumPy array to JSON before storage.
+    Duplicate entries are ignored.
+    Returns True if entry was added, False if not.
     '''
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
     created_at = datetime.now().isoformat()
-    embedding_json = json.dumps(embedding.tolist()) # convert embedding to json
+    embedding_json = json.dumps(embedding.tolist()) # convert the NumPy embedding to a JSON string for database storage
     cursor.execute(
         '''
         INSERT OR IGNORE INTO knowledge (text, source, created_at, embedding)
@@ -59,10 +58,11 @@ def add_knowledge(text, embedding, source="manual"):
 
     return added
 
-def get_all_knowledge(sort_order="desc"):
+def get_all_knowledge(sort_order: str = "desc") -> list[dict]:
     '''
-    Get all posts from knowledge.db as a dictionary
-    Converts embedding JSON back into a python list
+    Get all entries from the database.
+    Converts embedding JSON back into a python list.
+    Returns a list of dictionaries containing the stored entries.
     '''
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
@@ -119,9 +119,10 @@ def add_txt_file_to_database(file_path, model):
     )
     return True
 
-def delete_knowledge(knowledge_id) -> bool:
+def delete_knowledge(knowledge_id: int) -> bool:
     '''
-    Delete a knowledge post from the database
+    Delete a knowledge entry from the database.
+    Returns True if an entry was deleted, False if not.
     '''
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
@@ -134,11 +135,11 @@ def delete_knowledge(knowledge_id) -> bool:
     connection.close()
     return deleted
 
-def edit_knowledge(knowledge_id, new_text, new_embedding) -> bool:
+def edit_knowledge(knowledge_id: int, new_text: str, new_embedding: np.ndarray) -> bool:
     '''
-    Updates knowledge posts by receiving new text and new embedding
-    from backend, and then making the NumPy array into a python list,
-    and then to a JSON string
+    Update the text and embedding of an existing knowledge entry.
+    New embedding is converted from NumPy array to JSON before storage.
+    Returns True if an entry was updated, False if not.
     '''
     connection = sqlite3.connect(DATABASE_PATH)
 
@@ -159,10 +160,10 @@ def edit_knowledge(knowledge_id, new_text, new_embedding) -> bool:
     finally:
         connection.close()
 
-def search_knowledge(search_term) -> list:
+def search_knowledge(search_term: str) -> list[dict]:
     '''
-    Returns all knowledge entries that match the search term
-    in either the text or source fields.
+    Search stored knowledge by text or source.
+    Returns a list of dictionaries containing matched knowledge entries.
     '''
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
