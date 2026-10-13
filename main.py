@@ -79,19 +79,7 @@ open_action = tray_menu.addAction("Öppna")
 open_action.triggered.connect(show_window)
 
 quit_action = tray_menu.addAction("Avsluta")
-
-def quit_application() -> None:
-    """Cancel ongoing work and wait before closing the app."""
-    thinker = backend.thinker
-
-    if thinker is not None:
-        quit_action.setEnabled(False)
-        backend.cancel_question()
-        thinker.wait()
-
-    app.quit()
-
-quit_action.triggered.connect(quit_application)
+quit_action.triggered.connect(app.quit)
 
 tray_icon.setContextMenu(tray_menu)
 tray_icon.show()

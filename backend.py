@@ -18,7 +18,6 @@ from performance import measure_time
 from database import get_all_knowledge, add_knowledge, search_knowledge, edit_knowledge, delete_knowledge, initialize_database
 from datetime import datetime
 from pathlib import Path
-from threading import Event
 
 
 class Thinker(QThread):
@@ -31,18 +30,10 @@ class Thinker(QThread):
         super().__init__()
         self.llm = llm
         self.question = question
-        self.cancel_event = Event()
-
-    def cancel(self):
-        self.cancel_event.set()
 
     def run(self):
         try:
             results = retrieve_knowledge(self.question)
-
-            # Stop before generation if the question was cancelled.
-            if self.cancel_event.is_set():
-                return
 
             if not results:
                 self.answerReady.emit(
@@ -50,7 +41,9 @@ class Thinker(QThread):
                 )
                 return
 
-            context = "\n".join(result["text"] for result in results)
+            context = "\n".join(
+                result["text"] for result in results
+            )
 
             prompt = f"""
 Use only the information in the context below to answer the question.
@@ -69,22 +62,14 @@ QUESTION:
 ANSWER:
 """
 
-            # LocalLLMProvider needs a matching change to support cancel_event.
-            answer = self.llm.generate(
-                prompt,
-                cancel_event=self.cancel_event
-            )
-
-            # Do not show a partial answer after cancellation.
-            if not self.cancel_event.is_set():
-                self.answerReady.emit(answer)
+            answer = self.llm.generate(prompt)
+            self.answerReady.emit(answer)
 
         except Exception as error:
-            if not self.cancel_event.is_set():
-                print(f"Answer generation failed: {error}")
-                self.answerFailed.emit(
-                    "Svaret kunde inte skapas. Försök igen."
-                )
+            print(f"Answer generation failed: {error}")
+            self.answerFailed.emit(
+                "Svaret kunde inte skapas. Försök igen."
+            )
 
 class Backend(QObject):
 
@@ -153,12 +138,6 @@ class Backend(QObject):
     def handle_error(self, message):
         """Send the error message to QML."""
         self.replyFailed.emit(message)
-
-    @Slot()
-    def cancel_question(self):
-        """Request cancellation of the current question."""
-        if self.thinker is not None:
-            self.thinker.cancel()
 
     @Slot()
     def finish_thinking(self):
