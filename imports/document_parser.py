@@ -2,6 +2,7 @@ from pathlib import Path
 from docx import Document
 from zipfile import BadZipFile
 
+
 def extract_docx_chunks(file_path: str) -> list[str]:
     '''
     Extract text from a docx file (paragraphs and tables).
