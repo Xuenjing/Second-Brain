@@ -1,6 +1,22 @@
+import torch
+
 from copy import deepcopy
-from transformers import pipeline
+from transformers import pipeline, StoppingCriteria, StoppingCriteriaList
 from performance import measure_time
+
+class CancelGenerationCriteria(StoppingCriteria):
+    """Stop generation when cancellation is requested."""
+
+    def __init__(self, cancel_event):
+        self.cancel_event = cancel_event
+
+    def __call__(self, input_ids, scores, **kwargs):
+        return torch.full(
+            (input_ids.shape[0], 1),
+            self.cancel_event.is_set(),
+            dtype=torch.bool,
+            device=input_ids.device
+        )
 
 class LocalLLMProvider:
     '''
@@ -31,7 +47,7 @@ class LocalLLMProvider:
 
 
     @measure_time
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, cancel_event=None) -> str:
         '''
         Generates an answer based on provided prompt using the local language model.
         System messages defines behaviours of the assistant.
@@ -62,15 +78,22 @@ class LocalLLMProvider:
             enable_thinking = False # disable thinking mode without specifically adding it to the message
         )
 
-        # generate text using configuration settings
         result = self.generator(
             formatted_prompt,
             generation_config=self.generation_config,
-            clean_up_tokenization_spaces=False
+            clean_up_tokenization_spaces=False,
+            stopping_criteria=StoppingCriteriaList([
+                CancelGenerationCriteria(cancel_event)
+            ]) if cancel_event is not None else None
         )
 
-        # pipeline returns original prompt followed by generated text
+        # Do not return partial text if generation was cancelled.
+        if cancel_event is not None and cancel_event.is_set():
+            return ""
+
+        # Pipeline returns the original prompt followed by generated text.
         generated_text = result[0]["generated_text"]
+
         # remove the prompt and keep only the assistant's answer
         answer = generated_text[len(formatted_prompt):].strip()
 
