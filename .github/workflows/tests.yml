@@ -1,0 +1,32 @@
+name: Run unit tests
+
+on:
+  push:
+    branches:
+      - dev
+
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install test dependencies
+        run: pip install numpy
+
+      - name: Run database tests
+        run: python -m tests.database_test
+
+      - name: Run retrieval tests
+        run: python -m tests.retrieval_tests
