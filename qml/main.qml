@@ -349,7 +349,7 @@ ApplicationWindow {
                         : "#DC2626"
                 }
 
-                onClicked: backend.cancel_question()
+                // onClicked: backend.cancel_question()
             }
 
             Button {
