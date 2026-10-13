@@ -301,8 +301,13 @@ ApplicationWindow {
 
             TextField {
                 id: inputField
-                // Use the remaining width next to the send button.
-                width: parent.width - sendButton.width - parent.spacing
+
+                // Leave room for the buttons beside the input field.
+                width: parent.width - sendButton.width -
+                    (root.isThinking
+                            ? cancelButton.width + 2 * parent.spacing
+                            : parent.spacing)
+
                 placeholderText: "Skriv din fråga här"
 
                 // Text colors plus extra space inside the field.
@@ -319,6 +324,32 @@ ApplicationWindow {
                     border.color: inputField.activeFocus ? "#38BDF8" : "#2B405C"
                     border.width: 1
                 }
+            }
+
+            Button {
+                id: cancelButton
+                text: "Avbryt"
+                width: 100
+                height: 44
+                visible: root.isThinking
+                hoverEnabled: true
+
+                contentItem: Text {
+                    text: cancelButton.text
+                    color: "#FFFFFF"
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+                    color: cancelButton.down ? "#991B1B"
+                        : cancelButton.hovered ? "#EF4444"
+                        : "#DC2626"
+                }
+
+                onClicked: backend.cancel_question()
             }
 
             Button {
