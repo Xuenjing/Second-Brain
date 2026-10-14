@@ -1,7 +1,7 @@
 from sentence_transformers import util
 
 from database import get_all_knowledge
-from retrieval import model
+from retrieval import get_embedding_model
 
 '''
 run from project root:
@@ -19,7 +19,7 @@ def retrieve_with_threshold(query, threshold, top_k=5):
     if not knowledge:
         return []
 
-    query_embedding = model.encode(query)
+    query_embedding = get_embedding_model().encode(query)
 
     results = []
 
