@@ -1,4 +1,4 @@
-'''
+"""
 Application entry point for Second Brain.
 
 Initializes Qt application, creates the Python backend,
@@ -6,7 +6,7 @@ loads the QML user interface, exposes the backend to QML and configures
 the system tray functionality.
 
 Startup timings are printed to help identify performance bottlenecks.
-'''
+"""
 
 import time
 startup_start = time.perf_counter()
@@ -14,7 +14,12 @@ startup_start = time.perf_counter()
 import sys
 from pathlib import Path
 
-from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QStyle
+from PySide6.QtWidgets import (
+    QApplication,
+    QSystemTrayIcon, 
+    QMenu, 
+    QStyle,
+)
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuickControls2 import QQuickStyle
 
@@ -39,10 +44,10 @@ backend = Backend()
 backend_end = time.perf_counter()
 print(f"Backend creation: {backend_end - backend_start:.3f} seconds")
 
-# Make the Python object available to QML under the name "backend". 
+# Make the Python object available to QML under the name "backend".
 engine.rootContext().setContextProperty("backend", backend)
 
-# Find qml/main.qml
+# Locate the QML entry file qml/main.qml
 qml_file = Path(__file__).resolve().parent / "qml" / "main.qml"
 qml_start = time.perf_counter()
 engine.load(str(qml_file))
@@ -56,13 +61,15 @@ if not engine.rootObjects():
 # Get the main window that QML created.
 window = engine.rootObjects()[0]
 
-# Let the process continue even when the main window is closed. 
+# Let the process continue even when the main window is closed.
 app.setQuitOnLastWindowClosed(False)
 
+
 def show_window() -> None:
-    '''
+    """
     Restore and activate the main application window.
-    '''
+    """
+
     window.showNormal()
     window.raise_()
     window.requestActivate()
@@ -72,7 +79,7 @@ icon = app.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
 tray_icon = QSystemTrayIcon(icon, app)
 tray_icon.setToolTip("Second Brain")
 
-# Right click menu for the tray icon.
+# Create the tray icon menu.
 tray_menu = QMenu()
 
 open_action = tray_menu.addAction("Öppna")

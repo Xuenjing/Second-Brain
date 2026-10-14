@@ -1,33 +1,49 @@
-from database import get_all_knowledge
-from performance import measure_time
+from typing import Any
+
 import numpy as np
 
+from database import get_all_knowledge
+from performance import measure_time
 
 
-_embedding_model = None
+_embedding_model: Any = None
 
-def get_embedding_model():
-    '''
-    Get embedding model, loading it if necessary
-    '''
+
+def get_embedding_model() -> Any:
+    """Get embedding model, loading it if necessary."""
+
     global _embedding_model
+
     if _embedding_model is None:
         from sentence_transformers import SentenceTransformer
-        _embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+
+        _embedding_model = SentenceTransformer(
+            "paraphrase-multilingual-MiniLM-L12-v2"
+        )
+
     return _embedding_model
 
-# model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
 @measure_time
 def retrieve_knowledge(query: str) -> list[dict]:
-    '''
-    Retrieve knowledge entries similar to query.
-    Query is embedded and compared to knowledge embeddings through cosine similarity.
-    Results below threshold are removed, 
-    and up to top_k results are returned sorted by highest sim score.
-    '''
-    top_k = 5 # how many posts should be returned
-    similarity_threshold = 0.45 # to not return irrelevant posts
+    """Retrieve knowledge entries similar to a query.
+
+    Query is embedded and compared to knowledge embeddings
+    using cosine similarity. Results below threshold are removed, 
+    and the highest ranked results are returned.
+
+    Args:
+        query: A query used to search the knowledge database.
+
+    Returns:
+        A list of matching knowledge entries with similarity scores.
+    """
+
+    # Maximum number of posts that can be returned.
+    top_k = 5
+
+    # Minimum score required for a result.
+    similarity_threshold = 0.45
 
     knowledge = get_all_knowledge()
 
@@ -39,8 +55,12 @@ def retrieve_knowledge(query: str) -> list[dict]:
     query_embedding = get_embedding_model().encode(query)
     results = []
     for item in knowledge:
-        # extracts the similarity score and converts the tensor value into a Python float
-        score = util.cos_sim(query_embedding, item["embedding"])[0][0].item() 
+
+        # Convert the tensor value into a Python float.
+        score = util.cos_sim(
+            query_embedding, 
+            item["embedding"],
+        )[0][0].item() 
 
         results.append({
             "text": item["text"],
@@ -50,22 +70,45 @@ def retrieve_knowledge(query: str) -> list[dict]:
 
     return filter_and_rank_results(results, similarity_threshold, top_k)
 
+
 def create_embedding(text: str) -> np.ndarray:
-    '''
-    Helper function that creates an embedding vector for a text string.
-    Returns a numpy array containing the generated embeddings.
-    '''
+    """Create an embedding vector for a text string.
+    
+    Args:
+        text: Text to embed.
+    
+    Returns:
+        A NumPy array containing the generated embedding.
+    """
+
     return get_embedding_model().encode(text)
 
-def filter_and_rank_results(results: list[dict], similarity_threshold: float, top_k: int) -> list[dict]:
-    '''
-    Sort retrieval results by similarity score,
-    filter out results below the threshold, 
-    and return the top_k results
-    '''
+
+def filter_and_rank_results(
+    results: list[dict], 
+    similarity_threshold: float, 
+    top_k: int,
+) -> list[dict]:
+    """Filter and rank retrieval results by similarity score.
+
+    Args:
+        results: Retrieval results containing similarity scores.
+        similarity_threshold: Minimum score required for inclusion.
+        top_k: The maximum number of results to return.
+
+    Returns:
+        Results above the threshold, sorted by descending similarity scores.
+    """
+
     results.sort(key=lambda result: result["score"], reverse=True)
-    filtered_results=[result for result in results if result["score"] >= similarity_threshold]
+    filtered_results = [
+        result
+        for result in results
+        if result["score"] >= similarity_threshold
+    ]
+
     return filtered_results[:top_k]
+
 
 # testing purposes
 if __name__ == "__main__":
