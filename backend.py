@@ -12,7 +12,11 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal, Slot, QUrl, QThread
 
-from retrieval import retrieve_knowledge, create_embedding
+from retrieval import (
+    retrieve_knowledge,
+    create_embedding,
+    get_embedding_model
+)
 from llm.local_provider import LocalLLMProvider
 from database import (
     get_all_knowledge,
@@ -95,6 +99,9 @@ class Backend(QObject):
         self.thinker: Thinker | None = None
 
         initialize_database()
+
+        # Preload embedding model during application startup.
+        get_embedding_model()
 
         # lighter and faster model
         # self.llm = LocalLLMProvider("Qwen/Qwen3-0.6B")

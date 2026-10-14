@@ -68,7 +68,21 @@ def retrieve_knowledge(query: str) -> list[dict]:
             "score": score
         })
 
-    return filter_and_rank_results(results, similarity_threshold, top_k)
+    ranked_results = filter_and_rank_results(
+        results,
+        similarity_threshold,
+        top_k,
+    )
+
+    # Print retrievals in terminal
+    for result in ranked_results:
+        print(
+            f"Score: {result['score']:.3f} | "
+            f"Source: {result['source']} | "
+            f"Text: {result['text']}"
+        )
+
+    return ranked_results
 
 
 def create_embedding(text: str) -> np.ndarray:
