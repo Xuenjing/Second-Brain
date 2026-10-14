@@ -1,37 +1,47 @@
 from pathlib import Path
-from docx import Document
 from zipfile import BadZipFile
+
+from docx import Document
 
 
 def extract_docx_chunks(file_path: str) -> list[str]:
-    '''
-    Extract text from a docx file (paragraphs and tables).
+    """Extract text from a docx file (paragraphs and tables).
     Paragraphs become individual chunks.
     Tables become one multi-line chunk.
-    '''
+
+    Args:
+        file_path: File path to the docx file.
+
+    Returns:
+        A list of chunks.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the file is not a valid docx document.
+    """
 
     path = Path(file_path)
 
-    # safeguards
+    # Safeguards.
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
     if path.suffix.lower() != ".docx":
-        raise ValueError(f"File must be a docx file")
+        raise ValueError("File must be a docx file")
 
-    try: 
+    try:
         document = Document(path)
     except BadZipFile as error:
-        raise ValueError(f"The file is not a valid docx document.") from error
+        raise ValueError("The file is not a valid docx document.") from error
 
     chunks = []
 
-    # extract regular paragraphs into chunks
+    # Extract regular paragraphs into chunks.
     for paragraph in document.paragraphs:
         text = paragraph.text.strip()
         if text:
             chunks.append(text)
 
-    # extract tables into one chunks
+    # Extract each table into one chunk.
     for table in document.tables:
         table_rows = []
 
