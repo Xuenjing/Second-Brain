@@ -410,7 +410,7 @@ ApplicationWindow {
 
         // Block interaction with the main window while the dialog is open.
         modal: true
-        width: 600
+        width: 800
         height: 400
 
         // Center the dialog in the main window's content area.
@@ -537,10 +537,10 @@ ApplicationWindow {
                     onClicked: textFileDialog.open() 
                 }
 
-                // Button for importing docx files
+                // Button for importing docx files.
                 Button {
                     id: importDocxButton
-                    text: "Importer .docx-fil"
+                    text: "Importera .docx-fil"
                     width: 160
                     height: 40
                     hoverEnabled: true
@@ -566,6 +566,36 @@ ApplicationWindow {
                     }
 
                     onClicked: docxFileDialog.open()
+                }
+
+                // Button for importing PDF files.
+                Button {
+                    id: importPdfButton
+                    text: "Importera .pdf-fil"
+                    width: 160
+                    height: 40
+                    hoverEnabled: true
+
+                    // Center the button text.
+                    contentItem: Text {
+                        text: importPdfButton.text
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    // Change background color when hovered or pressed.
+                    background: Rectangle {
+                        radius: 8
+                        color: importPdfButton.down ? "#243B55"
+                            : importPdfButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#2B405C"
+                        border.width: 1
+                    }
+
+                    onClicked: pdfFileDialog.open()
                 }
 
                 Button {
@@ -1334,11 +1364,12 @@ ApplicationWindow {
 
         // Send the selected file URL to Python.
         onAccepted: {
+            knowledgeSaveStatus.text = ""
             backend.add_txt_knowledge(selectedFile.toString())
         }
     }
 
-    // File picker for importing a text file.
+    // File picker for importing a docx file.
     FileDialog {
         id: docxFileDialog
         title: "Välj en DOCX-fil"
@@ -1348,6 +1379,19 @@ ApplicationWindow {
         onAccepted: {
             knowledgeSaveStatus.text = ""
             backend.add_docx_knowledge(selectedFile)
+        }
+    }
+
+    // File picker for importing a pdf file.
+    FileDialog {
+        id: pdfFileDialog
+        title: "Välj en PDF-fil"
+        nameFilters: ["PDF-dokument (*.pdf)"]
+
+        // Send the selected file URL to python.
+        onAccepted: {
+            knowledgeSaveStatus.text = ""
+            backend.add_pdf_knowledge(selectedFile)
         }
     }
 

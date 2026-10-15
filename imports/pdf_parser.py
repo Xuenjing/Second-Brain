@@ -59,8 +59,6 @@ def extract_pdf_chunks(file_path: str) -> list[str]:
     for page in reader.pages:
         text = page.extract_text(extraction_mode="layout")
 
-        print(repr(text))
-
         if not text:
             continue
 
