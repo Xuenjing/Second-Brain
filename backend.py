@@ -27,6 +27,7 @@ from database import (
     initialize_database
 )
 from imports.document_importer import import_docx_to_database
+from imports.pdf_importer import import_pdf_to_database
 
 
 
@@ -396,3 +397,25 @@ class Backend(QObject):
             self.knowledgeSaveResult.emit("No new knowledge was added.")
         else:
             self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from docx file.")
+
+
+    @Slot(str)
+    def add_pdf_knowledge(self, file_path: str) -> None:
+        """Import knowledge from a PDF file.
+        
+        Args:
+            file_path: File URL received from QML.
+        """
+
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            added_count = import_pdf_to_database(local_path)
+        except (FileNotFoundError, ValueError) as error:
+            self.knowledgeSaveResult.emit(str(error))
+            return
+
+        if added_count == 0:
+            self.knowledgeSaveResult.emit("No new knowledge was added")
+        else:
+            self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from pdf file.")
