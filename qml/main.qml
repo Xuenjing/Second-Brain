@@ -33,12 +33,45 @@ ApplicationWindow {
         anchors.bottomMargin: 36
         spacing: 16
 
-        // Application name.
-        Label {
-            text: "Second Brain"
-            font.pixelSize: 28
-            font.bold: true
-            color: "#F1F5F9"
+        // Application name and logo
+        Row {
+            spacing: 16
+
+            Image {
+                width: 76
+                height: 76
+                source: "../assets/logo4.png"
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Column {
+                spacing: 0
+                anchors.verticalCenter: parent.verticalCenter
+
+                Label {
+                    text: "Second"
+                    font.pixelSize: 28
+                    font.bold: true
+                    color: "#F1F5F9"
+                }
+
+                Label {
+                    text: "Brain"
+                    font.pixelSize: 28
+                    font.bold: true
+                    color: "#38BDF8"
+                }
+
+                // Yellow accent matching the lightning bolt.
+                Rectangle {
+                    width: 64
+                    height: 4
+                    radius: 2
+                    color: "#FACC15"
+                }
+            }
         }
 
         // Place the knowledge buttons next to each other.
