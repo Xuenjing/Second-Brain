@@ -195,6 +195,40 @@ ApplicationWindow {
                     }
                 }
             }
+
+            // Add a load model button next to the dropdown menu.
+            Button {
+                id: loadModelButton
+                text: "Ladda modell"
+                height: 40
+                leftPadding: 16
+                rightPadding: 16
+                hoverEnabled: true                
+
+                // Center the button text.
+                contentItem: Text {
+                    text: loadModelButton.text
+                    color: "#F1F5F9"
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                // Change background color when hovered or pressed.
+                background: Rectangle {
+                    radius: 8
+                    color: loadModelButton.down ? "#243B55"
+                        : loadModelButton.hovered ? "#1E3350"
+                        : "#152238"
+                    border.color: "#38BDF8"
+                    border.width: 1
+                }
+
+                // Load the model when clicked.
+                onClicked: {
+
+                }
+            }
         }
 
 
@@ -709,6 +743,34 @@ ApplicationWindow {
                 anchors.topMargin: 6
                 anchors.right: parent.right
                 spacing: 2
+
+                // Button for displaying sort by PDF.
+                Button {
+                    id: sortPdfButton
+                    text: "PDF"
+                    width: 40
+                    height: 40
+                    hoverEnabled: true
+
+                    // Center the button text.
+                    contentItem: Text {
+                        text: sortPdfButton.text
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    // Change background color when hovered or pressed.
+                    background: Rectangle {
+                        radius: 8
+                        color: sortPdfButton.down ? "#243B55"
+                            : sortPdfButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#2B405C"
+                        border.width: 1
+                    }
+                }
 
                 Button {
                     id: sortAscendingButton
