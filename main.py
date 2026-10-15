@@ -17,9 +17,9 @@ from pathlib import Path
 from PySide6.QtWidgets import (
     QApplication,
     QSystemTrayIcon, 
-    QMenu, 
-    QStyle,
+    QMenu
 )
+from PySide6.QtGui import QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuickControls2 import QQuickStyle
 
@@ -74,8 +74,9 @@ def show_window() -> None:
     window.raise_()
     window.requestActivate()
 
-# Use a built-in Qt icon until we choose our own.
-icon = app.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
+# Load the application logo for the system tray.
+icon_path = Path(__file__).resolve().parent / "assets" / "logo4.png"
+icon = QIcon(str(icon_path))
 tray_icon = QSystemTrayIcon(icon, app)
 tray_icon.setToolTip("Second Brain")
 
