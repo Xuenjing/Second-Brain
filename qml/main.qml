@@ -758,10 +758,9 @@ ApplicationWindow {
                         }
                     }
 
-                    // Place the buttons on the right side of the post.
-                    Column {
+                    // Place the action buttons next to each other on the right.
+                    Row {
                         id: postActions
-                        width: 100
                         spacing: 8
                         anchors.right: parent.right
                         anchors.rightMargin: 12
@@ -805,17 +804,69 @@ ApplicationWindow {
                         Button {
                             id: deletePostButton
                             text: "Ta bort"
-                            width: 100
+                            width: 40
                             height: 40
                             hoverEnabled: true
 
-                            // Center the button text.
-                            contentItem: Text {
-                                text: deletePostButton.text
-                                color: "#FCA5A5"
-                                font.pixelSize: 14
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                            // Description when hovered.
+                            Accessible.name: "Ta bort kunskapspost"
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Ta bort kunskapspost"
+
+                            // Draw a trash can icon.
+                            contentItem: Item {
+                                Item {
+                                    anchors.centerIn: parent
+                                    width: 20
+                                    height: 24
+
+                                    // Handle.
+                                    Rectangle {
+                                        x: 7
+                                        y: 1
+                                        width: 6
+                                        height: 5
+                                        radius: 1
+                                        color: "transparent"
+                                        border.color: "#FCA5A5"
+                                        border.width: 2
+                                    }
+
+                                    // Lid.
+                                    Rectangle {
+                                        x: 2
+                                        y: 5
+                                        width: 16
+                                        height: 2
+                                        radius: 1
+                                        color: "#FCA5A5"
+                                    }
+
+                                    // Bin.
+                                    Rectangle {
+                                        x: 4
+                                        y: 9
+                                        width: 12
+                                        height: 14
+                                        radius: 2
+                                        color: "#FCA5A5"
+
+                                        // Vertical lines inside the bin.
+                                        Repeater {
+                                            model: 3
+
+                                            Rectangle {
+                                                required property int index
+                                                x: 3 + index * 3
+                                                y: 3
+                                                width: 1
+                                                height: 8
+                                                radius: 0.5
+                                                color: "#152238"
+                                            }
+                                        }
+                                    }
+                                }
                             }
 
                             // Use red colors for the delete button.
