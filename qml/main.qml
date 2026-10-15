@@ -20,6 +20,11 @@ ApplicationWindow {
     // Track whether a question is being processed.
     property bool isThinking: false
 
+    // Store questions and answers displayed in the chat.
+    ListModel {
+        id: chatModel
+    }
+
     visible: true
     width: 1000
     height: 700
@@ -271,16 +276,6 @@ ApplicationWindow {
             width: parent.width
             height: 32
 
-            Label {
-                id: chatHeading
-                text: "Chatt"
-                font.pixelSize: 16
-                font.bold: true
-                color: "#F1F5F9"
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
             // Show an animated indicator while processing a question.
             Row {
                 anchors.left: chatHeading.right
@@ -331,39 +326,107 @@ ApplicationWindow {
             }
         }
 
-        // Allow scrolling through the conversation.
-        ScrollView {
-            width: parent.width
+// Show a welcome message or the conversation.
+Rectangle {
+    id: chatPanel
+    width: parent.width
+    height: Math.max(
+        0,
+        parent.height - y - questionRow.height - parent.spacing
+    )
+    color: "#152238"
+    radius: 10
+    border.color: "#2B405C"
+    border.width: 1
 
-            // Fill the remaining height above the question row.
-            height: Math.max(
-                0,
-                parent.height - y - questionRow.height - parent.spacing
-            )
+    // Show the welcome view while the chat is empty.
+    Column {
+        anchors.centerIn: parent
+        width: parent.width - 48
+        spacing: 12
+        visible: chatModel.count === 0
 
-            // Display messages as plain text.
-            TextArea {
-                id: chatDisplay
-                readOnly: true
-                wrapMode: TextArea.Wrap
-                textFormat: TextEdit.PlainText
-                placeholderText: "Här visas dina frågor och svar..."
-
-                // Light text on a dark background.
-                color: "#F1F5F9"
-                placeholderTextColor: "#94A3B8"
-                font.pixelSize: 14
-                padding: 16
-
-                // Rounded background with a subtle border.
-                background: Rectangle {
-                    color: "#152238"
-                    radius: 10
-                    border.color: "#2B405C"
-                    border.width: 1
-                }  
-            }
+        // Display a muted logo in the empty chat.
+        Image {
+            anchors.horizontalCenter: parent.horizontalCenter
+            source: "../assets/logo_chat.png"
+            width: 200
+            height: 200
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            opacity: 1.0
         }
+
+        Label {
+            width: parent.width
+            text: "Vad vill du veta?"
+            horizontalAlignment: Text.AlignHCenter
+            font.pixelSize: 22
+            font.bold: true
+            color: "#F1F5F9"
+        }
+    }
+
+        // Display each message as a separate bubble.
+        ListView {
+            id: chatList
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 16
+            clip: true
+            model: chatModel
+            visible: chatModel.count > 0
+
+            ScrollBar.vertical: ScrollBar {}
+
+            delegate: Item {
+                id: messageItem
+
+                required property string sender
+                required property string message
+
+                width: ListView.view.width
+                height: messageBubble.height
+
+                Rectangle {
+                    id: messageBubble
+
+                    // Place questions on the right and answers on the left.
+                    x: messageItem.sender === "user"
+                        ? parent.width - width
+                        : 0
+
+                    width: Math.min(
+                        messageText.implicitWidth + 28,
+                        messageItem.width * 0.8
+                    )
+                    height: messageText.height + 24
+                    radius: 10
+
+                    color: messageItem.sender === "user"
+                        ? "#1E40AF"
+                        : "#243B55"
+
+                    Text {
+                        id: messageText
+                        x: 14
+                        y: 12
+                        width: parent.width - 28
+                        text: messageItem.message
+                        textFormat: Text.PlainText
+                        wrapMode: Text.Wrap
+                        font.pixelSize: 14
+                        color: "#F1F5F9"
+                    }
+                }
+            }
+
+            // Scroll to the latest message after the list updates.
+            onCountChanged: Qt.callLater(function() {
+                chatList.positionViewAtEnd()
+            })
+        }
+    }
 
         // Place the question field and send button next to each other.
         Row {
@@ -459,7 +522,11 @@ ApplicationWindow {
 
                     // Send only questions that contain text.
                     if (question.length > 0) {
-                        chatDisplay.append("Du: " + question)
+                        // Add the question to the chat.
+                        chatModel.append({
+                            sender: "user",
+                            message: question
+                        })
 
                         // Send the question to Python and clear the input field.
                         backend.receive_text(question)
@@ -1496,7 +1563,10 @@ ApplicationWindow {
 
         // Add the answer to the chat.
         function onReplyReady(reply) {
-            chatDisplay.append("Assistent: " + reply + "\n")
+            chatModel.append({
+                sender: "assistant",
+                message: reply
+            })
         }
 
         // Show the result of saving or importing knowledge.
@@ -1535,7 +1605,10 @@ ApplicationWindow {
 
         // Display an error message in the chat.
         function onReplyFailed(message) {
-            chatDisplay.append("Fel: " + message + "\n")
+            chatModel.append({
+                sender: "assistant",
+                message: "Fel: " + message
+            })
         }
     }
 }
