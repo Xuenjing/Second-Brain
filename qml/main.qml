@@ -537,6 +537,37 @@ ApplicationWindow {
                     onClicked: textFileDialog.open() 
                 }
 
+                // Button for importing docx files
+                Button {
+                    id: importDocxButton
+                    text: "Importer .docx-fil"
+                    width: 160
+                    height: 40
+                    hoverEnabled: true
+                
+
+                    // Center the button text.
+                    contentItem: Text {
+                        text: importDocxButton.text
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    // Change background color when hovered or pressed.
+                    background: Rectangle {
+                        radius: 8
+                        color: importDocxButton.down ? "#243B55"
+                            : importDocxButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#2B405C"
+                        border.width: 1
+                    }
+
+                    onClicked: docxFileDialog.open()
+                }
+
                 Button {
                     id: closeKnowledgeButton
                     text: "Stäng"
@@ -1304,6 +1335,19 @@ ApplicationWindow {
         // Send the selected file URL to Python.
         onAccepted: {
             backend.add_txt_knowledge(selectedFile.toString())
+        }
+    }
+
+    // File picker for importing a text file.
+    FileDialog {
+        id: docxFileDialog
+        title: "Välj en DOCX-fil"
+        nameFilters: ["Word-dokument (*.docx)"]
+
+        // Send the selected file URL to Python.
+        onAccepted: {
+            knowledgeSaveStatus.text = ""
+            backend.add_docx_knowledge(selectedFile)
         }
     }
 

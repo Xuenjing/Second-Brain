@@ -26,6 +26,7 @@ from database import (
     delete_knowledge, 
     initialize_database
 )
+from imports.document_importer import import_docx_to_database
 
 
 
@@ -373,3 +374,25 @@ class Backend(QObject):
             self.knowledgeSaveResult.emit(
                 f"Imported {added_count} knowledge entries from text file."
             )
+
+
+    @Slot(str)
+    def add_docx_knowledge(self, file_path: str) -> None:
+        """Import knowledge from a DOCX file.
+
+        Args:
+            file_path: File URL received from QML.
+        """
+
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            added_count = import_docx_to_database(local_path)
+        except (FileNotFoundError, ValueError) as error:
+            self.knowledgeSaveResult.emit(str(error))
+            return
+
+        if added_count == 0:
+            self.knowledgeSaveResult.emit("No new knowledge was added.")
+        else:
+            self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from docx file.")
