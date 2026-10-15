@@ -769,17 +769,62 @@ ApplicationWindow {
                         Button {
                             id: editPostButton
                             text: "Redigera"
-                            width: 100
+                            width: 40
                             height: 40
                             hoverEnabled: true
 
-                            // Center the button text.
-                            contentItem: Text {
-                                text: editPostButton.text
-                                color: "#F1F5F9"
-                                font.pixelSize: 14
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                            // Description when howered.
+                            Accessible.name: "Redigera kunskapspost"
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Redigera kunskapspost"
+
+                            // Draw a pencil icon.
+                            contentItem: Item {
+                                Item {
+                                    anchors.centerIn: parent
+                                    width: 24
+                                    height: 24
+                                    rotation: 45
+
+                                    // Pencil body.
+                                    Rectangle {
+                                        x: 9
+                                        y: 5
+                                        width: 6
+                                        height: 13
+                                        radius: 1
+                                        color: "#38BDF8"
+
+                                        // Line along the pencil.
+                                        Rectangle {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            y: 2
+                                            width: 1
+                                            height: 9
+                                            color: "#152238"
+                                        }
+                                    }
+
+                                    // Pencil cap.
+                                    Rectangle {
+                                        x: 9
+                                        y: 1
+                                        width: 6
+                                        height: 3
+                                        radius: 1
+                                        color: "#38BDF8"
+                                    }
+
+                                    // Pencil tip.
+                                    Rectangle {
+                                        x: 10
+                                        y: 17
+                                        width: 4
+                                        height: 4
+                                        rotation: 45
+                                        color: "#38BDF8"
+                                    }
+                                }
                             }
 
                             // Change background color when hovered or pressed.
