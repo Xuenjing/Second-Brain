@@ -21,17 +21,16 @@ ApplicationWindow {
     property bool isThinking: false
 
     visible: true
-    width: 800
-    height: 600
+    width: 1000
+    height: 700
     title: "Second Brain"
     color: "#0B1220"
 
     Column {
-        // Equal margins at the top and sides.
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
+        // Fill the window's content area with equal margins.
+        anchors.fill: parent
         anchors.margins: 24
+        anchors.bottomMargin: 36
         spacing: 16
 
         // Application name.
@@ -268,7 +267,12 @@ ApplicationWindow {
         // Allow scrolling through the conversation.
         ScrollView {
             width: parent.width
-            height: 220
+
+            // Fill the remaining height above the question row.
+            height: Math.max(
+                0,
+                parent.height - y - questionRow.height - parent.spacing
+            )
 
             // Display messages as plain text.
             TextArea {
@@ -296,6 +300,7 @@ ApplicationWindow {
 
         // Place the question field and send button next to each other.
         Row {
+            id: questionRow
             width: parent.width
             spacing: 12
 
@@ -405,7 +410,7 @@ ApplicationWindow {
 
         // Block interaction with the main window while the dialog is open.
         modal: true
-        width: 500
+        width: 600
         height: 400
 
         // Center the dialog in the main window's content area.
@@ -583,8 +588,8 @@ ApplicationWindow {
         modal: true
 
         // Limit the dialog size to fit within the main window.
-        width: Math.min(600, root.width - 48)
-        height: Math.min(450, root.height - 48)
+        width: Math.min(800, root.width - 48)
+        height: Math.min(600, root.height - 48)
 
         // Center the dialog in the main window's content area.
         parent: root.contentItem
