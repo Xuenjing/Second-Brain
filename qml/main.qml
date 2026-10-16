@@ -20,6 +20,25 @@ ApplicationWindow {
     // Track whether a question is being processed.
     property bool isThinking: false
 
+    // Track whether sort buttons are active.
+    property bool pdfFilterActive: true
+    property bool docxFilterActive: true
+    property bool txtFilterActive: true
+    property bool manualFilterActive: true
+    property string sortOrder: "desc"
+
+    // Refresh filter state.
+    function refreshKnowledge() {
+        backend.load_filtered_knowledge(
+            knowledgeSearchField.text,
+            root.sortOrder,
+            root.txtFilterActive,
+            root.docxFilterActive,
+            root.pdfFilterActive,
+            root.manualFilterActive
+        )
+    }
+
     // Store questions and answers displayed in the chat.
     ListModel {
         id: chatModel
@@ -144,7 +163,7 @@ ApplicationWindow {
                 // Open the dialog and load saved knowledge.
                 onClicked: {
                     knowledgeViewDialog.open()
-                    backend.load_all_knowledge("desc")
+                    root.refreshKnowledge()
                 }
             }
 
@@ -278,7 +297,7 @@ ApplicationWindow {
 
             // Show an animated indicator while processing a question.
             Row {
-                anchors.left: chatHeading.right
+                x: 16
                 anchors.leftMargin: 16
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 8
@@ -833,101 +852,267 @@ Rectangle {
                 }
 
                 // Search saved knowledge as the user types.
-                onTextEdited: backend.search_saved_knowledge(text)
+                onTextEdited: root.refreshKnowledge()
             }
 
-            // Sort posts by creation date.
+            // Row containing sort and filter buttons.
             Row {
                 id: sortButtons
                 anchors.top: knowledgeSearchField.bottom
                 anchors.topMargin: 6
                 anchors.right: parent.right
-                spacing: 2
+                spacing: 30
 
-                // Button for displaying sort by PDF.
-                Button {
-                    id: sortPdfButton
-                    text: "PDF"
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
+                Row {
+                    id: filterButtons
+                    spacing: 6
+                
 
-                    // Center the button text.
-                    contentItem: Text {
-                        text: sortPdfButton.text
-                        color: "#F1F5F9"
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    // Button for displaying sort by TXT.
+                    Button {
+                        id: filterTxtButton
+                        text: "TXT"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Center the button text.
+                        contentItem: Text {
+                            text: filterTxtButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Change background color when hovered or toggled on/off.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.txtFilterActive ? "#1E3350" 
+                                : filterTxtButton.down ? "#243B55"
+                                : filterTxtButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.txtFilterActive ? "#38BDF8" : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Toggle.
+                        onClicked: {
+                            root.txtFilterActive = !root.txtFilterActive
+                            root.refreshKnowledge()
+                        }
+
+                        // Tooltip.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "TXT-filer"
                     }
 
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: sortPdfButton.down ? "#243B55"
-                            : sortPdfButton.hovered ? "#1E3350"
-                            : "#152238"
-                        border.color: "#2B405C"
-                        border.width: 1
+                    // Button for displaying filter by DOCX.
+                    Button {
+                        id: filterDocxButton
+                        text: "DOCX"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Center the button text.
+                        contentItem: Text {
+                            text: filterDocxButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Change background color when hovered or toggled on/off.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.docxFilterActive ? "#1E3350" 
+                                : filterDocxButton.down ? "#243B55"
+                                : filterDocxButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.docxFilterActive ? "#38BDF8" : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Toggle.
+                        onClicked: {
+                            root.docxFilterActive = !root.docxFilterActive
+                            root.refreshKnowledge()
+                        }
+
+                        // Tooltip.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "DOCX-filer"
+                    }
+
+                    // Button for displaying sort by PDF.
+                    Button {
+                        id: filterPdfButton
+                        text: "PDF"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Center the button text.
+                        contentItem: Text {
+                            text: filterPdfButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Change background color when hovered or toggled on/off.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.pdfFilterActive ? "#1E3350" 
+                                : filterPdfButton.down ? "#243B55"
+                                : filterPdfButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.pdfFilterActive ? "#38BDF8" : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Toggle.
+                        onClicked: {
+                            root.pdfFilterActive = !root.pdfFilterActive
+                            root.refreshKnowledge()
+                        }
+
+                        // Tooltip.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "PDF-filer"
+                    }
+
+
+                    // Button for filtering by manual posts.
+                    Button {
+                        id: filterManualButton
+                        text: "M"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Center the button text.
+                        contentItem: Text {
+                            text: filterManualButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter       
+                        }
+
+                        // Change background color when hovered or toggled on/off.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.manualFilterActive ? "#1E3350" 
+                                : filterManualButton.down ? "#243B55"
+                                : filterManualButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.manualFilterActive ? "#38BDF8" : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Toggle.
+                        onClicked: {
+                            root.manualFilterActive = !root.manualFilterActive
+                            root.refreshKnowledge()
+                        }
+
+                        // Tooltip.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Manuella poster"
                     }
                 }
 
-                Button {
-                    id: sortAscendingButton
-                    width: 30
-                    height: 30
-                    hoverEnabled: true
+                // Row for sort by date buttons.
+                Row {
+                    id: dateSortButtons
+                    spacing: 6
+                
 
-                    // Display an upward arrow.
-                    contentItem: Text {
-                        text: "↑"
-                        color: sortAscendingButton.hovered ? "#F1F5F9" : "#94A3B8"
-                        font.pixelSize: 18
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    Button {
+                        id: sortAscendingButton
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Display an upward arrow.
+                        contentItem: Text {
+                            text: "↑"
+                            // old color: sortAscendingButton.hovered ? "#F1F5F9" : "#94A3B8"
+                            color: root.sortOrder === "asc" ? "#FFFFFF" : "#94A3B8" 
+                            font.pixelSize: 20
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Highlight the background when hovered or toggled.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.sortOrder === "asc" ? "#1E3350"
+                                : sortAscendingButton.down ? "#243B55"
+                                : sortAscendingButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.sortOrder === "asc"
+                                ? "#38BDF8"
+                                : "#2B405C"
+
+                            border.width: 1
+                        }
+
+                        // Request all posts in ascending date order.
+                        onClicked: {
+                            root.sortOrder = "asc"
+                            root.refreshKnowledge()
+                        }
+
+                        // Explain the sorting order when hovered.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Äldst först"
                     }
 
-                    // Highlight the background when hovered.
-                    background: Rectangle {
-                        radius: 6
-                        color: sortAscendingButton.hovered ? "#1E3350" : "transparent"
+                    Button {
+                        id: sortDescendingButton
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Display a downward arrow.
+                        contentItem: Text {
+                            text: "↓"
+                            color: root.sortOrder === "desc" ? "#FFFFFF" : "#94A3B8"
+                            font.pixelSize: 20
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Highlight the background when hovered or toggled.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.sortOrder === "desc" ? "#1E3350"
+                                : sortDescendingButton.down ? "#243B55"
+                                : sortDescendingButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.sortOrder === "desc"
+                                ? "#38BDF8"
+                                : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Request all posts in descending date order.
+                        onClicked: {
+                            root.sortOrder = "desc"
+                            root.refreshKnowledge()
+                        }
+
+                        // Explain the sorting order when hovered.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Nyast först"
                     }
-
-                    // Request all posts in ascending date order.
-                    onClicked: backend.load_all_knowledge("asc")
-
-                    // Explain the sorting order when hovered.
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Äldst först"
-                }
-
-                Button {
-                    id: sortDescendingButton
-                    width: 30
-                    height: 30
-                    hoverEnabled: true
-
-                    // Display a downward arrow.
-                    contentItem: Text {
-                        text: "↓"
-                        color: sortDescendingButton.hovered ? "#F1F5F9" : "#94A3B8"
-                        font.pixelSize: 18
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    // Highlight the background when hovered.
-                    background: Rectangle {
-                        radius: 6
-                        color: sortDescendingButton.hovered ? "#1E3350" : "transparent"
-                    }
-
-                    // Request all posts in descending date order.
-                    onClicked: backend.load_all_knowledge("desc")
-
-                    // Explain the sorting order when hovered.
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Nyast först"
                 }
             }
 
@@ -1584,7 +1769,7 @@ Rectangle {
             editKnowledgeStatus.text = message
 
             if (success) {
-                backend.search_saved_knowledge(knowledgeSearchField.text)
+                root.refreshKnowledge()
             }
         }
 
@@ -1592,7 +1777,7 @@ Rectangle {
         function onKnowledgeDeleteResult(success, message) {
             if (success) {
                 deleteKnowledgeDialog.close()
-                backend.search_saved_knowledge(knowledgeSearchField.text)
+                root.refreshKnowledge()
             } else {
                 deleteKnowledgeStatus.text = message
             }
