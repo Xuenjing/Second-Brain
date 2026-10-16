@@ -182,58 +182,6 @@ class Backend(QObject):
         self.thinker = None
         self.thinkingChanged.emit(False)
 
-    @Slot(str)
-    def load_all_knowledge(self, sort_order: str = "desc") -> None:
-        """
-        Load stored knowledge and send it to QML.
-        
-        Args:
-            sort_order: sort order for entries by creation time (ascending or descending).
-        """
-        knowledge = get_all_knowledge(sort_order)
-
-        knowledge_data = []
-        for item in knowledge:
-            # format created at to: "YYYY-MM-DD H-M"
-            created_at = datetime.fromisoformat(item["created_at"])
-            formatted_created_at = created_at.strftime("%Y-%m-%d %H:%M")
-            knowledge_data.append({
-                "id": item["id"],
-                "text": item["text"],
-                "source": item["source"],
-                "created_at": formatted_created_at
-            })
-
-        self.knowledgeLoaded.emit(knowledge_data)
-
-    @Slot(str)
-    def search_saved_knowledge(self, search: str) -> None:
-        """Search stored entries and send matches to QML.
-        
-        Args:
-            search: search term matched against stored text and source.
-        """
-        search = search.strip()
-
-        # Show all posts when the search field is empty.
-        if not search:
-            self.load_all_knowledge()
-            return
-
-        knowledge = search_knowledge(search)
-
-        knowledge_data = []
-        for item in knowledge:
-            created_at = datetime.fromisoformat(item["created_at"])
-
-            knowledge_data.append({
-                "id": item["id"],
-                "text": item["text"],
-                "source": item["source"],
-                "created_at": created_at.strftime("%Y-%m-%d %H:%M")
-            })
-
-        self.knowledgeLoaded.emit(knowledge_data)
 
     @Slot(int, str)
     def edit_saved_knowledge(self, knowledge_id: int, new_text: str) -> None:
@@ -419,3 +367,78 @@ class Backend(QObject):
             self.knowledgeSaveResult.emit("No new knowledge was added")
         else:
             self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from pdf file.")
+
+
+    @Slot(str, str, bool, bool, bool, bool)
+    def load_filtered_knowledge(self,
+        search: str, 
+        sort_order: str, 
+        txt_active: bool, 
+        docx_active: bool, 
+        pdf_active: bool, 
+        manual_active: bool
+    ) -> None:
+        """Load and filter knowledge for display in QML.
+        
+        Args:
+            search: Search text matched against stored knowledge (text and source).
+            sort_order: Sort order by creation time.
+            txt_active: Whether TXT entries should be included or not.
+            docx_active. Whether DOCX entries should be included or not.
+            pdf_active: Whether PDF entries should be included or not.
+            manual_active: whether manual entries should be included or not.
+        """
+        search = search.strip()
+
+        if search:
+            knowledge = search_knowledge(search)
+        else:
+            knowledge = get_all_knowledge(sort_order)
+
+        reverse = sort_order == "desc"
+
+        knowledge.sort(key=lambda item: item["created_at"], reverse=reverse)
+
+        filtered_knowledge = []
+
+        for item in knowledge:
+            source = item["source"].lower()
+
+            if txt_active and source.endswith(".txt"):
+                filtered_knowledge.append(item)
+            elif docx_active and source.endswith(".docx"):
+                filtered_knowledge.append(item)
+            elif pdf_active and source.endswith(".pdf"):
+                filtered_knowledge.append(item)
+            elif manual_active and source == "manual":
+                filtered_knowledge.append(item)
+
+        knowledge_data = self._format_knowledge_for_qml(filtered_knowledge)
+        self.knowledgeLoaded.emit(knowledge_data)
+
+
+    def _format_knowledge_for_qml(self, knowledge: list[dict]) -> list[dict]:
+        """Format knowledge entries for display in QML.
+
+        Internal helper function, not called by QML directly.
+        
+        Args:
+            knowledge: Knowledge entries from database.
+
+        Returns:
+            Knowledge entries formatted for QML.
+        """
+
+        knowledge_data = []
+
+        for item in knowledge:
+            created_at = datetime.fromisoformat(item["created_at"])
+
+            knowledge_data.append({
+                "id": item["id"],
+                "text": item["text"],
+                "source": item["source"],
+                "created_at": created_at.strftime("%Y-%m-%d %H:%M")
+            })
+
+        return knowledge_data
