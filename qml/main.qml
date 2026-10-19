@@ -10,32 +10,92 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Dialogs 
+import QtQuick.Dialogs
 
 
 // Main application window.
 ApplicationWindow {
     id: root
+
+    // Track whether a question is being processed.
+    property bool isThinking: false
+
+    // Track whether sort buttons are active.
+    property bool pdfFilterActive: true
+    property bool docxFilterActive: true
+    property bool txtFilterActive: true
+    property bool manualFilterActive: true
+    property string sortOrder: "desc"
+
+    // Refresh filter state.
+    function refreshKnowledge() {
+        backend.load_filtered_knowledge(
+            knowledgeSearchField.text,
+            root.sortOrder,
+            root.txtFilterActive,
+            root.docxFilterActive,
+            root.pdfFilterActive,
+            root.manualFilterActive
+        )
+    }
+
+    // Store questions and answers displayed in the chat.
+    ListModel {
+        id: chatModel
+    }
+
     visible: true
-    width: 800
-    height: 600
+    width: 1000
+    height: 700
     title: "Second Brain"
     color: "#0B1220"
 
     Column {
-        // Equal margins at the top and sides.
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
+        // Fill the window's content area with equal margins.
+        anchors.fill: parent
         anchors.margins: 24
+        anchors.bottomMargin: 36
         spacing: 16
 
-        // Application name.
-        Label {
-            text: "Second Brain"
-            font.pixelSize: 28
-            font.bold: true
-            color: "#F1F5F9"
+        // Application name and logo
+        Row {
+            spacing: 16
+
+            Image {
+                width: 76
+                height: 76
+                source: "../assets/logo4.png"
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Column {
+                spacing: 0
+                anchors.verticalCenter: parent.verticalCenter
+
+                Label {
+                    text: "Second"
+                    font.pixelSize: 28
+                    font.bold: true
+                    color: "#F1F5F9"
+                }
+
+                Label {
+                    text: "Brain"
+                    font.pixelSize: 28
+                    font.bold: true
+                    color: "#38BDF8"
+                }
+
+                // Yellow accent matching the lightning bolt.
+                Rectangle {
+                    width: 64
+                    height: 4
+                    radius: 2
+                    color: "#FACC15"
+                }
+            }
         }
 
         // Place the knowledge buttons next to each other.
@@ -103,57 +163,305 @@ ApplicationWindow {
                 // Open the dialog and load saved knowledge.
                 onClicked: {
                     knowledgeViewDialog.open()
-                    backend.load_all_knowledge("desc")
+                    root.refreshKnowledge()
+                }
+            }
+
+            // Adds a dropdown menu for selection of LLM
+            ComboBox {
+                id: modelSelector
+
+                width: 305
+                height: 40
+
+                model: [
+                    "Qwen3 0.6B — Snabb",
+                    "Qwen3 1.7B — Rekommenderas",
+                    "Qwen3 4B — Långsam"
+                ]
+
+                currentIndex: 1
+
+                contentItem: Text {
+                    text: modelSelector.displayText
+                    color: "#F1F5F9"
+                    font.pixelSize: 14
+
+                    leftPadding: 12
+                    rightPadding: 32
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                }
+
+                background: Rectangle {
+                    color: "#152238"
+                    radius: 8
+                    border.color: modelSelector.activeFocus ? "#38BDF8" : "#2B405C"
+                    border.width: 1
+                }
+
+                // Dictates how every row in dropdown should act
+                delegate: ItemDelegate {
+                    width: ListView.view.width
+                    height: 40
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: modelData
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: 12
+                    }
+
+                    // if/elif/else for marked and hover
+                    background: Rectangle {
+                        radius: 6
+                        
+                        color: parent.highlighted
+                            ? "#1E3350"
+                            : parent.hovered
+                                ? "#1A2C45"
+                                : "#152238"
+                    }
+                }
+
+                // The popup when the dropdown is clicked
+                popup: Popup {
+                    y: modelSelector.height + 4
+                    width: modelSelector.width
+                    padding: 1
+
+                    contentItem: ListView {
+                        implicitHeight: contentHeight
+                        clip: true
+
+                        model: modelSelector.popup.visible
+                            ? modelSelector.delegateModel
+                            : null
+
+                        currentIndex: modelSelector.highlightedIndex
+                    }
+
+                    background: Rectangle {
+                        color: "#152238"
+                        radius: 8
+                        border.color: "#2B405C"
+                        border.width: 1
+                    }
+                }
+            }
+
+            // Add a load model button next to the dropdown menu.
+            Button {
+                id: loadModelButton
+                text: "Ladda modell"
+                height: 40
+                leftPadding: 16
+                rightPadding: 16
+                hoverEnabled: true                
+
+                // Center the button text.
+                contentItem: Text {
+                    text: loadModelButton.text
+                    color: "#F1F5F9"
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                // Change background color when hovered or pressed.
+                background: Rectangle {
+                    radius: 8
+                    color: loadModelButton.down ? "#243B55"
+                        : loadModelButton.hovered ? "#1E3350"
+                        : "#152238"
+                    border.color: "#38BDF8"
+                    border.width: 1
+                }
+
+                // Load the model when clicked.
+                onClicked: {
+
                 }
             }
         }
 
+
         // Conversation title.
-        Label {
-            text: "Chatt"
-            font.pixelSize: 16
-            font.bold: true
-            color: "#F1F5F9"
-        }
-
-        // Allow scrolling through the conversation.
-        ScrollView {
+        // Keep the chat heading and thinking indicator on the same line.
+        Item {
             width: parent.width
-            height: 220
+            height: 32
 
-            // Display messages as plain text.
-            TextArea {
-                id: chatDisplay
-                readOnly: true
-                wrapMode: TextArea.Wrap
-                textFormat: TextEdit.PlainText
-                placeholderText: "Här visas dina frågor och svar..."
+            // Show an animated indicator while processing a question.
+            Row {
+                x: 16
+                anchors.leftMargin: 16
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 8
+                visible: root.isThinking
 
-                // Light text on a dark background.
-                color: "#F1F5F9"
-                placeholderTextColor: "#94A3B8"
-                font.pixelSize: 14
-                padding: 16
+                // Show a rotating blue ring while processing.
+                Item {
+                    width: 24
+                    height: 24
 
-                // Rounded background with a subtle border.
-                background: Rectangle {
-                    color: "#152238"
-                    radius: 10
-                    border.color: "#2B405C"
-                    border.width: 1
-                }  
+                    Rectangle {
+                        id: thinkingRing
+                        anchors.centerIn: parent
+                        width: 20
+                        height: 20
+                        radius: 10
+                        color: "transparent"
+                        border.color: "#38BDF8"
+                        border.width: 2
+
+                        Rectangle {
+                            width: 6
+                            height: 6
+                            radius: 3
+                            color: "#F1F5F9"
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: -2
+                        }
+
+                        RotationAnimator on rotation {
+                            from: 0
+                            to: 360
+                            duration: 1000
+                            loops: Animation.Infinite
+                            running: root.isThinking
+                        }
+                    }
+                }
+
+                Label {
+                    text: "Tänker…"
+                    color: "#94A3B8"
+                    anchors.verticalCenter: parent.verticalCenter
+                }
             }
         }
 
+// Show a welcome message or the conversation.
+Rectangle {
+    id: chatPanel
+    width: parent.width
+    height: Math.max(
+        0,
+        parent.height - y - questionRow.height - parent.spacing
+    )
+    color: "#152238"
+    radius: 10
+    border.color: "#2B405C"
+    border.width: 1
+
+    // Show the welcome view while the chat is empty.
+    Column {
+        anchors.centerIn: parent
+        width: parent.width - 48
+        spacing: 12
+        visible: chatModel.count === 0
+
+        // Display a muted logo in the empty chat.
+        Image {
+            anchors.horizontalCenter: parent.horizontalCenter
+            source: "../assets/logo_chat.png"
+            width: 200
+            height: 200
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            opacity: 1.0
+        }
+
+        Label {
+            width: parent.width
+            text: "Vad vill du veta?"
+            horizontalAlignment: Text.AlignHCenter
+            font.pixelSize: 22
+            font.bold: true
+            color: "#F1F5F9"
+        }
+    }
+
+        // Display each message as a separate bubble.
+        ListView {
+            id: chatList
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 16
+            clip: true
+            model: chatModel
+            visible: chatModel.count > 0
+
+            ScrollBar.vertical: ScrollBar {}
+
+            delegate: Item {
+                id: messageItem
+
+                required property string sender
+                required property string message
+
+                width: ListView.view.width
+                height: messageBubble.height
+
+                Rectangle {
+                    id: messageBubble
+
+                    // Place questions on the right and answers on the left.
+                    x: messageItem.sender === "user"
+                        ? parent.width - width
+                        : 0
+
+                    width: Math.min(
+                        messageText.implicitWidth + 28,
+                        messageItem.width * 0.8
+                    )
+                    height: messageText.height + 24
+                    radius: 10
+
+                    color: messageItem.sender === "user"
+                        ? "#1E40AF"
+                        : "#243B55"
+
+                    Text {
+                        id: messageText
+                        x: 14
+                        y: 12
+                        width: parent.width - 28
+                        text: messageItem.message
+                        textFormat: Text.PlainText
+                        wrapMode: Text.Wrap
+                        font.pixelSize: 14
+                        color: "#F1F5F9"
+                    }
+                }
+            }
+
+            // Scroll to the latest message after the list updates.
+            onCountChanged: Qt.callLater(function() {
+                chatList.positionViewAtEnd()
+            })
+        }
+    }
+
         // Place the question field and send button next to each other.
         Row {
+            id: questionRow
             width: parent.width
             spacing: 12
 
             TextField {
                 id: inputField
-                // Use the remaining width next to the send button.
-                width: parent.width - sendButton.width - parent.spacing
+
+                // Leave room for the buttons beside the input field.
+                width: parent.width - sendButton.width -
+                    (root.isThinking
+                            ? cancelButton.width + 2 * parent.spacing
+                            : parent.spacing)
+
                 placeholderText: "Skriv din fråga här"
 
                 // Text colors plus extra space inside the field.
@@ -173,8 +481,38 @@ ApplicationWindow {
             }
 
             Button {
+                id: cancelButton
+                text: "Avbryt"
+                width: 100
+                height: 44
+                visible: root.isThinking
+                hoverEnabled: true
+
+                contentItem: Text {
+                    text: cancelButton.text
+                    color: "#FFFFFF"
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+                    color: cancelButton.down ? "#991B1B"
+                        : cancelButton.hovered ? "#EF4444"
+                        : "#DC2626"
+                }
+
+                // onClicked: backend.cancel_question()
+            }
+
+            Button {
                 id: sendButton
                 text: "Skicka"
+
+                // Prevent sending another question while processing.
+                enabled: !root.isThinking
+
                 height: 44
                 width: 100
                 hoverEnabled: true
@@ -203,7 +541,11 @@ ApplicationWindow {
 
                     // Send only questions that contain text.
                     if (question.length > 0) {
-                        chatDisplay.append("Du: " + question)
+                        // Add the question to the chat.
+                        chatModel.append({
+                            sender: "user",
+                            message: question
+                        })
 
                         // Send the question to Python and clear the input field.
                         backend.receive_text(question)
@@ -221,7 +563,7 @@ ApplicationWindow {
 
         // Block interaction with the main window while the dialog is open.
         modal: true
-        width: 500
+        width: 800
         height: 400
 
         // Center the dialog in the main window's content area.
@@ -348,6 +690,67 @@ ApplicationWindow {
                     onClicked: textFileDialog.open() 
                 }
 
+                // Button for importing docx files.
+                Button {
+                    id: importDocxButton
+                    text: "Importera .docx-fil"
+                    width: 160
+                    height: 40
+                    hoverEnabled: true
+                
+
+                    // Center the button text.
+                    contentItem: Text {
+                        text: importDocxButton.text
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    // Change background color when hovered or pressed.
+                    background: Rectangle {
+                        radius: 8
+                        color: importDocxButton.down ? "#243B55"
+                            : importDocxButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#2B405C"
+                        border.width: 1
+                    }
+
+                    onClicked: docxFileDialog.open()
+                }
+
+                // Button for importing PDF files.
+                Button {
+                    id: importPdfButton
+                    text: "Importera .pdf-fil"
+                    width: 160
+                    height: 40
+                    hoverEnabled: true
+
+                    // Center the button text.
+                    contentItem: Text {
+                        text: importPdfButton.text
+                        color: "#F1F5F9"
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    // Change background color when hovered or pressed.
+                    background: Rectangle {
+                        radius: 8
+                        color: importPdfButton.down ? "#243B55"
+                            : importPdfButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#2B405C"
+                        border.width: 1
+                    }
+
+                    onClicked: pdfFileDialog.open()
+                }
+
                 Button {
                     id: closeKnowledgeButton
                     text: "Stäng"
@@ -399,8 +802,8 @@ ApplicationWindow {
         modal: true
 
         // Limit the dialog size to fit within the main window.
-        width: Math.min(600, root.width - 48)
-        height: Math.min(450, root.height - 48)
+        width: Math.min(800, root.width - 48)
+        height: Math.min(600, root.height - 48)
 
         // Center the dialog in the main window's content area.
         parent: root.contentItem
@@ -449,73 +852,267 @@ ApplicationWindow {
                 }
 
                 // Search saved knowledge as the user types.
-                onTextEdited: backend.search_saved_knowledge(text)
+                onTextEdited: root.refreshKnowledge()
             }
 
-            // Sort posts by creation date.
+            // Row containing sort and filter buttons.
             Row {
                 id: sortButtons
                 anchors.top: knowledgeSearchField.bottom
                 anchors.topMargin: 6
                 anchors.right: parent.right
-                spacing: 2
+                spacing: 30
 
-                Button {
-                    id: sortAscendingButton
-                    width: 30
-                    height: 30
-                    hoverEnabled: true
+                Row {
+                    id: filterButtons
+                    spacing: 6
+                
 
-                    // Display an upward arrow.
-                    contentItem: Text {
-                        text: "↑"
-                        color: sortAscendingButton.hovered ? "#F1F5F9" : "#94A3B8"
-                        font.pixelSize: 18
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    // Button for displaying sort by TXT.
+                    Button {
+                        id: filterTxtButton
+                        text: "TXT"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Center the button text.
+                        contentItem: Text {
+                            text: filterTxtButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Change background color when hovered or toggled on/off.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.txtFilterActive ? "#1E3350" 
+                                : filterTxtButton.down ? "#243B55"
+                                : filterTxtButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.txtFilterActive ? "#38BDF8" : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Toggle.
+                        onClicked: {
+                            root.txtFilterActive = !root.txtFilterActive
+                            root.refreshKnowledge()
+                        }
+
+                        // Tooltip.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "TXT-filer"
                     }
 
-                    // Highlight the background when hovered.
-                    background: Rectangle {
-                        radius: 6
-                        color: sortAscendingButton.hovered ? "#1E3350" : "transparent"
+                    // Button for displaying filter by DOCX.
+                    Button {
+                        id: filterDocxButton
+                        text: "DOCX"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Center the button text.
+                        contentItem: Text {
+                            text: filterDocxButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Change background color when hovered or toggled on/off.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.docxFilterActive ? "#1E3350" 
+                                : filterDocxButton.down ? "#243B55"
+                                : filterDocxButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.docxFilterActive ? "#38BDF8" : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Toggle.
+                        onClicked: {
+                            root.docxFilterActive = !root.docxFilterActive
+                            root.refreshKnowledge()
+                        }
+
+                        // Tooltip.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "DOCX-filer"
                     }
 
-                    // Request all posts in ascending date order.
-                    onClicked: backend.load_all_knowledge("asc")
+                    // Button for displaying sort by PDF.
+                    Button {
+                        id: filterPdfButton
+                        text: "PDF"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
 
-                    // Explain the sorting order when hovered.
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Äldst först"
+                        // Center the button text.
+                        contentItem: Text {
+                            text: filterPdfButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Change background color when hovered or toggled on/off.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.pdfFilterActive ? "#1E3350" 
+                                : filterPdfButton.down ? "#243B55"
+                                : filterPdfButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.pdfFilterActive ? "#38BDF8" : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Toggle.
+                        onClicked: {
+                            root.pdfFilterActive = !root.pdfFilterActive
+                            root.refreshKnowledge()
+                        }
+
+                        // Tooltip.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "PDF-filer"
+                    }
+
+
+                    // Button for filtering by manual posts.
+                    Button {
+                        id: filterManualButton
+                        text: "M"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Center the button text.
+                        contentItem: Text {
+                            text: filterManualButton.text
+                            color: "#F1F5F9"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter       
+                        }
+
+                        // Change background color when hovered or toggled on/off.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.manualFilterActive ? "#1E3350" 
+                                : filterManualButton.down ? "#243B55"
+                                : filterManualButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.manualFilterActive ? "#38BDF8" : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Toggle.
+                        onClicked: {
+                            root.manualFilterActive = !root.manualFilterActive
+                            root.refreshKnowledge()
+                        }
+
+                        // Tooltip.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Manuella poster"
+                    }
                 }
 
-                Button {
-                    id: sortDescendingButton
-                    width: 30
-                    height: 30
-                    hoverEnabled: true
+                // Row for sort by date buttons.
+                Row {
+                    id: dateSortButtons
+                    spacing: 6
+                
 
-                    // Display a downward arrow.
-                    contentItem: Text {
-                        text: "↓"
-                        color: sortDescendingButton.hovered ? "#F1F5F9" : "#94A3B8"
-                        font.pixelSize: 18
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    Button {
+                        id: sortAscendingButton
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Display an upward arrow.
+                        contentItem: Text {
+                            text: "↑"
+                            // old color: sortAscendingButton.hovered ? "#F1F5F9" : "#94A3B8"
+                            color: root.sortOrder === "asc" ? "#FFFFFF" : "#94A3B8" 
+                            font.pixelSize: 20
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Highlight the background when hovered or toggled.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.sortOrder === "asc" ? "#1E3350"
+                                : sortAscendingButton.down ? "#243B55"
+                                : sortAscendingButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.sortOrder === "asc"
+                                ? "#38BDF8"
+                                : "#2B405C"
+
+                            border.width: 1
+                        }
+
+                        // Request all posts in ascending date order.
+                        onClicked: {
+                            root.sortOrder = "asc"
+                            root.refreshKnowledge()
+                        }
+
+                        // Explain the sorting order when hovered.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Äldst först"
                     }
 
-                    // Highlight the background when hovered.
-                    background: Rectangle {
-                        radius: 6
-                        color: sortDescendingButton.hovered ? "#1E3350" : "transparent"
+                    Button {
+                        id: sortDescendingButton
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        // Display a downward arrow.
+                        contentItem: Text {
+                            text: "↓"
+                            color: root.sortOrder === "desc" ? "#FFFFFF" : "#94A3B8"
+                            font.pixelSize: 20
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Highlight the background when hovered or toggled.
+                        background: Rectangle {
+                            radius: 8
+                            color: root.sortOrder === "desc" ? "#1E3350"
+                                : sortDescendingButton.down ? "#243B55"
+                                : sortDescendingButton.hovered ? "#1E3350"
+                                : "#152238"
+                            border.color: root.sortOrder === "desc"
+                                ? "#38BDF8"
+                                : "#2B405C"
+                            border.width: 1
+                        }
+
+                        // Request all posts in descending date order.
+                        onClicked: {
+                            root.sortOrder = "desc"
+                            root.refreshKnowledge()
+                        }
+
+                        // Explain the sorting order when hovered.
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Nyast först"
                     }
-
-                    // Request all posts in descending date order.
-                    onClicked: backend.load_all_knowledge("desc")
-
-                    // Explain the sorting order when hovered.
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Nyast först"
                 }
             }
 
@@ -574,10 +1171,9 @@ ApplicationWindow {
                         }
                     }
 
-                    // Place the buttons on the right side of the post.
-                    Column {
+                    // Place the action buttons next to each other on the right.
+                    Row {
                         id: postActions
-                        width: 100
                         spacing: 8
                         anchors.right: parent.right
                         anchors.rightMargin: 12
@@ -586,17 +1182,62 @@ ApplicationWindow {
                         Button {
                             id: editPostButton
                             text: "Redigera"
-                            width: 100
+                            width: 40
                             height: 40
                             hoverEnabled: true
 
-                            // Center the button text.
-                            contentItem: Text {
-                                text: editPostButton.text
-                                color: "#F1F5F9"
-                                font.pixelSize: 14
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                            // Description when howered.
+                            Accessible.name: "Redigera kunskapspost"
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Redigera kunskapspost"
+
+                            // Draw a pencil icon.
+                            contentItem: Item {
+                                Item {
+                                    anchors.centerIn: parent
+                                    width: 24
+                                    height: 24
+                                    rotation: 45
+
+                                    // Pencil body.
+                                    Rectangle {
+                                        x: 9
+                                        y: 5
+                                        width: 6
+                                        height: 13
+                                        radius: 1
+                                        color: "#38BDF8"
+
+                                        // Line along the pencil.
+                                        Rectangle {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            y: 2
+                                            width: 1
+                                            height: 9
+                                            color: "#152238"
+                                        }
+                                    }
+
+                                    // Pencil cap.
+                                    Rectangle {
+                                        x: 9
+                                        y: 1
+                                        width: 6
+                                        height: 3
+                                        radius: 1
+                                        color: "#38BDF8"
+                                    }
+
+                                    // Pencil tip.
+                                    Rectangle {
+                                        x: 10
+                                        y: 17
+                                        width: 4
+                                        height: 4
+                                        rotation: 45
+                                        color: "#38BDF8"
+                                    }
+                                }
                             }
 
                             // Change background color when hovered or pressed.
@@ -621,17 +1262,69 @@ ApplicationWindow {
                         Button {
                             id: deletePostButton
                             text: "Ta bort"
-                            width: 100
+                            width: 40
                             height: 40
                             hoverEnabled: true
 
-                            // Center the button text.
-                            contentItem: Text {
-                                text: deletePostButton.text
-                                color: "#FCA5A5"
-                                font.pixelSize: 14
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                            // Description when hovered.
+                            Accessible.name: "Ta bort kunskapspost"
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Ta bort kunskapspost"
+
+                            // Draw a trash can icon.
+                            contentItem: Item {
+                                Item {
+                                    anchors.centerIn: parent
+                                    width: 20
+                                    height: 24
+
+                                    // Handle.
+                                    Rectangle {
+                                        x: 7
+                                        y: 1
+                                        width: 6
+                                        height: 5
+                                        radius: 1
+                                        color: "transparent"
+                                        border.color: "#FCA5A5"
+                                        border.width: 2
+                                    }
+
+                                    // Lid.
+                                    Rectangle {
+                                        x: 2
+                                        y: 5
+                                        width: 16
+                                        height: 2
+                                        radius: 1
+                                        color: "#FCA5A5"
+                                    }
+
+                                    // Bin.
+                                    Rectangle {
+                                        x: 4
+                                        y: 9
+                                        width: 12
+                                        height: 14
+                                        radius: 2
+                                        color: "#FCA5A5"
+
+                                        // Vertical lines inside the bin.
+                                        Repeater {
+                                            model: 3
+
+                                            Rectangle {
+                                                required property int index
+                                                x: 3 + index * 3
+                                                y: 3
+                                                width: 1
+                                                height: 8
+                                                radius: 0.5
+                                                color: "#152238"
+                                            }
+                                        }
+                                    }
+                                }
                             }
 
                             // Use red colors for the delete button.
@@ -1018,7 +1711,34 @@ ApplicationWindow {
 
         // Send the selected file URL to Python.
         onAccepted: {
+            knowledgeSaveStatus.text = ""
             backend.add_txt_knowledge(selectedFile.toString())
+        }
+    }
+
+    // File picker for importing a docx file.
+    FileDialog {
+        id: docxFileDialog
+        title: "Välj en DOCX-fil"
+        nameFilters: ["Word-dokument (*.docx)"]
+
+        // Send the selected file URL to Python.
+        onAccepted: {
+            knowledgeSaveStatus.text = ""
+            backend.add_docx_knowledge(selectedFile)
+        }
+    }
+
+    // File picker for importing a pdf file.
+    FileDialog {
+        id: pdfFileDialog
+        title: "Välj en PDF-fil"
+        nameFilters: ["PDF-dokument (*.pdf)"]
+
+        // Send the selected file URL to python.
+        onAccepted: {
+            knowledgeSaveStatus.text = ""
+            backend.add_pdf_knowledge(selectedFile)
         }
     }
 
@@ -1028,7 +1748,10 @@ ApplicationWindow {
 
         // Add the answer to the chat.
         function onReplyReady(reply) {
-            chatDisplay.append("Assistent: " + reply + "\n")
+            chatModel.append({
+                sender: "assistant",
+                message: reply
+            })
         }
 
         // Show the result of saving or importing knowledge.
@@ -1046,7 +1769,7 @@ ApplicationWindow {
             editKnowledgeStatus.text = message
 
             if (success) {
-                backend.search_saved_knowledge(knowledgeSearchField.text)
+                root.refreshKnowledge()
             }
         }
 
@@ -1054,10 +1777,23 @@ ApplicationWindow {
         function onKnowledgeDeleteResult(success, message) {
             if (success) {
                 deleteKnowledgeDialog.close()
-                backend.search_saved_knowledge(knowledgeSearchField.text)
+                root.refreshKnowledge()
             } else {
                 deleteKnowledgeStatus.text = message
             }
+        }
+
+        // Show or hide the thinking indicator.
+        function onThinkingChanged(thinking) {
+            root.isThinking = thinking
+        }
+
+        // Display an error message in the chat.
+        function onReplyFailed(message) {
+            chatModel.append({
+                sender: "assistant",
+                message: "Fel: " + message
+            })
         }
     }
 }
