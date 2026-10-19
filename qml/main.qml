@@ -399,46 +399,83 @@ Rectangle {
             ScrollBar.vertical: ScrollBar {}
 
             delegate: Item {
-                id: messageItem
+            id: messageItem
 
-                required property string sender
-                required property string message
+            required property string sender
+            required property string message
 
-                width: ListView.view.width
-                height: messageBubble.height
+            property bool isUser: sender === "user"
+
+            width: ListView.view.width
+            height: Math.max(messageBubble.height, avatar.height)
+
+            // Show assistant logo.
+            Item {
+                id: avatar
+                width: 32
+                height: 32
+
+                x: messageItem.isUser
+                    ? messageItem.width - width
+                    : 0
+
+                Image {
+                    anchors.fill: parent
+                    source: "../assets/logo4.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    visible: !messageItem.isUser
+                }
 
                 Rectangle {
-                    id: messageBubble
-
-                    // Place questions on the right and answers on the left.
-                    x: messageItem.sender === "user"
-                        ? parent.width - width
-                        : 0
-
-                    width: Math.min(
-                        messageText.implicitWidth + 28,
-                        messageItem.width * 0.8
-                    )
-                    height: messageText.height + 24
-                    radius: 10
-
-                    color: messageItem.sender === "user"
-                        ? "#1E40AF"
-                        : "#243B55"
+                    anchors.fill: parent
+                    radius: 16
+                    color: "#1E40AF"
+                    border.color: "#38BDF8"
+                    visible: messageItem.isUser
 
                     Text {
-                        id: messageText
-                        x: 14
-                        y: 12
-                        width: parent.width - 28
-                        text: messageItem.message
-                        textFormat: Text.PlainText
-                        wrapMode: Text.Wrap
-                        font.pixelSize: 14
+                        anchors.centerIn: parent
+                        text: "Du"
                         color: "#F1F5F9"
+                        font.pixelSize: 12
+                        font.bold: true
                     }
                 }
             }
+
+            // Leave space between the bubble and the avatar.
+            Rectangle {
+                id: messageBubble
+
+                width: Math.min(
+                    messageText.implicitWidth + 28,
+                    messageItem.width * 0.8,
+                    messageItem.width - avatar.width - 12
+                )
+                height: messageText.height + 24
+                radius: 10
+
+                x: messageItem.isUser
+                    ? avatar.x - width - 12
+                    : avatar.width + 12
+
+                color: messageItem.isUser ? "#1E40AF" : "#243B55"
+
+                Text {
+                    id: messageText
+                    x: 14
+                    y: 12
+                    width: parent.width - 28
+
+                    text: messageItem.message
+                    textFormat: Text.PlainText
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 14
+                    color: "#F1F5F9"
+                }
+            }
+        }
 
             // Scroll to the latest message after the list updates.
             onCountChanged: Qt.callLater(function() {
