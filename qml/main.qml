@@ -631,26 +631,61 @@ Rectangle {
                 Button {
                     id: saveKnowledgeButton
                     text: "Spara"
-                    width: 90
+                    width: 40
                     height: 40
                     hoverEnabled: true
 
-                    // Center the button text.
-                    contentItem: Text {
-                        text: saveKnowledgeButton.text
-                        color: "#FFFFFF"
-                        font.pixelSize: 14
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    // Description when howered.
+                    Accessible.name: "Spara kunskap"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Spara kunskap"
+
+                    // Draw a save icon.
+                    contentItem: Item {
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 22
+                            height: 22
+                            radius: 3
+                            color: "#38BDF8"
+
+                            // Upper inset.
+                            Rectangle {
+                                x: 5
+                                y: 0
+                                width: 12
+                                height: 8
+                                color: "#152238"
+
+                                Rectangle {
+                                    x: 8
+                                    y: 1
+                                    width: 2
+                                    height: 5
+                                    color: "#38BDF8"
+                                }
+                            }
+
+                            // Label area.
+                            Rectangle {
+                                x: 4
+                                y: 12
+                                width: 14
+                                height: 8
+                                radius: 1
+                                color: "#152238"
+                            }
+                        }
                     }
 
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: saveKnowledgeButton.down ? "#1D4ED8"
-                            : saveKnowledgeButton.hovered ? "#3B82F6"
-                            : "#2563EB"
+                        color: saveKnowledgeButton.down ? "#243B55"
+                            : saveKnowledgeButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#38BDF8"
+                        border.width: 1
                     }
 
                     // Clear the previous status and send the text to Python.
