@@ -399,46 +399,83 @@ Rectangle {
             ScrollBar.vertical: ScrollBar {}
 
             delegate: Item {
-                id: messageItem
+            id: messageItem
 
-                required property string sender
-                required property string message
+            required property string sender
+            required property string message
 
-                width: ListView.view.width
-                height: messageBubble.height
+            property bool isUser: sender === "user"
+
+            width: ListView.view.width
+            height: Math.max(messageBubble.height, avatar.height)
+
+            // Show assistant logo.
+            Item {
+                id: avatar
+                width: 32
+                height: 32
+
+                x: messageItem.isUser
+                    ? messageItem.width - width
+                    : 0
+
+                Image {
+                    anchors.fill: parent
+                    source: "../assets/logo4.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    visible: !messageItem.isUser
+                }
 
                 Rectangle {
-                    id: messageBubble
-
-                    // Place questions on the right and answers on the left.
-                    x: messageItem.sender === "user"
-                        ? parent.width - width
-                        : 0
-
-                    width: Math.min(
-                        messageText.implicitWidth + 28,
-                        messageItem.width * 0.8
-                    )
-                    height: messageText.height + 24
-                    radius: 10
-
-                    color: messageItem.sender === "user"
-                        ? "#1E40AF"
-                        : "#243B55"
+                    anchors.fill: parent
+                    radius: 16
+                    color: "#1E40AF"
+                    border.color: "#38BDF8"
+                    visible: messageItem.isUser
 
                     Text {
-                        id: messageText
-                        x: 14
-                        y: 12
-                        width: parent.width - 28
-                        text: messageItem.message
-                        textFormat: Text.PlainText
-                        wrapMode: Text.Wrap
-                        font.pixelSize: 14
+                        anchors.centerIn: parent
+                        text: "Du"
                         color: "#F1F5F9"
+                        font.pixelSize: 12
+                        font.bold: true
                     }
                 }
             }
+
+            // Leave space between the bubble and the avatar.
+            Rectangle {
+                id: messageBubble
+
+                width: Math.min(
+                    messageText.implicitWidth + 28,
+                    messageItem.width * 0.8,
+                    messageItem.width - avatar.width - 12
+                )
+                height: messageText.height + 24
+                radius: 10
+
+                x: messageItem.isUser
+                    ? avatar.x - width - 12
+                    : avatar.width + 12
+
+                color: messageItem.isUser ? "#1E40AF" : "#243B55"
+
+                Text {
+                    id: messageText
+                    x: 14
+                    y: 12
+                    width: parent.width - 28
+
+                    text: messageItem.message
+                    textFormat: Text.PlainText
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 14
+                    color: "#F1F5F9"
+                }
+            }
+        }
 
             // Scroll to the latest message after the list updates.
             onCountChanged: Qt.callLater(function() {
@@ -631,26 +668,61 @@ Rectangle {
                 Button {
                     id: saveKnowledgeButton
                     text: "Spara"
-                    width: 90
+                    width: 40
                     height: 40
                     hoverEnabled: true
 
-                    // Center the button text.
-                    contentItem: Text {
-                        text: saveKnowledgeButton.text
-                        color: "#FFFFFF"
-                        font.pixelSize: 14
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    // Description when howered.
+                    Accessible.name: "Spara kunskap"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Spara kunskap"
+
+                    // Draw a save icon.
+                    contentItem: Item {
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 22
+                            height: 22
+                            radius: 3
+                            color: "#38BDF8"
+
+                            // Upper inset.
+                            Rectangle {
+                                x: 5
+                                y: 0
+                                width: 12
+                                height: 8
+                                color: "#152238"
+
+                                Rectangle {
+                                    x: 8
+                                    y: 1
+                                    width: 2
+                                    height: 5
+                                    color: "#38BDF8"
+                                }
+                            }
+
+                            // Label area.
+                            Rectangle {
+                                x: 4
+                                y: 12
+                                width: 14
+                                height: 8
+                                radius: 1
+                                color: "#152238"
+                            }
+                        }
                     }
 
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: saveKnowledgeButton.down ? "#1D4ED8"
-                            : saveKnowledgeButton.hovered ? "#3B82F6"
-                            : "#2563EB"
+                        color: saveKnowledgeButton.down ? "#243B55"
+                            : saveKnowledgeButton.hovered ? "#1E3350"
+                            : "#152238"
+                        border.color: "#38BDF8"
+                        border.width: 1
                     }
 
                     // Clear the previous status and send the text to Python.
