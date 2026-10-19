@@ -57,9 +57,16 @@ ApplicationWindow {
         anchors.bottomMargin: 36
         spacing: 16
 
-        // Application name and logo
+        // Application name, logo and settings button.
+        Item {
+        width: parent.width
+        height: 76
+
+        // Application name and logo.
         Row {
             spacing: 16
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
 
             Image {
                 width: 76
@@ -67,7 +74,6 @@ ApplicationWindow {
                 source: "../assets/logo4.png"
                 fillMode: Image.PreserveAspectFit
                 smooth: true
-                anchors.verticalCenter: parent.verticalCenter
             }
 
             Column {
@@ -97,6 +103,40 @@ ApplicationWindow {
                 }
             }
         }
+
+        // Open the settings dialog.
+        Button {
+            id: settingsButton
+            width: 44
+            height: 44
+            anchors.right: parent.right
+            anchors.top: parent.top
+            hoverEnabled: true
+
+            Accessible.name: "Inställningar"
+            ToolTip.visible: hovered
+            ToolTip.text: "Inställningar"
+
+            contentItem: Text {
+                text: "\u2699"
+                font.pixelSize: 26
+                color: "#38BDF8"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                radius: 8
+                color: settingsButton.down ? "#243B55"
+                    : settingsButton.hovered ? "#1E3350"
+                    : "#152238"
+                border.color: "#38BDF8"
+                border.width: 1
+            }
+
+            onClicked: settingsDialog.open()
+        }
+    }
 
         // Place the knowledge buttons next to each other.
         Row {
@@ -706,6 +746,79 @@ Rectangle {
                         inputField.clear()
                     }
                 }
+            }
+        }
+    }
+
+    // Dialog for application settings.
+    Dialog {
+        id: settingsDialog
+        title: "Inställningar"
+        modal: true
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        width: Math.min(500, root.width - 48)
+        height: Math.min(400, root.height - 48)
+
+        background: Rectangle {
+            color: "#152238"
+            radius: 12
+            border.color: "#2B405C"
+            border.width: 1
+        }
+
+        header: Label {
+            text: settingsDialog.title
+            color: "#F1F5F9"
+            font.pixelSize: 18
+            font.bold: true
+            padding: 16
+        }
+
+        contentItem: Label {
+            text: "Här ska appens inställningar vara..."
+            color: "#94A3B8"
+            wrapMode: Text.WordWrap
+            verticalAlignment: Text.AlignTop
+        }
+
+        // Footer with close button.
+        footer: Item {
+            implicitHeight: 64
+
+            Button {
+                id: closeSettingsButton
+                text: "Stäng"
+                width: 100
+                height: 40
+                hoverEnabled: true
+
+                anchors.right: parent.right
+                anchors.rightMargin: 16
+                anchors.verticalCenter: parent.verticalCenter
+
+                // Center the button text.
+                contentItem: Text {
+                    text: closeSettingsButton.text
+                    color: "#F1F5F9"
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                // Change background color when hovered or pressed.
+                background: Rectangle {
+                    radius: 8
+                    color: closeSettingsButton.down ? "#243B55"
+                        : closeSettingsButton.hovered ? "#1E3350"
+                        : "#152238"
+                    border.color: "#38BDF8"
+                    border.width: 1
+                }
+
+                // Close the settings dialog.
+                onClicked: settingsDialog.close()
             }
         }
     }
