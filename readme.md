@@ -4,38 +4,70 @@ Second Brain is a desktop application designed to provide a local knowledge base
 
 The application combines local knowledge storage, semantic search, retrieval and language models to provide answers based on information stored in the knowledge base.
 
+---
+
 ## Current functionality
 
 The current prototype supports:
 
 - Manual knowledge input through the user interface
 - Import of `.txt` files
-- Local storage using SQLite
+- Import of `.docx` documents
+- Import of `.pdf` documents
+- Paragraph-based document chunking
+- Basic table-aware chunking for DOCX and PDF documents
+- Local knowledge storage using SQLite
 - Storage of source information and creation timestamps
+- Duplicate prevention for stored knowledge
 - Embedding generation for stored knowledge
 - Semantic retrieval using cosine similarity
 - Retrieval-Augmented Generation (RAG)
-- Local language model integration
-- Knowledge base viewer
-- Search within the knowledge base
+- Local language-model integration
+- Background LLM generation to avoid blocking the interface
+- Knowledge-base viewer
+- Search within stored knowledge
+- Filtering by source type:
+  - TXT
+  - DOCX
+  - PDF
+  - Manual entries
+- Sorting knowledge by creation date
+- Combined search, filtering and sorting
 - Editing stored knowledge
 - Deleting stored knowledge
-- Sorting knowledge by creation date
-- Duplicate handling for stored knowledge
 - System tray support
 - Communication between QML and Python using Qt signals and slots
-- Unit tests for database and retrieval functionality
-- Benchmark scripts for retrieval thresholds, embedding models and local language models
+- Automated unit tests
+- GitHub Actions for continuous test execution
+- Benchmark and experiment scripts for retrieval, embeddings and language models
+
+---
 
 ## Architecture
 
-The application currently consists of several main parts.
+Second Brain is divided into several main components.
 
 ### User interface
 
 The user interface is built with QML and Qt Quick.
 
-QML communicates with the Python backend through PySide6 using signals and slots.
+QML communicates with the Python backend through PySide6 signals and slots.
+
+The interface currently contains functionality for:
+
+- Asking questions
+- Viewing generated answers
+- Adding knowledge manually
+- Importing supported document types
+- Viewing stored knowledge
+- Searching stored knowledge
+- Filtering by source type
+- Sorting by creation date
+- Editing knowledge
+- Deleting knowledge
+- Selecting between planned/local model options in the interface
+
+---
 
 ### Backend
 
@@ -44,15 +76,23 @@ The Python backend handles communication between the user interface and the unde
 Its responsibilities currently include:
 
 - Receiving user questions
+- Coordinating semantic retrieval
+- Building RAG context
+- Sending context and questions to the language model
+- Returning generated answers to QML
+- Handling background LLM generation
 - Adding knowledge manually
-- Importing text files
-- Loading knowledge for the user interface
-- Searching, editing, deleting and sorting stored knowledge
-- Performing semantic retrieval
-- Sending retrieved context to the language model
-- Returning generated answers to the user interface
+- Importing TXT, DOCX and PDF documents
+- Searching, filtering and sorting stored knowledge
+- Editing stored knowledge
+- Deleting stored knowledge
+- Formatting database entries for display in QML
 
-### Knowledge storage
+Document parsing and importing are separated from the main backend where appropriate to keep individual components smaller and easier to test.
+
+---
+
+## Knowledge storage
 
 SQLite is currently used as the local knowledge database.
 
@@ -67,7 +107,53 @@ Duplicate text entries are prevented by the database.
 
 The database is initialized when the backend starts to ensure that the required schema exists before the application attempts to access stored knowledge.
 
-### Embeddings and retrieval
+Sources currently include manually created entries and imported file names.
+
+---
+
+## Document import
+
+### TXT
+
+UTF-8 text files can be imported and split into paragraph-based chunks.
+
+Each chunk is embedded and stored separately.
+
+### DOCX
+
+DOCX documents are parsed using a dedicated document parser.
+
+Current support includes:
+
+- Paragraph extraction
+- Ignoring empty paragraphs
+- Table extraction
+- Storing each table as a combined multiline chunk
+- Validation of missing, invalid or incorrectly typed files
+
+A current limitation is that paragraph and table extraction does not necessarily preserve the exact original block order of the Word document.
+
+### PDF
+
+PDF documents are parsed using `pypdf`.
+
+Current support includes:
+
+- Page-by-page text extraction
+- Layout-based extraction
+- Paragraph-based chunking
+- Basic detection of table-like text using whitespace patterns
+- Grouping table-like content into larger chunks
+
+The current PDF implementation is intended primarily for text-based PDFs.
+
+Scanned or image-only PDFs are not currently processed using OCR.
+
+PDF parsing remains heuristic because PDF files do not contain document structure in the same way as DOCX files.
+
+---
+
+## Embeddings and retrieval
 
 Embeddings are currently generated using:
 
@@ -81,15 +167,19 @@ The current similarity threshold is:
 
 `0.45`
 
-This value was selected after benchmarking several thresholds against a 200-entry test dataset and a set of representative retrieval questions.
+This threshold was selected based on earlier retrieval experiments.
 
-Alternative embedding models have also been evaluated. In particular:
+Retrieval quality is still under active evaluation as the supported document types and knowledge base grow.
+
+An alternative embedding model has also been evaluated:
 
 `intfloat/multilingual-e5-small`
 
-showed improved ranking for several difficult retrieval queries while maintaining similar runtime performance. However, its similarity-score distribution differs significantly from the current MiniLM model, so additional filtering and threshold evaluation is required before replacing the current embedding model.
+It showed improved ranking for several difficult retrieval queries while maintaining similar runtime performance. However, its similarity-score distribution differs from the current MiniLM model, so additional evaluation would be required before changing the default model.
 
-### Language model
+---
+
+## Language model
 
 The current local language model is:
 
@@ -101,17 +191,68 @@ The model was selected after benchmarking:
 - `Qwen/Qwen3-1.7B`
 - `Qwen/Qwen3-4B-Instruct-2507`
 
-Qwen3-0.6B provided the fastest generation but showed quality issues on some multi-fact and ranking questions.
+Earlier tests showed that:
 
-Qwen3-4B provided good answer quality but required significantly more generation time.
+- Qwen3-0.6B was faster but produced weaker answers on some more demanding questions
+- Qwen3-4B generally produced stronger answers but required considerably more generation time
+- Qwen3-1.7B provided a useful balance between answer quality and CPU performance
 
-Qwen3-1.7B provided the best balance between answer quality and CPU performance and is therefore currently used as the default local model.
+Qwen thinking mode is explicitly disabled through the model's chat template.
 
-The language model is accessed through a separate provider class rather than directly from the rest of the application.
+The language model is accessed through a provider class rather than directly from the rest of the application. This makes it easier to replace the current local model with another local model or another provider in the future.
 
-This is intended to make it possible to replace the current local model with another local model, an external provider or an internal AI solution in the future.
+An OpenAI-compatible external-provider prototype has also been tested experimentally.
 
-Qwen thinking mode is explicitly disabled through the model's chat template to avoid generating unnecessary reasoning output.
+Answer quality and model selection are still under evaluation.
+
+---
+
+## RAG workflow
+
+The current end-to-end question flow is:
+
+```text
+User question
+      ↓
+QML interface
+      ↓
+Python backend
+      ↓
+Semantic retrieval
+      ↓
+Relevant knowledge chunks
+      ↓
+Prompt + retrieved context
+      ↓
+Language model
+      ↓
+Generated answer
+      ↓
+QML interface
+```
+
+The language model is instructed to answer using the retrieved context and avoid inventing information that is not available in the supplied knowledge.
+
+---
+
+## Knowledge view
+
+Stored knowledge can currently be searched, filtered and sorted.
+
+Source filters currently support:
+
+- TXT
+- DOCX
+- PDF
+- Manual entries
+
+The filters can be combined.
+
+For example, a user can display only DOCX and PDF knowledge while simultaneously searching for a term and sorting the results by creation date.
+
+Knowledge-view state is refreshed through a shared QML-to-backend flow so that searching, filtering, sorting, editing and deleting remain consistent with the currently selected view.
+
+---
 
 ## Current project structure
 
@@ -126,134 +267,224 @@ Second-Brain---LIA-PROJECT/
 ├── retrieval.py
 ├── performance.py
 │
+├── imports/
+│   ├── document_parser.py
+│   ├── document_importer.py
+│   ├── pdf_parser.py
+│   └── pdf_importer.py
+│
 ├── llm/
 │   ├── __init__.py
-│   └── local_provider.py
+│   ├── local_provider.py
+│   └── external_provider.py
 │
 ├── qml/
 │   └── main.qml
 │
 ├── tests/
 │   ├── database_test.py
-│   ├── retrieval_test.py
-│   ├── retrieval_threshold_test.py
-│   ├── retrieval_model_benchmark.py
-│   └── llm_model_benchmark.py
+│   ├── retrieval_tests.py
+│   └── docx_tests.py
+│
+├── experiments/
+│   └── ...
+│
+├── assets/
+│   └── ...
 │
 └── README.md
 ```
 
-The structure is still under development and may change as the project grows.
+The exact structure is still evolving as the project grows.
 
-## Testing and evaluation
+---
 
-The project currently contains automated unit tests for core database and retrieval functionality.
+## Testing
+
+The project contains automated unit tests for several core components.
+
+### Database tests
 
 Database tests cover functionality such as:
 
 - Adding knowledge
 - Duplicate handling
-- Deleting entries
-- Editing entries
+- Editing knowledge
+- Deleting knowledge
 - Searching
 - Sorting
 
-Retrieval tests use mocked dependencies to test:
+### Retrieval tests
+
+Retrieval tests use mocked dependencies where appropriate and cover functionality such as:
 
 - Empty knowledge bases
 - Similarity-based sorting
 - Similarity threshold filtering
 - Top-k limiting
 
-Separate benchmark scripts are used to evaluate:
+### DOCX tests
 
-- Similarity thresholds
-- Local language models
-- Embedding models
-- Retrieval quality on larger datasets
+DOCX tests cover functionality such as:
 
-A generated dataset containing 200 knowledge entries and 25 representative questions is currently used for retrieval evaluation.
+- Paragraph extraction
+- Table extraction
+- Mixed paragraphs and tables
+- Ignoring empty paragraphs
+- Missing files
+- Invalid file extensions
+- Invalid DOCX files
+- Import orchestration using mocked dependencies
+- Embedding creation
+- Source handling
+- Counting only successfully added entries
+
+PDF unit tests are planned but not yet implemented.
+
+---
+
+## Continuous integration
+
+GitHub Actions is used to execute automated tests.
+
+The current test workflow runs against the development branch and includes core database, retrieval and DOCX tests.
+
+This helps detect regressions before changes are merged further into the project.
+
+---
 
 ## Performance
 
-Performance measurements show that model loading and language-model inference account for most of the application's execution time.
+Performance work currently focuses on:
 
-On the current development environment, cached model startup is significantly faster than earlier tests with larger models.
+- Embedding-model startup time
+- Semantic-retrieval latency
+- Document parsing and embedding time
+- Language-model generation time
+- Keeping long-running work outside the GUI thread
+- Reducing unnecessary model loading
+- Evaluating CPU and potential GPU performance
 
-Recent observations include:
+The embedding model is preloaded during application startup.
 
-- Semantic retrieval typically completes in a small fraction of a second
-- Embedding 200 knowledge entries takes approximately half a second with the currently evaluated small embedding models
-- Qwen3-1.7B provides significantly faster response generation than Qwen3-4B while maintaining similar answer quality in the current benchmark
-- QML loading itself remains comparatively fast
+Language-model generation is performed in a background thread so that question processing does not freeze the QML interface.
 
-Performance work is still ongoing.
+Document importing and embedding can still involve blocking work and may be moved to background processing in future development.
 
-Areas being considered include:
+---
 
-- Moving long-running AI operations away from the GUI thread
-- Background or asynchronous embedding generation
-- Progress or loading indicators
-- GPU inference
-- External AI providers
-- Further model-loading optimization
+## Current quality evaluation
 
-## Planned development
+Retrieval and answer quality are still active development areas.
 
-Current areas being considered for further development include:
+Unexpected answers may originate from several different parts of the RAG pipeline, including:
 
-- Automated unit testing through GitHub Actions
-- Improved type hints and docstrings
-- More consistent language conventions across the codebase
-- Moving LLM generation away from the GUI thread
-- Background or asynchronous embedding and retrieval work
-- Loading and progress feedback for long-running operations
-- External LLM provider support
-- Investigation of OpenAI-compatible APIs
-- Future integration with an internal AI solution
-- Import of additional knowledge formats
+- Document chunking
+- Embedding quality
+- Similarity threshold
+- Top-k selection
+- Retrieved context
+- Prompt construction
+- Language-model capability
+
+Future evaluation should therefore measure retrieval quality separately from language-model answer quality rather than assuming that poor answers are caused by the model alone.
+
+---
+
+## Potential future development
+
+Current ideas and areas under consideration include:
+
+### Knowledge and documents
+
+- Drag-and-drop document import
 - Email import
-- PDF import
-- Word document import
-- Investigation of drag-and-drop document import
-- GUI testing using tools such as Squish
-- Continued evaluation of retrieval models and filtering strategies
-- GPU support and performance testing
-- Optional interface language switching
-- Voice input
+- Opening original source files directly from knowledge entries
+- Pagination for large knowledge bases
+- Improved PDF parsing
+- OCR support for scanned documents
+- Additional document formats
 
-Some of these areas are currently exploratory and may change depending on project requirements or specific constraints.
+### Chat and context
+
+- Conversation history
+- Multiple conversation tabs or sessions
+- Persistent conversational context
+- Linking generated answers back to specific knowledge entries
+- Opening the original source from an answer reference
+
+### Configuration
+
+- Application settings
+- Persistent configuration
+- Different operating modes
+- Interface language selection
+- Additional language-model options
+- Runtime model selection
+
+### Data management
+
+- Exporting the knowledge database
+- JSON backup and restore
+- Development/test data for UI work without loading the normal database
+
+### AI integration
+
+- Continued evaluation of local language models
+- External LLM providers
+- OpenAI-compatible APIs
+- Future integration with internal AI systems
+- Allowing the application to request information from other agents or information sources when local knowledge is insufficient
+
+### Performance and testing
+
+- Background document embedding/import
+- Additional unit tests
+- PDF tests
+- GUI testing
+- Larger retrieval-quality benchmarks
+- GPU inference
+- Additional model benchmarking
+
+These areas are exploratory and may change depending on project requirements and technical constraints.
+
+---
 
 ## Integration considerations
 
-Future development may depend on requirements specific to the intended environment.
+Future development may depend on the intended deployment environment.
 
-Areas requiring further clarification include:
+Important considerations include:
 
 - Whether the application must operate fully offline
 - Whether an internal AI or LLM API is available
 - Whether external AI providers are permitted
-- Which document and knowledge formats are most relevant
+- Which document and knowledge formats are most important
 - Expected hardware environments
-- Requirements for handling sensitive or classified information
+- Handling of sensitive or classified information
 - Deployment and packaging requirements
 - Logging and audit requirements
-- Licensing and third-party dependency restrictions
+- Third-party licensing requirements
 
-These questions will help guide future architectural decisions.
+These constraints may influence future architectural decisions.
+
+---
 
 ## Language conventions
 
-The project uses English for:
+The project currently uses English for:
 
 - Source code
 - Variable and function names
+- Docstrings
 - Technical documentation
 - README documentation
 
-The application interface and user-provided knowledge may be written in Swedish.
+The application interface and user-provided knowledge may currently be written in Swedish.
 
-Support for switching interface language may be investigated later.
+Support for selectable interface languages may be added later.
+
+---
 
 ## Technology
 
@@ -269,48 +500,34 @@ Current technologies and libraries include:
 - Qwen
 - NumPy
 - scikit-learn
+- python-docx
+- pypdf
 
-## Documentation
-
-Official documentation used during development includes:
-
-- Python documentation
-- PySide6 documentation
-- Qt / QML documentation
-- SQLite documentation
-- Sentence Transformers documentation
-- Hugging Face Transformers documentation
-- PyTorch documentation
+---
 
 ## Project status
 
-The project is currently in active development.
+Second Brain is currently a working end-to-end prototype under active development.
 
-A working end-to-end prototype currently supports the following flow:
+Core functionality for storing, importing, retrieving and managing knowledge is operational.
 
-```text
-User question
-      ↓
-QML interface
-      ↓
-Python backend
-      ↓
-Semantic retrieval
-      ↓
-Relevant knowledge
-      ↓
-Language model
-      ↓
-Generated answer
-      ↓
-QML interface
-```
+The current development focus is shifting toward:
 
-The  current work focuses increasingly on testing, performance, retrieval quality, asynchronous processing and future integration options.
+- Retrieval and answer quality
+- Testing
+- Document handling
+- User-interface improvements
+- Configuration
+- Data management
+- Source traceability
+- Additional AI integration
+- Performance and scalability
+
+---
 
 ## Licensing
 
-Main dependencies include:
+Current major dependencies include:
 
 - PySide6 / Qt – LGPLv3, GPLv3, or commercial licensing depending on component and usage.
 - Sentence Transformers – Apache License 2.0.
@@ -319,3 +536,5 @@ Main dependencies include:
 - PyTorch – BSD-style license; bundled third-party components may use additional licenses.
 - NumPy – modified BSD license.
 - scikit-learn – BSD 3-Clause license.
+- python-docx – MIT License.
+- pypdf BSD 3-Clause license.
