@@ -23,7 +23,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install test dependencies
-        run: pip install numpy python-docx
+        run: pip install numpy python-docx pypdf
 
       - name: Run database tests
         run: python -m tests.database_test
@@ -33,3 +33,6 @@ jobs:
 
       - name: Run DOCX tests
         run: python -m tests.docx_tests
+
+      - name: Run PDF tests
+        run: python -m tests.pdf_tests
