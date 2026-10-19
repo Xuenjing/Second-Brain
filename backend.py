@@ -34,7 +34,7 @@ from imports.pdf_importer import import_pdf_to_database
 class Thinker(QThread):
     """Process a question without blocking the interface."""
 
-    answerReady = Signal(str)
+    answerReady = Signal(str, list)
     answerFailed = Signal(str)
 
     def __init__(self, llm: LocalLLMProvider, question: str) -> None:
@@ -82,7 +82,7 @@ ANSWER:
 """
 
             answer = self.llm.generate(prompt)
-            self.answerReady.emit(answer)
+            self.answerReady.emit(answer, results)
 
         except Exception as error:
             print(f"Answer generation failed: {error}")
@@ -115,7 +115,7 @@ class Backend(QObject):
         # self.llm = LocalLLMProvider("Qwen/Qwen3-4B-Instruct-2507")
 
     # Signal from Python to QML with the text to display.
-    replyReady = Signal(str)
+    replyReady = Signal(str, list)
 
     # Send True when processing starts and False when it finishes.
     thinkingChanged = Signal(bool)
@@ -157,14 +157,14 @@ class Backend(QObject):
         self.thinkingChanged.emit(True)
         self.thinker.start()
 
-    @Slot(str)
-    def handle_answer(self, answer: str) -> None:
+    @Slot(str, list)
+    def handle_answer(self, answer: str, sources: list) -> None:
         """Send the answer to QML.
         
         Args:
             answer: generated answer to display in QML interface.
         """
-        self.replyReady.emit(answer)
+        self.replyReady.emit(answer, sources)
 
     @Slot(str)
     def handle_error(self, message: str) -> None:

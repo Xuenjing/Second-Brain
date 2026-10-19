@@ -403,6 +403,8 @@ Rectangle {
 
             required property string sender
             required property string message
+            required property var sources
+            required property int sourceCount
 
             property bool isUser: sender === "user"
 
@@ -473,6 +475,119 @@ Rectangle {
                     wrapMode: Text.Wrap
                     font.pixelSize: 14
                     color: "#F1F5F9"
+                }
+
+                // Button for showing sources.
+                Button {
+                    visible: messageItem.sender === "assistant"
+                    && messageItem.sourceCount > 0
+
+                    text: "i"
+
+                    x: parent.width + 4
+                    y: (parent.height - height) / 2
+
+                    width: 24
+                    height: 24
+
+                    background: Rectangle {
+                        radius: 12
+                        color: "#243B55"
+                        border.color: "#38BDF8"
+                        border.width: 1
+                    }
+
+                    contentItem: Text {
+                        text: "i"
+                        color: "#F1F5F9"
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    onClicked: {
+                        sourceDialog.sources = messageItem.sources
+                        sourceDialog.open()
+                    }
+                }
+
+                // Dialog for opening the source-information.
+                Dialog {
+                    id: sourceDialog
+
+                    property var sources: []
+
+                    parent: Overlay.overlay
+                    modal: true
+
+                    width: 700
+                    height: 600
+
+                    x: (parent.width - width) / 2
+                    y: (parent.height - height) / 2
+
+                    header: null
+
+                    background: Rectangle {
+                        color: "#1E293B"
+                        radius: 10
+                    }
+
+                    // Listing the sources inside the dialogue.
+                    ListView {
+                        anchors.fill: parent
+                        anchors.margins: 16
+
+                        model: sourceDialog.sources
+                        spacing: 12
+                        clip: true
+
+                        delegate: Rectangle {
+                            id: sourceItem
+
+                            required property string source
+                            required property string text
+                            required property real score
+
+                            width: ListView.view.width
+                            height: contentColumn.implicitHeight + 20
+                            radius: 8
+
+                            color: "#243B55"
+
+                            Column {
+                                id: contentColumn
+
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.margins: 10
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                spacing: 6
+
+                                Text {
+                                    text: sourceItem.source
+                                    color: "#F1F5F9"
+                                    font.bold: true
+                                }
+
+                                Text {
+                                    text: sourceItem.text
+                                    width: parent.width
+                                    wrapMode: Text.WordWrap
+                                    color: "#CBD5E1"
+                                }
+
+                                Text {
+                                    text: "Score: " + sourceItem.score.toFixed(3)
+                                    color: "#94A3B8"
+                                    font.pixelSize: 11
+                                }
+
+                            }
+
+                        }
+                    }
                 }
             }
         }
@@ -581,7 +696,9 @@ Rectangle {
                         // Add the question to the chat.
                         chatModel.append({
                             sender: "user",
-                            message: question
+                            message: question,
+                            sources: [],
+                            sourceCount: 0
                         })
 
                         // Send the question to Python and clear the input field.
@@ -1819,10 +1936,13 @@ Rectangle {
         target: backend
 
         // Add the answer to the chat.
-        function onReplyReady(reply) {
+        function onReplyReady(reply, sources) {
+            
             chatModel.append({
                 sender: "assistant",
-                message: reply
+                message: reply,
+                sources: sources,
+                sourceCount: sources.length
             })
         }
 
