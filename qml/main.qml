@@ -17,6 +17,32 @@ import QtQuick.Dialogs
 ApplicationWindow {
     id: root
 
+    // Choose between dark and light mode.
+    property bool darkMode: true
+
+    // Shared colors for dark mode and the Ice Blue light theme.
+    readonly property color windowColor: darkMode ? "#0B1220" : "#EFF6FF"
+    readonly property color surfaceColor: darkMode ? "#152238" : "#FFFFFF"
+
+    readonly property color textColor: darkMode ? "#F1F5F9" : "#0F172A"
+    readonly property color secondaryTextColor: darkMode ? "#94A3B8" : "#475569"
+
+    readonly property color borderColor: darkMode ? "#2B405C" : "#BFDBFE"
+    readonly property color accentColor: darkMode ? "#38BDF8" : "#2563EB"
+
+    readonly property color hoverColor: darkMode ? "#1E3350" : "#DBEAFE"
+    readonly property color pressedColor: darkMode ? "#243B55" : "#BFDBFE"
+
+    // Chat bubble backgrounds.
+    readonly property color userBubbleColor: darkMode ? "#1E40AF" : "#BFDBFE"
+    readonly property color assistantBubbleColor: darkMode ? "#243B55" : "#DBEAFE"
+
+    // Colors for delete actions.
+    readonly property color dangerColor: darkMode ? "#FCA5A5" : "#B91C1C"
+    readonly property color dangerBorderColor: darkMode ? "#F87171" : "#DC2626"
+    readonly property color dangerHoverColor: darkMode ? "#552020" : "#FEE2E2"
+    readonly property color dangerPressedColor: darkMode ? "#7F1D1D" : "#FECACA"
+
     // Track whether a question is being processed.
     property bool isThinking: false
 
@@ -48,7 +74,7 @@ ApplicationWindow {
     width: 1000
     height: 700
     title: "Second Brain"
-    color: "#0B1220"
+    color: root.windowColor
 
     Column {
         // Fill the window's content area with equal margins.
@@ -84,7 +110,7 @@ ApplicationWindow {
                     text: "Second"
                     font.pixelSize: 28
                     font.bold: true
-                    color: "#F1F5F9"
+                    color: root.textColor
                 }
 
                 Label {
@@ -117,20 +143,64 @@ ApplicationWindow {
             ToolTip.visible: hovered
             ToolTip.text: "Inställningar"
 
-            contentItem: Text {
-                text: "\u2699"
-                font.pixelSize: 26
-                color: "#38BDF8"
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+            // Draw an outlined gear icon.
+            contentItem: Item {
+                Canvas {
+                    anchors.centerIn: parent
+                    width: 24
+                    height: 24
+
+                    property color iconColor: root.accentColor
+
+                    // Redraw when the theme changes.
+                    onIconColorChanged: requestPaint()
+
+                    onPaint: {
+                        const ctx = getContext("2d")
+                        ctx.clearRect(0, 0, width, height)
+
+                        ctx.strokeStyle = iconColor
+                        ctx.lineWidth = 2
+                        ctx.lineJoin = "round"
+                        ctx.beginPath()
+
+                        // Draw eight teeth around the center.
+                        for (let tooth = 0; tooth < 8; tooth++) {
+                            const angles = [-22.5, -12, 12, 22.5]
+                            const radii = [8.5, 11, 11, 8.5]
+
+                            for (let point = 0; point < 4; point++) {
+                                const angle =
+                                    (tooth * 45 + angles[point]) * Math.PI / 180
+
+                                const px = 12 + Math.cos(angle) * radii[point]
+                                const py = 12 + Math.sin(angle) * radii[point]
+
+                                if (tooth === 0 && point === 0) {
+                                    ctx.moveTo(px, py)
+                                } else {
+                                    ctx.lineTo(px, py)
+                                }
+                            }
+                        }
+
+                        ctx.closePath()
+                        ctx.stroke()
+
+                        // Draw the center ring.
+                        ctx.beginPath()
+                        ctx.arc(12, 12, 4, 0, 2 * Math.PI)
+                        ctx.stroke()
+                    }
+                }
             }
 
             background: Rectangle {
                 radius: 8
-                color: settingsButton.down ? "#243B55"
-                    : settingsButton.hovered ? "#1E3350"
-                    : "#152238"
-                border.color: "#38BDF8"
+                color: settingsButton.down ? root.pressedColor
+                    : settingsButton.hovered ? root.hoverColor
+                    : root.surfaceColor
+                border.color: root.accentColor
                 border.width: 1
             }
 
@@ -153,7 +223,7 @@ ApplicationWindow {
                 // Center the button text.
                 contentItem: Text {
                     text: addKnowledgeButton.text
-                    color: "#F1F5F9"
+                    color: root.textColor
                     font.pixelSize: 14
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -162,10 +232,10 @@ ApplicationWindow {
                 // Change background color when hovered or pressed.
                 background: Rectangle {
                     radius: 8
-                    color: addKnowledgeButton.down ? "#243B55"
-                        : addKnowledgeButton.hovered ? "#1E3350"
-                        : "#152238"
-                    border.color: "#38BDF8"
+                    color: addKnowledgeButton.down ? root.pressedColor
+                        : addKnowledgeButton.hovered ? root.hoverColor
+                        : root.surfaceColor
+                    border.color: root.accentColor
                     border.width: 1
                 }
 
@@ -184,7 +254,7 @@ ApplicationWindow {
                 // Center the button text.
                 contentItem: Text {
                     text: viewKnowledgeButton.text
-                    color: "#F1F5F9"
+                    color: root.textColor
                     font.pixelSize: 14
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -193,10 +263,10 @@ ApplicationWindow {
                 // Change background color when hovered or pressed.
                 background: Rectangle {
                     radius: 8
-                    color: viewKnowledgeButton.down ? "#243B55"
-                        : viewKnowledgeButton.hovered ? "#1E3350"
-                        : "#152238"
-                    border.color: "#38BDF8"
+                    color: addKnowledgeButton.down ? root.pressedColor
+                        : addKnowledgeButton.hovered ? root.hoverColor
+                        : root.surfaceColor
+                    border.color: root.accentColor
                     border.width: 1
                 }
 
@@ -222,9 +292,21 @@ ApplicationWindow {
 
                 currentIndex: 1
 
+                // Show an arrow using the current theme color.
+                indicator: Text {
+                    x: modelSelector.width - width - 12
+                    width: 16
+                    height: modelSelector.height
+                    text: "\u25BE"
+                    color: root.textColor
+                    font.pixelSize: 18
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
                 contentItem: Text {
                     text: modelSelector.displayText
-                    color: "#F1F5F9"
+                    color: root.textColor
                     font.pixelSize: 14
 
                     leftPadding: 12
@@ -235,9 +317,11 @@ ApplicationWindow {
                 }
 
                 background: Rectangle {
-                    color: "#152238"
+                    color: root.surfaceColor
                     radius: 8
-                    border.color: modelSelector.activeFocus ? "#38BDF8" : "#2B405C"
+                    border.color: modelSelector.activeFocus
+                        ? root.accentColor
+                        : root.borderColor
                     border.width: 1
                 }
 
@@ -249,21 +333,18 @@ ApplicationWindow {
 
                     contentItem: Text {
                         text: modelData
-                        color: "#F1F5F9"
+                        color: root.textColor
                         font.pixelSize: 14
                         verticalAlignment: Text.AlignVCenter
                         leftPadding: 12
                     }
 
-                    // if/elif/else for marked and hover
+                    // Highlight rows when navigating or hovering.
                     background: Rectangle {
                         radius: 6
-                        
-                        color: parent.highlighted
-                            ? "#1E3350"
-                            : parent.hovered
-                                ? "#1A2C45"
-                                : "#152238"
+                        color: parent.highlighted ? root.pressedColor
+                            : parent.hovered ? root.hoverColor
+                            : root.surfaceColor
                     }
                 }
 
@@ -285,9 +366,9 @@ ApplicationWindow {
                     }
 
                     background: Rectangle {
-                        color: "#152238"
+                        color: root.surfaceColor
                         radius: 8
-                        border.color: "#2B405C"
+                        border.color: root.borderColor
                         border.width: 1
                     }
                 }
@@ -305,7 +386,7 @@ ApplicationWindow {
                 // Center the button text.
                 contentItem: Text {
                     text: loadModelButton.text
-                    color: "#F1F5F9"
+                    color: root.accentColor
                     font.pixelSize: 14
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -314,10 +395,9 @@ ApplicationWindow {
                 // Change background color when hovered or pressed.
                 background: Rectangle {
                     radius: 8
-                    color: loadModelButton.down ? "#243B55"
-                        : loadModelButton.hovered ? "#1E3350"
-                        : "#152238"
-                    border.color: "#38BDF8"
+                    color: loadModelButton.down ? root.pressedColor
+                        : loadModelButton.hovered ? root.hoverColor
+                        : root.surfaceColor
                     border.width: 1
                 }
 
@@ -355,14 +435,14 @@ ApplicationWindow {
                         height: 20
                         radius: 10
                         color: "transparent"
-                        border.color: "#38BDF8"
+                        border.color: root.accentColor
                         border.width: 2
 
                         Rectangle {
                             width: 6
                             height: 6
                             radius: 3
-                            color: "#F1F5F9"
+                            color: root.windowColor
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: -2
                         }
@@ -379,7 +459,9 @@ ApplicationWindow {
 
                 Label {
                     text: "Tänker…"
-                    color: "#94A3B8"
+                    color: root.textColor
+                    font.pixelSize: 14
+                    font.bold: true
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
@@ -393,9 +475,9 @@ Rectangle {
         0,
         parent.height - y - questionRow.height - parent.spacing
     )
-    color: "#152238"
+    color: root.surfaceColor
     radius: 10
-    border.color: "#2B405C"
+    border.color: root.borderColor
     border.width: 1
 
     // Show the welcome view while the chat is empty.
@@ -422,7 +504,7 @@ Rectangle {
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: 22
             font.bold: true
-            color: "#F1F5F9"
+            color: root.textColor
         }
     }
 
@@ -489,7 +571,7 @@ Rectangle {
             header: null
 
             background: Rectangle {
-                color: "#1E293B"
+                color: root.surfaceColor
                 radius: 10
             }
 
@@ -515,7 +597,7 @@ Rectangle {
                     height: contentColumn.implicitHeight + 20
                     radius: 8
 
-                    color: "#243B55"
+                    color: root.assistantBubbleColor
 
                     // Makes the sources clickable.
                     TapHandler {
@@ -541,7 +623,7 @@ Rectangle {
 
                             Text {
                             text: sourceItem.source
-                            color: "#F1F5F9"
+                            color: root.textColor
                             font.bold: true
                             }
 
@@ -549,7 +631,7 @@ Rectangle {
                                 text: sourceItem.created_at
                                     .replace("T", " ")
                                     .slice(0, 16)
-                                color: "#F1F5F9"
+                                color: root.secondaryTextColor
                                 font.pixelSize: 11
                             }
                         }
@@ -558,12 +640,12 @@ Rectangle {
                             text: sourceItem.text
                             width: parent.width
                             wrapMode: Text.WordWrap
-                            color: "#CBD5E1"
+                            color: root.textColor
                         }
 
                         Text {
                             text: "Score: " + sourceItem.score.toFixed(3)
-                            color: "#94A3B8"
+                            color: root.secondaryTextColor
                             font.pixelSize: 11
                         }
 
@@ -624,7 +706,9 @@ Rectangle {
                     ? avatar.x - width - 12
                     : avatar.width + 12
 
-                color: messageItem.isUser ? "#1E40AF" : "#243B55"
+                color: messageItem.isUser
+                    ? root.userBubbleColor
+                    : root.assistantBubbleColor
 
                 Text {
                     id: messageText
@@ -636,7 +720,7 @@ Rectangle {
                     textFormat: Text.PlainText
                     wrapMode: Text.Wrap
                     font.pixelSize: 14
-                    color: "#F1F5F9"
+                    color: root.textColor
                 }
 
                 // Button for showing sources.
@@ -658,14 +742,16 @@ Rectangle {
 
                     background: Rectangle {
                         radius: 12
-                        color: "#243B55"
-                        border.color: "#38BDF8"
+                        color: sourceButton.down ? root.pressedColor
+                            : sourceButton.hovered ? root.hoverColor
+                            : root.assistantBubbleColor
+                        border.color: root.accentColor
                         border.width: 1
                     }
 
                     contentItem: Text {
                         text: "i"
-                        color: "#F1F5F9"
+                        color: root.textColor
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -712,9 +798,9 @@ Rectangle {
                     padding: 10
 
                     background: Rectangle {
-                        color: "#1E293B"
+                        color: root.surfaceColor
                         radius: 8
-                        border.color: "#38BDF8"
+                        border.color: root.accentColor
                         border.width: 1
                     }
 
@@ -729,7 +815,7 @@ Rectangle {
                                 + messageItem.sourceCount
                                 + (messageItem.sourceCount === 1 ? " post" : " poster")
 
-                            color: "#F1F5F9"
+                            color: root.textColor
                             font.pixelSize: 12
                             font.bold: true
                         }
@@ -745,7 +831,7 @@ Rectangle {
 
                                 Text {
                                     text: sourceRow.source
-                                    color: "#CBD5E1"
+                                    color: root.textColor
                                     font.pixelSize: 11
                                 }
 
@@ -754,7 +840,7 @@ Rectangle {
                                         .replace("T", " ")
                                         .slice(0, 16)
 
-                                    color: "#94A3B8"
+                                    color: root.secondaryTextColor
                                     font.pixelSize: 10
                                 }
                                 
@@ -766,7 +852,7 @@ Rectangle {
 
                         Text {
                             text: "Klicka för detaljer"
-                            color: "#94A3B8"
+                            color: root.secondaryTextColor
                             font.pixelSize: 10
                             font.italic: true
                         }
@@ -800,17 +886,19 @@ Rectangle {
                 placeholderText: "Skriv din fråga här"
 
                 // Text colors plus extra space inside the field.
-                color: "#F1F5F9"
-                placeholderTextColor: "#94A3B8"
+                color: root.textColor
+                placeholderTextColor: root.secondaryTextColor
                 font.pixelSize: 14
                 padding: 12
                 height: 44
 
                 // Highlight the border when the field has keyboard focus.
                 background: Rectangle {
-                    color: "#152238"
+                    color: root.surfaceColor
                     radius: 8
-                    border.color: inputField.activeFocus ? "#38BDF8" : "#2B405C"
+                    border.color: inputField.activeFocus
+                        ? root.accentColor
+                        : root.borderColor
                     border.width: 1
                 }
             }
@@ -905,25 +993,123 @@ Rectangle {
         height: Math.min(400, root.height - 48)
 
         background: Rectangle {
-            color: "#152238"
+            color: root.surfaceColor
             radius: 12
-            border.color: "#2B405C"
+            border.color: root.borderColor
             border.width: 1
         }
 
         header: Label {
             text: settingsDialog.title
-            color: "#F1F5F9"
+            color: root.textColor
             font.pixelSize: 18
             font.bold: true
             padding: 16
         }
 
-        contentItem: Label {
-            text: "Här ska appens inställningar vara..."
-            color: "#94A3B8"
-            wrapMode: Text.WordWrap
-            verticalAlignment: Text.AlignTop
+        // Arrange the settings vertically.
+        contentItem: Column {
+            spacing: 12
+
+            Label {
+                text: "Utseende"
+                color: root.textColor
+                font.pixelSize: 16
+                font.bold: true
+            }
+
+            // Place the theme labels on each side of the toggle.
+            Row {
+                spacing: 12
+
+                Label {
+                    text: "Ljust"
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: root.darkMode
+                        ? root.secondaryTextColor
+                        : root.textColor
+                    font.pixelSize: 14
+                    font.bold: !root.darkMode
+                }
+
+                // Toggle between light and dark mode.
+                Button {
+                    id: themeToggle
+                    width: 100
+                    height: 36
+                    padding: 0
+                    hoverEnabled: true
+
+                    Accessible.name: "Byt mellan ljust och mörkt läge"
+                    ToolTip.visible: hovered
+                    ToolTip.text: root.darkMode
+                        ? "Byt till ljust läge"
+                        : "Byt till mörkt läge"
+
+                    onClicked: root.darkMode = !root.darkMode
+
+                    background: Rectangle {
+                        radius: height / 2
+                        color: root.darkMode ? "#0B1220" : "#E2E8F0"
+                        border.color: themeToggle.activeFocus
+                            ? root.accentColor
+                            : root.borderColor
+                        border.width: 1
+
+                        // Highlight the current mode.
+                        Rectangle {
+                            width: 44
+                            height: 28
+                            y: 4
+                            x: root.darkMode ? 52 : 4
+                            radius: height / 2
+                            color: root.darkMode ? "#334155" : "#FFFFFF"
+
+                            Behavior on x {
+                                NumberAnimation {
+                                    duration: 180
+                                    easing.type: Easing.InOutQuad
+                                }
+                            }
+                        }
+                    }
+
+                    contentItem: Item {
+                        // Sun symbol.
+                        Text {
+                            width: parent.width / 2
+                            height: parent.height
+                            text: "\u263C"
+                            font.pixelSize: 24
+                            color: root.darkMode ? "#94A3B8" : "#0F172A"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Moon symbol.
+                        Text {
+                            x: parent.width / 2
+                            width: parent.width / 2
+                            height: parent.height
+                            text: "\u263D"
+                            font.pixelSize: 24
+                            color: root.darkMode ? "#F1F5F9" : "#64748B"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+                }
+
+                Label {
+                    text: "Mörkt"
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: root.darkMode
+                        ? root.textColor
+                        : root.secondaryTextColor
+                    font.pixelSize: 14
+                    font.bold: root.darkMode
+                }
+            }
         }
 
         // Footer with close button.
@@ -944,7 +1130,7 @@ Rectangle {
                 // Center the button text.
                 contentItem: Text {
                     text: closeSettingsButton.text
-                    color: "#F1F5F9"
+                    color: root.textColor
                     font.pixelSize: 14
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -953,10 +1139,10 @@ Rectangle {
                 // Change background color when hovered or pressed.
                 background: Rectangle {
                     radius: 8
-                    color: closeSettingsButton.down ? "#243B55"
-                        : closeSettingsButton.hovered ? "#1E3350"
-                        : "#152238"
-                    border.color: "#38BDF8"
+                    color: closeSettingsButton.down ? root.pressedColor
+                        : closeSettingsButton.hovered ? root.hoverColor
+                        : root.surfaceColor
+                    border.color: root.accentColor
                     border.width: 1
                 }
 
@@ -982,16 +1168,16 @@ Rectangle {
 
         // Rounded background with a subtle border.
         background: Rectangle {
-            color: "#152238"
+            color: root.surfaceColor
             radius: 12
-            border.color: "#2B405C"
+            border.color: root.borderColor
             border.width: 1
         }
 
         // Display the dialog title.
         header: Label {
             text: knowledgeDialog.title
-            color: "#F1F5F9"
+            color: root.textColor
             font.pixelSize: 18
             font.bold: true
             padding: 16
@@ -1003,7 +1189,7 @@ Rectangle {
 
             Label {
                 text: "Skriv eller klistra in information:"
-                color: "#F1F5F9"
+                color: root.textColor
             }
 
             // Allow scrolling through longer text.
@@ -1019,16 +1205,18 @@ Rectangle {
                     textFormat: TextEdit.PlainText
 
                     // Text colors and space inside the field.
-                    color: "#F1F5F9"
-                    placeholderTextColor: "#94A3B8"
+                    color: root.textColor
+                    placeholderTextColor: root.secondaryTextColor
                     font.pixelSize: 14
                     padding: 12
 
                     // Highlight the border when the field has keyboard focus.
                     background: Rectangle {
-                        color: "#0B1220"
+                        color: root.windowColor
                         radius: 8
-                        border.color: knowledgeInput.activeFocus ? "#38BDF8" : "#2B405C"
+                        border.color: knowledgeInput.activeFocus
+                            ? root.accentColor
+                            : root.borderColor
                         border.width: 1
                     }
                 }
@@ -1057,7 +1245,7 @@ Rectangle {
                             width: 22
                             height: 22
                             radius: 3
-                            color: "#38BDF8"
+                            color: root.accentColor
 
                             // Upper inset.
                             Rectangle {
@@ -1065,14 +1253,14 @@ Rectangle {
                                 y: 0
                                 width: 12
                                 height: 8
-                                color: "#152238"
+                                color: root.surfaceColor
 
                                 Rectangle {
                                     x: 8
                                     y: 1
                                     width: 2
                                     height: 5
-                                    color: "#38BDF8"
+                                    color: root.accentColor
                                 }
                             }
 
@@ -1083,7 +1271,7 @@ Rectangle {
                                 width: 14
                                 height: 8
                                 radius: 1
-                                color: "#152238"
+                                color: root.surfaceColor
                             }
                         }
                     }
@@ -1091,10 +1279,10 @@ Rectangle {
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: saveKnowledgeButton.down ? "#243B55"
-                            : saveKnowledgeButton.hovered ? "#1E3350"
-                            : "#152238"
-                        border.color: "#38BDF8"
+                        color: saveKnowledgeButton.down ? root.pressedColor
+                            : saveKnowledgeButton.hovered ? root.hoverColor
+                            : root.surfaceColor
+                        border.color: root.accentColor
                         border.width: 1
                     }
 
@@ -1115,7 +1303,7 @@ Rectangle {
                     // Center the button text.
                     contentItem: Text {
                         text: importFileButton.text
-                        color: "#F1F5F9"
+                        color: root.textColor
                         font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -1124,10 +1312,10 @@ Rectangle {
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: importFileButton.down ? "#243B55"
-                            : importFileButton.hovered ? "#1E3350"
-                            : "#152238"
-                        border.color: "#2B405C"
+                        color: importFileButton.down ? root.pressedColor
+                            : importFileButton.hovered ? root.hoverColor
+                            : root.surfaceColor
+                        border.color: root.borderColor
                         border.width: 1
                     }
 
@@ -1147,7 +1335,7 @@ Rectangle {
                     // Center the button text.
                     contentItem: Text {
                         text: importDocxButton.text
-                        color: "#F1F5F9"
+                        color: root.textColor
                         font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -1156,10 +1344,10 @@ Rectangle {
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: importDocxButton.down ? "#243B55"
-                            : importDocxButton.hovered ? "#1E3350"
-                            : "#152238"
-                        border.color: "#2B405C"
+                        color: importDocxButton.down ? root.pressedColor
+                            : importDocxButton.hovered ? root.hoverColor
+                            : root.surfaceColor
+                        border.color: root.borderColor
                         border.width: 1
                     }
 
@@ -1177,7 +1365,7 @@ Rectangle {
                     // Center the button text.
                     contentItem: Text {
                         text: importPdfButton.text
-                        color: "#F1F5F9"
+                        color: root.textColor
                         font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -1186,10 +1374,10 @@ Rectangle {
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: importPdfButton.down ? "#243B55"
-                            : importPdfButton.hovered ? "#1E3350"
-                            : "#152238"
-                        border.color: "#2B405C"
+                        color: importPdfButton.down ? root.pressedColor
+                            : importPdfButton.hovered ? root.hoverColor
+                            : root.surfaceColor
+                        border.color: root.borderColor
                         border.width: 1
                     }
 
@@ -1206,7 +1394,7 @@ Rectangle {
                     // Center the button text.
                     contentItem: Text {
                         text: closeKnowledgeButton.text
-                        color: "#F1F5F9"
+                        color: root.textColor
                         font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -1215,10 +1403,10 @@ Rectangle {
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: closeKnowledgeButton.down ? "#243B55"
-                            : closeKnowledgeButton.hovered ? "#1E3350"
-                            : "#152238"
-                        border.color: "#2B405C"
+                        color: closeKnowledgeButton.down ? root.pressedColor
+                            : closeKnowledgeButton.hovered ? root.hoverColor
+                            : root.surfaceColor
+                        border.color: root.borderColor
                         border.width: 1
                     }
 
@@ -1232,7 +1420,7 @@ Rectangle {
                 id: knowledgeSaveStatus
                 width: parent.width
                 text: ""
-                color: "#F1F5F9"
+                color: root.textColor
                 wrapMode: Text.WordWrap
             }
         }
@@ -1256,16 +1444,16 @@ Rectangle {
 
         // Rounded background with a subtle border.
         background: Rectangle {
-            color: "#152238"
+            color: root.surfaceColor
             radius: 12
-            border.color: "#2B405C"
+            border.color: root.borderColor
             border.width: 1
         }
 
         // Display the dialog title.
         header: Label {
             text: knowledgeViewDialog.title
-            color: "#F1F5F9"
+            color: root.textColor
             font.pixelSize: 18
             font.bold: true
             padding: 16
@@ -1282,17 +1470,18 @@ Rectangle {
                 placeholderText: "Sök bland sparad kunskap"
 
                 // Text colors and space inside the field.
-                color: "#F1F5F9"
-                placeholderTextColor: "#94A3B8"
+                color: root.textColor
+                placeholderTextColor: root.secondaryTextColor
                 font.pixelSize: 14
                 padding: 12
 
                 // Highlight the border when the field has keyboard focus.
                 background: Rectangle {
-                    color: "#0B1220"
+                    color: root.windowColor
                     radius: 8
                     border.color: knowledgeSearchField.activeFocus
-                        ? "#38BDF8" : "#2B405C"
+                        ? root.accentColor
+                        : root.borderColor
                     border.width: 1
                 }
 
@@ -1324,7 +1513,7 @@ Rectangle {
                         // Center the button text.
                         contentItem: Text {
                             text: filterTxtButton.text
-                            color: "#F1F5F9"
+                            color: root.textColor
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -1333,11 +1522,13 @@ Rectangle {
                         // Change background color when hovered or toggled on/off.
                         background: Rectangle {
                             radius: 8
-                            color: root.txtFilterActive ? "#1E3350" 
-                                : filterTxtButton.down ? "#243B55"
-                                : filterTxtButton.hovered ? "#1E3350"
-                                : "#152238"
-                            border.color: root.txtFilterActive ? "#38BDF8" : "#2B405C"
+                            color: filterTxtButton.down ? root.pressedColor
+                                : root.txtFilterActive || filterTxtButton.hovered
+                                    ? root.hoverColor
+                                    : root.surfaceColor
+                            border.color: root.txtFilterActive
+                                ? root.accentColor
+                                : root.borderColor
                             border.width: 1
                         }
 
@@ -1363,7 +1554,7 @@ Rectangle {
                         // Center the button text.
                         contentItem: Text {
                             text: filterDocxButton.text
-                            color: "#F1F5F9"
+                            color: root.textColor
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -1372,11 +1563,13 @@ Rectangle {
                         // Change background color when hovered or toggled on/off.
                         background: Rectangle {
                             radius: 8
-                            color: root.docxFilterActive ? "#1E3350" 
-                                : filterDocxButton.down ? "#243B55"
-                                : filterDocxButton.hovered ? "#1E3350"
-                                : "#152238"
-                            border.color: root.docxFilterActive ? "#38BDF8" : "#2B405C"
+                            color: filterDocxButton.down ? root.pressedColor
+                                : root.docxFilterActive || filterDocxButton.hovered
+                                    ? root.hoverColor
+                                    : root.surfaceColor
+                            border.color: root.docxFilterActive
+                                ? root.accentColor
+                                : root.borderColor
                             border.width: 1
                         }
 
@@ -1402,7 +1595,7 @@ Rectangle {
                         // Center the button text.
                         contentItem: Text {
                             text: filterPdfButton.text
-                            color: "#F1F5F9"
+                            color: root.textColor
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -1411,11 +1604,13 @@ Rectangle {
                         // Change background color when hovered or toggled on/off.
                         background: Rectangle {
                             radius: 8
-                            color: root.pdfFilterActive ? "#1E3350" 
-                                : filterPdfButton.down ? "#243B55"
-                                : filterPdfButton.hovered ? "#1E3350"
-                                : "#152238"
-                            border.color: root.pdfFilterActive ? "#38BDF8" : "#2B405C"
+                            color: filterPdfButton.down ? root.pressedColor
+                                : root.pdfFilterActive || filterPdfButton.hovered
+                                    ? root.hoverColor
+                                    : root.surfaceColor
+                            border.color: root.pdfFilterActive
+                                ? root.accentColor
+                                : root.borderColor
                             border.width: 1
                         }
 
@@ -1442,7 +1637,7 @@ Rectangle {
                         // Center the button text.
                         contentItem: Text {
                             text: filterManualButton.text
-                            color: "#F1F5F9"
+                            color: root.textColor
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter       
@@ -1451,11 +1646,13 @@ Rectangle {
                         // Change background color when hovered or toggled on/off.
                         background: Rectangle {
                             radius: 8
-                            color: root.manualFilterActive ? "#1E3350" 
-                                : filterManualButton.down ? "#243B55"
-                                : filterManualButton.hovered ? "#1E3350"
-                                : "#152238"
-                            border.color: root.manualFilterActive ? "#38BDF8" : "#2B405C"
+                            color: filterManualButton.down ? root.pressedColor
+                                : root.manualFilterActive || filterManualButton.hovered
+                                    ? root.hoverColor
+                                    : root.surfaceColor
+                            border.color: root.manualFilterActive
+                                ? root.accentColor
+                                : root.borderColor
                             border.width: 1
                         }
 
@@ -1486,8 +1683,9 @@ Rectangle {
                         // Display an upward arrow.
                         contentItem: Text {
                             text: "↑"
-                            // old color: sortAscendingButton.hovered ? "#F1F5F9" : "#94A3B8"
-                            color: root.sortOrder === "asc" ? "#FFFFFF" : "#94A3B8" 
+                            color: root.sortOrder === "asc"
+                                ? root.accentColor
+                                : root.secondaryTextColor 
                             font.pixelSize: 20
                             font.bold: true
                             horizontalAlignment: Text.AlignHCenter
@@ -1497,14 +1695,13 @@ Rectangle {
                         // Highlight the background when hovered or toggled.
                         background: Rectangle {
                             radius: 8
-                            color: root.sortOrder === "asc" ? "#1E3350"
-                                : sortAscendingButton.down ? "#243B55"
-                                : sortAscendingButton.hovered ? "#1E3350"
-                                : "#152238"
+                            color: sortAscendingButton.down ? root.pressedColor
+                                : root.sortOrder === "asc" || sortAscendingButton.hovered
+                                    ? root.hoverColor
+                                    : root.surfaceColor
                             border.color: root.sortOrder === "asc"
-                                ? "#38BDF8"
-                                : "#2B405C"
-
+                                ? root.accentColor
+                                : root.borderColor
                             border.width: 1
                         }
 
@@ -1528,7 +1725,9 @@ Rectangle {
                         // Display a downward arrow.
                         contentItem: Text {
                             text: "↓"
-                            color: root.sortOrder === "desc" ? "#FFFFFF" : "#94A3B8"
+                            color: root.sortOrder === "desc"
+                                ? root.accentColor
+                                : root.secondaryTextColor
                             font.pixelSize: 20
                             font.bold: true
                             horizontalAlignment: Text.AlignHCenter
@@ -1538,13 +1737,13 @@ Rectangle {
                         // Highlight the background when hovered or toggled.
                         background: Rectangle {
                             radius: 8
-                            color: root.sortOrder === "desc" ? "#1E3350"
-                                : sortDescendingButton.down ? "#243B55"
-                                : sortDescendingButton.hovered ? "#1E3350"
-                                : "#152238"
+                            color: sortDescendingButton.down ? root.pressedColor
+                                : root.sortOrder === "desc" || sortDescendingButton.hovered
+                                    ? root.hoverColor
+                                    : root.surfaceColor
                             border.color: root.sortOrder === "desc"
-                                ? "#38BDF8"
-                                : "#2B405C"
+                                ? root.accentColor
+                                : root.borderColor
                             border.width: 1
                         }
 
@@ -1584,7 +1783,7 @@ Rectangle {
 
                     // Fit both the text and action buttons, with vertical padding.
                     height: Math.max(postContent.height, postActions.height) + 24
-                    color: "#0B1220"
+                    color: root.windowColor
                     radius: 8
 
                     // Leave space on the right for the action buttons.
@@ -1601,7 +1800,7 @@ Rectangle {
                             text: postItem.modelData.text
                             textFormat: Text.PlainText
                             wrapMode: Text.WordWrap
-                            color: "#F1F5F9"
+                            color: root.textColor
                         }
 
                         // Display the source and creation date.
@@ -1611,7 +1810,7 @@ Rectangle {
                                 + " | Skapad: " + postItem.modelData.created_at
                             textFormat: Text.PlainText
                             wrapMode: Text.WordWrap
-                            color: "#94A3B8"
+                            color: root.secondaryTextColor
                             font.pixelSize: 12
                         }
                     }
@@ -1651,7 +1850,7 @@ Rectangle {
                                         width: 6
                                         height: 13
                                         radius: 1
-                                        color: "#38BDF8"
+                                        color: root.accentColor
 
                                         // Line along the pencil.
                                         Rectangle {
@@ -1659,7 +1858,7 @@ Rectangle {
                                             y: 2
                                             width: 1
                                             height: 9
-                                            color: "#152238"
+                                            color: root.surfaceColor
                                         }
                                     }
 
@@ -1670,7 +1869,7 @@ Rectangle {
                                         width: 6
                                         height: 3
                                         radius: 1
-                                        color: "#38BDF8"
+                                        color: root.accentColor
                                     }
 
                                     // Pencil tip.
@@ -1680,7 +1879,7 @@ Rectangle {
                                         width: 4
                                         height: 4
                                         rotation: 45
-                                        color: "#38BDF8"
+                                        color: root.accentColor
                                     }
                                 }
                             }
@@ -1688,10 +1887,10 @@ Rectangle {
                             // Change background color when hovered or pressed.
                             background: Rectangle {
                                 radius: 8
-                                color: editPostButton.down ? "#243B55"
-                                    : editPostButton.hovered ? "#1E3350"
-                                    : "#152238"
-                                border.color: "#38BDF8"
+                                color: editPostButton.down ? root.pressedColor
+                                    : editPostButton.hovered ? root.hoverColor
+                                    : root.surfaceColor
+                                border.color: root.accentColor
                                 border.width: 1
                             }
 
@@ -1731,7 +1930,7 @@ Rectangle {
                                         height: 5
                                         radius: 1
                                         color: "transparent"
-                                        border.color: "#FCA5A5"
+                                        border.color: root.dangerColor
                                         border.width: 2
                                     }
 
@@ -1742,7 +1941,7 @@ Rectangle {
                                         width: 16
                                         height: 2
                                         radius: 1
-                                        color: "#FCA5A5"
+                                        color: root.dangerColor
                                     }
 
                                     // Bin.
@@ -1752,7 +1951,7 @@ Rectangle {
                                         width: 12
                                         height: 14
                                         radius: 2
-                                        color: "#FCA5A5"
+                                        color: root.dangerColor
 
                                         // Vertical lines inside the bin.
                                         Repeater {
@@ -1765,7 +1964,7 @@ Rectangle {
                                                 width: 1
                                                 height: 8
                                                 radius: 0.5
-                                                color: "#152238"
+                                                color: root.surfaceColor
                                             }
                                         }
                                     }
@@ -1775,10 +1974,10 @@ Rectangle {
                             // Use red colors for the delete button.
                             background: Rectangle {
                                 radius: 8
-                                color: deletePostButton.down ? "#7F1D1D"
-                                    : deletePostButton.hovered ? "#552020"
-                                    : "#152238"
-                                border.color: "#F87171"
+                                color: deletePostButton.down ? root.dangerPressedColor
+                                    : deletePostButton.hovered ? root.dangerHoverColor
+                                    : root.surfaceColor
+                                border.color: root.dangerBorderColor
                                 border.width: 1
                             }
 
@@ -1798,7 +1997,7 @@ Rectangle {
                     anchors.centerIn: parent
                     visible: knowledgeList.count === 0
                     text: "Inga kunskapsposter att visa."
-                    color: "#94A3B8"
+                    color: root.secondaryTextColor
                 }
             }
         }
@@ -1822,7 +2021,7 @@ Rectangle {
                 // Center the button text.
                 contentItem: Text {
                     text: closeKnowledgeViewButton.text
-                    color: "#F1F5F9"
+                    color: root.textColor
                     font.pixelSize: 14
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -1831,10 +2030,10 @@ Rectangle {
                 // Change background color when hovered or pressed.
                 background: Rectangle {
                     radius: 8
-                    color: closeKnowledgeViewButton.down ? "#243B55"
-                        : closeKnowledgeViewButton.hovered ? "#1E3350"
-                        : "#152238"
-                    border.color: "#2B405C"
+                    color: closeKnowledgeViewButton.down ? root.pressedColor
+                        : closeKnowledgeViewButton.hovered ? root.hoverColor
+                        : root.surfaceColor
+                    border.color: root.borderColor
                     border.width: 1
                 }
 
@@ -1865,15 +2064,16 @@ Rectangle {
 
         // Rounded background with a subtle border.
         background: Rectangle {
-            color: "#152238"
+            color: root.surfaceColor
             radius: 12
-            border.color: "#2B405C"
+            border.color: root.borderColor
+            border.width: 1
         }
 
         // Display the dialog title.
         header: Label {
             text: editKnowledgeDialog.title
-            color: "#F1F5F9"
+            color: root.textColor
             font.pixelSize: 18
             font.bold: true
             padding: 16
@@ -1900,13 +2100,13 @@ Rectangle {
                     textFormat: TextEdit.PlainText
 
                     // Text colors and space inside the field.
-                    color: "#F1F5F9"
-                    placeholderTextColor: "#94A3B8"
+                    color: root.textColor
+                    placeholderTextColor: root.secondaryTextColor
                     padding: 12
 
-                    // Dark background with rounded corners.
+                    // Use the current theme colors.
                     background: Rectangle {
-                        color: "#0B1220"
+                        color: root.windowColor
                         radius: 8
                     }
                 }
@@ -1919,7 +2119,7 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 text: ""
-                color: "#F1F5F9"
+                color: root.textColor
                 wrapMode: Text.WordWrap
             }
         }
@@ -1980,7 +2180,7 @@ Rectangle {
                     // Center the button text.
                     contentItem: Text {
                         text: cancelEditButton.text
-                        color: "#F1F5F9"
+                        color: root.textColor
                         font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -1989,10 +2189,10 @@ Rectangle {
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: cancelEditButton.down ? "#243B55"
-                            : cancelEditButton.hovered ? "#1E3350"
-                            : "#152238"
-                        border.color: "#2B405C"
+                        color: cancelEditButton.down ? root.pressedColor
+                            : cancelEditButton.hovered ? root.hoverColor
+                            : root.surfaceColor
+                        border.color: root.borderColor
                         border.width: 1
                     }
 
@@ -2025,15 +2225,16 @@ Rectangle {
 
         // Rounded background with a subtle border.
         background: Rectangle {
-            color: "#152238"
+            color: root.surfaceColor
             radius: 12
-            border.color: "#2B405C"
+            border.color: root.borderColor
+            border.width: 1
         }
 
         // Display the dialog title.
         header: Label {
             text: deleteKnowledgeDialog.title
-            color: "#F1F5F9"
+            color: root.textColor
             font.pixelSize: 18
             font.bold: true
             padding: 16
@@ -2047,7 +2248,7 @@ Rectangle {
             Label {
                 width: parent.width
                 text: "Vill du ta bort den här kunskapsposten?"
-                color: "#F1F5F9"
+                color: root.textColor
                 wrapMode: Text.WordWrap
             }
 
@@ -2067,7 +2268,7 @@ Rectangle {
                 id: deleteKnowledgeStatus
                 width: parent.width
                 text: ""
-                color: "#FCA5A5"
+                color: root.dangerColor
                 wrapMode: Text.WordWrap
             }
         }
@@ -2126,7 +2327,7 @@ Rectangle {
                     // Center the button text.
                     contentItem: Text {
                         text: cancelDeleteButton.text
-                        color: "#F1F5F9"
+                        color: root.textColor
                         font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -2135,10 +2336,11 @@ Rectangle {
                     // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
-                        color: cancelDeleteButton.down ? "#243B55"
-                            : cancelDeleteButton.hovered ? "#1E3350"
-                            : "#152238"
-                        border.color: "#2B405C"
+                        color: cancelDeleteButton.down ? root.pressedColor
+                            : cancelDeleteButton.hovered ? root.hoverColor
+                            : root.surfaceColor
+                        border.color: root.borderColor
+                        border.width: 1
                     }
 
                     // Close the dialog without deleting the post.
