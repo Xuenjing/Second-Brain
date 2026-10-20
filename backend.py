@@ -20,6 +20,7 @@ from retrieval import (
 from llm.local_provider import LocalLLMProvider
 from database import (
     get_all_knowledge,
+    get_knowledge_by_id,
     add_knowledge, 
     search_knowledge, 
     edit_knowledge, 
@@ -132,6 +133,9 @@ class Backend(QObject):
 
     # Send the deletion result to QML.
     knowledgeDeleteResult = Signal(bool, str)
+
+    # Send the id of the clicked post to QML
+    knowledgeEntryOpened = Signal(int, str, str, str)
 
     @Slot(str)
     def receive_text(self, text: str) -> None:
@@ -442,3 +446,23 @@ class Backend(QObject):
             })
 
         return knowledge_data
+
+    @Slot(int)
+    def open_knowledge_entry(self, knowledge_id: int) -> None:
+        """Send a selected knowledge entry to QML.
+        
+            Args:
+                knowledge_id: Database ID of the knowledge entry.
+        """
+
+        item = get_knowledge_by_id(knowledge_id)
+
+        created_at = datetime.fromisoformat(item["created_at"]).strftime("%Y-%m-%d %H:%M")
+
+        self.knowledgeEntryOpened.emit(
+            item["id"],
+            item["text"],
+            item["source"],
+            created_at
+        )
+        return

@@ -63,9 +63,11 @@ def retrieve_knowledge(query: str) -> list[dict]:
         )[0][0].item() 
 
         results.append({
+            "id": item["id"],
             "text": item["text"],
             "source": item["source"],
-            "score": score
+            "score": score,
+            "created_at": item["created_at"]
         })
 
     ranked_results = filter_and_rank_results(

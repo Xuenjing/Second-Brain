@@ -451,6 +451,128 @@ Rectangle {
             width: ListView.view.width
             height: Math.max(messageBubble.height, avatar.height)
 
+            // Helper function that builds a unique list of popup-sources.
+            function uniqueSources() {
+                let seen = {}
+                let result = []
+
+                for (let i = 0; i <messageItem.sources.count; i++) {
+                    let item = messageItem.sources.get(i)
+
+                    if(!seen[item.source]) {
+                        seen[item.source] = true
+
+                        result.push({
+                            source: item.source,
+                            created_at: item.created_at
+                        })
+                    }
+                }
+                return result
+            }
+
+        // Dialog for opening the source-information.
+        Dialog {
+            id: sourceDialog
+
+            property var sources: []
+
+            parent: Overlay.overlay
+            modal: true
+
+            width: 700
+            height: 600
+
+            x: (parent.width - width) / 2
+            y: (parent.height - height) / 2
+
+            header: null
+
+            background: Rectangle {
+                color: "#1E293B"
+                radius: 10
+            }
+
+            // Listing the sources inside the dialogue.
+            ListView {
+                anchors.fill: parent
+                anchors.margins: 16
+
+                model: sourceDialog.sources
+                spacing: 12
+                clip: true
+
+                delegate: Rectangle {
+                    id: sourceItem
+
+                    required property int id
+                    required property string source
+                    required property string text
+                    required property real score
+                    required property string created_at
+
+                    width: ListView.view.width
+                    height: contentColumn.implicitHeight + 20
+                    radius: 8
+
+                    color: "#243B55"
+
+                    // Makes the sources clickable.
+                    TapHandler {
+                        onTapped: {
+                            sourceDialog.close()
+                            backend.open_knowledge_entry(sourceItem.id)
+                        }
+                    }
+
+                    Column {
+                        id: contentColumn
+
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: 10
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        spacing: 6
+
+                        // Row containing source + created at
+                        Row {
+                            spacing: 10
+
+                            Text {
+                            text: sourceItem.source
+                            color: "#F1F5F9"
+                            font.bold: true
+                            }
+
+                            Text {
+                                text: sourceItem.created_at
+                                    .replace("T", " ")
+                                    .slice(0, 16)
+                                color: "#F1F5F9"
+                                font.pixelSize: 11
+                            }
+                        }
+
+                        Text {
+                            text: sourceItem.text
+                            width: parent.width
+                            wrapMode: Text.WordWrap
+                            color: "#CBD5E1"
+                        }
+
+                        Text {
+                            text: "Score: " + sourceItem.score.toFixed(3)
+                            color: "#94A3B8"
+                            font.pixelSize: 11
+                        }
+
+                    }
+
+                }
+            }
+        }
+
             // Show assistant logo.
             Item {
                 id: avatar
@@ -519,8 +641,12 @@ Rectangle {
 
                 // Button for showing sources.
                 Button {
+                    id: sourceButton
+
                     visible: messageItem.sender === "assistant"
                     && messageItem.sourceCount > 0
+
+                    hoverEnabled: true
 
                     text: "i"
 
@@ -545,87 +671,104 @@ Rectangle {
                         verticalAlignment: Text.AlignVCenter
                     }
 
+                    Timer {
+                        id: sourceHoverTimer
+                        interval: 1000
+                        repeat: false
+
+                        onTriggered: {
+                            sourcePreview.open()
+                        }
+                    }
+
+                    onHoveredChanged: {
+                        if (hovered) {
+                            sourceHoverTimer.start()
+                        } else {
+                            sourceHoverTimer.stop()
+                            sourcePreview.close()
+                        }
+                    }
+
                     onClicked: {
                         sourceDialog.sources = messageItem.sources
                         sourceDialog.open()
                     }
                 }
 
-                // Dialog for opening the source-information.
-                Dialog {
-                    id: sourceDialog
+                Popup {
+                    id: sourcePreview
 
-                    property var sources: []
+                    property var uniqueSourcesList: messageItem.uniqueSources()
+                    
+                    width: 300
+                    height: previewContent.implicitHeight + 20
 
-                    parent: Overlay.overlay
-                    modal: true
 
-                    width: 700
-                    height: 600
+                    
+                    x: sourceButton.x + sourceButton.width + 6
+                    y: sourceButton.y - 20
 
-                    x: (parent.width - width) / 2
-                    y: (parent.height - height) / 2
-
-                    header: null
+                    padding: 10
 
                     background: Rectangle {
                         color: "#1E293B"
-                        radius: 10
+                        radius: 8
+                        border.color: "#38BDF8"
+                        border.width: 1
                     }
 
-                    // Listing the sources inside the dialogue.
-                    ListView {
-                        anchors.fill: parent
-                        anchors.margins: 16
 
-                        model: sourceDialog.sources
-                        spacing: 12
-                        clip: true
+                    contentItem: Column {
+                        id: previewContent
+                        spacing: 6
 
-                        delegate: Rectangle {
-                            id: sourceItem
+                        Text {
+                            text: sourcePreview.uniqueSourcesList.length
+                                + (sourcePreview.uniqueSourcesList.length === 1 ? " källa, " : " källor, ")
+                                + messageItem.sourceCount
+                                + (messageItem.sourceCount === 1 ? " post" : " poster")
 
-                            required property string source
-                            required property string text
-                            required property real score
+                            color: "#F1F5F9"
+                            font.pixelSize: 12
+                            font.bold: true
+                        }
 
-                            width: ListView.view.width
-                            height: contentColumn.implicitHeight + 20
-                            radius: 8
+                        Repeater {
+                            model: sourcePreview.uniqueSourcesList
 
-                            color: "#243B55"
-
-                            Column {
-                                id: contentColumn
-
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.margins: 10
-                                anchors.verticalCenter: parent.verticalCenter
-
-                                spacing: 6
+                            delegate: Row {
+                                id: sourceRow
+                                required property string source
+                                required property string created_at
+                                spacing: 8
 
                                 Text {
-                                    text: sourceItem.source
-                                    color: "#F1F5F9"
-                                    font.bold: true
-                                }
-
-                                Text {
-                                    text: sourceItem.text
-                                    width: parent.width
-                                    wrapMode: Text.WordWrap
+                                    text: sourceRow.source
                                     color: "#CBD5E1"
-                                }
-
-                                Text {
-                                    text: "Score: " + sourceItem.score.toFixed(3)
-                                    color: "#94A3B8"
                                     font.pixelSize: 11
                                 }
 
-                            }
+                                Text {
+                                    text: sourceRow.created_at
+                                        .replace("T", " ")
+                                        .slice(0, 16)
 
+                                    color: "#94A3B8"
+                                    font.pixelSize: 10
+                                }
+                                
+
+
+
+                            }
+                        }
+
+                        Text {
+                            text: "Klicka för detaljer"
+                            color: "#94A3B8"
+                            font.pixelSize: 10
+                            font.italic: true
                         }
                     }
                 }
@@ -2099,6 +2242,14 @@ Rectangle {
                 sender: "assistant",
                 message: "Fel: " + message
             })
+        }
+
+        // Open knowledgeview for clicked entry
+        function onKnowledgeEntryOpened(id, text, source, created_at) {
+            editKnowledgeDialog.knowledgeId = id
+            editKnowledgeInput.text = text
+            editKnowledgeStatus.text = ""
+            editKnowledgeDialog.open()
         }
     }
 }
