@@ -263,8 +263,8 @@ ApplicationWindow {
                 // Change background color when hovered or pressed.
                 background: Rectangle {
                     radius: 8
-                    color: addKnowledgeButton.down ? root.pressedColor
-                        : addKnowledgeButton.hovered ? root.hoverColor
+                    color: viewKnowledgeButton.down ? root.pressedColor
+                        : viewKnowledgeButton.hovered ? root.hoverColor
                         : root.surfaceColor
                     border.color: root.accentColor
                     border.width: 1
@@ -1110,54 +1110,6 @@ Rectangle {
                     font.bold: root.darkMode
                 }
             }
-
-            Label {
-                text: "Back-up"
-                color: root.textColor
-                font.pixelSize: 16
-                font.bold: true
-            }
-
-            Button {
-                id: exportKnowledgeButton
-                text: "Exportera databas"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true
-
-                contentItem: Text {
-                    text: exportKnowledgeButton.text
-                    color: root.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                background: Rectangle {
-                    radius: 8
-                    color: exportKnowledgeButton.down ? root.pressedColor
-                        : exportKnowledgeButton.hovered ? root.hoverColor
-                        : root.surfaceColor
-                    border.color: root.accentColor
-                    border.width: 1
-                }
-
-                // Open the file picker for saving a JSON backup.
-                onClicked: {
-                    exportStatus.text = ""
-                    exportFileDialog.open()
-                }
-            }
-
-            // Display the export result from Python.
-            Label {
-                id: exportStatus
-                width: parent.width
-                text: ""
-                color: root.textColor
-                wrapMode: Text.WordWrap
-            }
         }
 
         // Footer with close button.
@@ -1430,6 +1382,35 @@ Rectangle {
                     }
 
                     onClicked: pdfFileDialog.open()
+                }
+
+                // Button for email import.
+                Button {
+                    id: importMailButton
+                    text: "Importera mejl"
+                    width: 140
+                    height: 40
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: importMailButton.text
+                        color: root.textColor
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+                        color: importMailButton.down ? root.pressedColor
+                            : importMailButton.hovered ? root.hoverColor
+                            : root.surfaceColor
+                        border.color: root.borderColor
+                        border.width: 1
+                    }
+
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Mejlimport kommer senare"
                 }
 
                 Button {
@@ -2437,23 +2418,6 @@ Rectangle {
         }
     }
 
-    // Choose where to save the JSON backup.
-    FileDialog {
-        id: exportFileDialog
-        title: "Back-up"
-        fileMode: FileDialog.SaveFile
-        nameFilters: ["JSON-filer (*.json)"]
-        defaultSuffix: "json"
-        acceptLabel: "Spara"
-        rejectLabel: "Avbryt"
-
-        // Send the destination file URL to Python.
-        onAccepted: {
-            exportStatus.text = "Exporterar…"
-            backend.export_knowledge(selectedFile.toString())
-        }
-    }
-
     // Listen for signals from the Python backend.
     Connections {
         target: backend
@@ -2517,11 +2481,6 @@ Rectangle {
             editKnowledgeInput.text = text
             editKnowledgeStatus.text = ""
             editKnowledgeDialog.open()
-        }
-
-        // Show whether the export succeeded or failed.
-        function onExportResult(message) {
-            exportStatus.text = message
         }
     }
 }
