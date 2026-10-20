@@ -36,3 +36,6 @@ jobs:
 
       - name: Run PDF tests
         run: python -m tests.pdf_tests
+
+      - name: Run exporter tests
+        run: python -m tests.exporter_tests

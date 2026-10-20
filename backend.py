@@ -29,6 +29,7 @@ from database import (
 )
 from imports.document_importer import import_docx_to_database
 from imports.pdf_importer import import_pdf_to_database
+from exporter import export_knowledge_to_json
 
 
 
@@ -136,6 +137,9 @@ class Backend(QObject):
 
     # Send the id of the clicked post to QML
     knowledgeEntryOpened = Signal(int, str, str, str)
+
+    # Backup the database to a JSON file.
+    exportResult = Signal(str)
 
     @Slot(str)
     def receive_text(self, text: str) -> None:
@@ -446,6 +450,7 @@ class Backend(QObject):
             })
 
         return knowledge_data
+    
 
     @Slot(int)
     def open_knowledge_entry(self, knowledge_id: int) -> None:
@@ -466,3 +471,25 @@ class Backend(QObject):
             created_at
         )
         return
+
+
+    @Slot(str)
+    def export_knowledge(self, file_path: str) -> None:
+        """Export all knowledge entries to a JSON file.
+        
+            Args:
+                file_path: Destination file URL received from QML.
+        """
+
+        # Translate working file path between QML and Python.
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            exported_count = export_knowledge_to_json(local_path)
+        except OSError:
+            self.exportResult.emit("The knowledge could not be exported.")
+            return
+
+        self.exportResult.emit(
+            f"Exported {exported_count} knowledge entries."
+        )
