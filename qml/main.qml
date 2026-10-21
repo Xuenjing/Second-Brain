@@ -1110,6 +1110,54 @@ Rectangle {
                     font.bold: root.darkMode
                 }
             }
+
+            Label {
+                text: "Back-up"
+                color: root.textColor
+                font.pixelSize: 16
+                font.bold: true
+            }
+
+            Button {
+                id: exportKnowledgeButton
+                text: "Exportera databas"
+                height: 40
+                leftPadding: 16
+                rightPadding: 16
+                hoverEnabled: true
+
+                contentItem: Text {
+                    text: exportKnowledgeButton.text
+                    color: root.textColor
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+                    color: exportKnowledgeButton.down ? root.pressedColor
+                        : exportKnowledgeButton.hovered ? root.hoverColor
+                        : root.surfaceColor
+                    border.color: root.accentColor
+                    border.width: 1
+                }
+
+                // Open the file picker for saving a JSON backup.
+                onClicked: {
+                    exportStatus.text = ""
+                    exportFileDialog.open()
+                }
+            }
+
+            // Display the export result from Python.
+            Label {
+                id: exportStatus
+                width: parent.width
+                text: ""
+                color: root.textColor
+                wrapMode: Text.WordWrap
+            }
         }
 
         // Footer with close button.
@@ -1293,20 +1341,85 @@ Rectangle {
                     }
                 }
 
+                // Button for importing TXT files.
                 Button {
                     id: importFileButton
-                    text: "Importera .txt-fil"
-                    width: 160
+                    width: 40
                     height: 40
                     hoverEnabled: true
 
-                    // Center the button text.
-                    contentItem: Text {
-                        text: importFileButton.text
-                        color: root.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    Accessible.name: "Importera .txt-fil"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Importera .txt-fil"
+
+                    // Draw a TXT document icon.
+                    contentItem: Item {
+                        Item {
+                            anchors.centerIn: parent
+                            width: 24
+                            height: 26
+
+                            Canvas {
+                                anchors.fill: parent
+
+                                property color iconColor: root.accentColor
+
+                                // Redraw when the theme changes.
+                                onIconColorChanged: requestPaint()
+
+                                onPaint: {
+                                    const ctx = getContext("2d")
+                                    ctx.clearRect(0, 0, width, height)
+                                    ctx.strokeStyle = iconColor
+                                    ctx.lineWidth = 1.8
+                                    ctx.lineJoin = "round"
+                                    ctx.lineCap = "round"
+
+                                    // Document outline.
+                                    ctx.beginPath()
+                                    ctx.moveTo(6, 1)
+                                    ctx.lineTo(16, 1)
+                                    ctx.lineTo(23, 8)
+                                    ctx.lineTo(23, 25)
+                                    ctx.lineTo(6, 25)
+                                    ctx.closePath()
+                                    ctx.stroke()
+
+                                    // Folded corner.
+                                    ctx.beginPath()
+                                    ctx.moveTo(16, 1)
+                                    ctx.lineTo(16, 8)
+                                    ctx.lineTo(23, 8)
+                                    ctx.stroke()
+
+                                    // Text lines.
+                                    ctx.beginPath()
+                                    ctx.moveTo(10, 18)
+                                    ctx.lineTo(19, 18)
+                                    ctx.moveTo(10, 21)
+                                    ctx.lineTo(19, 21)
+                                    ctx.stroke()
+                                }
+                            }
+
+                            // TXT label on the document.
+                            Rectangle {
+                                x: 0
+                                y: 8
+                                width: 20
+                                height: 10
+                                radius: 2
+                                color: root.accentColor
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "TXT"
+                                    font.pixelSize: 8
+                                    font.bold: true
+                                    color: root.surfaceColor
+                                }
+                            }
+                        }
                     }
 
                     // Change background color when hovered or pressed.
@@ -1315,30 +1428,93 @@ Rectangle {
                         color: importFileButton.down ? root.pressedColor
                             : importFileButton.hovered ? root.hoverColor
                             : root.surfaceColor
-                        border.color: root.borderColor
+                        border.color: root.accentColor
                         border.width: 1
                     }
 
                     // Open the file picker to select a text file.
-                    onClicked: textFileDialog.open() 
+                    onClicked: textFileDialog.open()
                 }
 
                 // Button for importing docx files.
                 Button {
                     id: importDocxButton
-                    text: "Importera .docx-fil"
-                    width: 160
+                    width: 40
                     height: 40
                     hoverEnabled: true
-                
 
-                    // Center the button text.
-                    contentItem: Text {
-                        text: importDocxButton.text
-                        color: root.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    Accessible.name: "Importera .docx-fil"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Importera .docx-fil"
+
+                    // Draw a DOCX document icon.
+                    contentItem: Item {
+                        Item {
+                            anchors.centerIn: parent
+                            width: 24
+                            height: 26
+
+                            Canvas {
+                                anchors.fill: parent
+
+                                property color iconColor: root.accentColor
+
+                                // Redraw when the theme changes.
+                                onIconColorChanged: requestPaint()
+
+                                onPaint: {
+                                    const ctx = getContext("2d")
+                                    ctx.clearRect(0, 0, width, height)
+                                    ctx.strokeStyle = iconColor
+                                    ctx.lineWidth = 1.8
+                                    ctx.lineJoin = "round"
+                                    ctx.lineCap = "round"
+
+                                    // Document outline.
+                                    ctx.beginPath()
+                                    ctx.moveTo(6, 1)
+                                    ctx.lineTo(16, 1)
+                                    ctx.lineTo(23, 8)
+                                    ctx.lineTo(23, 25)
+                                    ctx.lineTo(6, 25)
+                                    ctx.closePath()
+                                    ctx.stroke()
+
+                                    // Folded corner.
+                                    ctx.beginPath()
+                                    ctx.moveTo(16, 1)
+                                    ctx.lineTo(16, 8)
+                                    ctx.lineTo(23, 8)
+                                    ctx.stroke()
+
+                                    // Text lines.
+                                    ctx.beginPath()
+                                    ctx.moveTo(10, 18)
+                                    ctx.lineTo(19, 18)
+                                    ctx.moveTo(10, 21)
+                                    ctx.lineTo(19, 21)
+                                    ctx.stroke()
+                                }
+                            }
+
+                            // DOCX label on the document.
+                            Rectangle {
+                                x: 0
+                                y: 8
+                                width: 20
+                                height: 10
+                                radius: 2
+                                color: root.accentColor
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "DOCX"
+                                    font.pixelSize: 7
+                                    font.bold: true
+                                    color: root.surfaceColor
+                                }
+                            }
+                        }
                     }
 
                     // Change background color when hovered or pressed.
@@ -1347,10 +1523,11 @@ Rectangle {
                         color: importDocxButton.down ? root.pressedColor
                             : importDocxButton.hovered ? root.hoverColor
                             : root.surfaceColor
-                        border.color: root.borderColor
+                        border.color: root.accentColor
                         border.width: 1
                     }
 
+                    // Open the file picker to select a DOCX file.
                     onClicked: docxFileDialog.open()
                 }
 
@@ -1452,46 +1629,108 @@ Rectangle {
                 // Button for email import.
                 Button {
                     id: importMailButton
-                    text: "Importera mejl"
-                    width: 140
+                    width: 40
                     height: 40
                     hoverEnabled: true
 
-                    contentItem: Text {
-                        text: importMailButton.text
-                        color: root.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    Accessible.name: "Importera mejl (kommer senare)"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Importera mejl – kommer senare"
+
+                    // Draw an envelope icon.
+                    contentItem: Item {
+                        Canvas {
+                            anchors.centerIn: parent
+                            width: 24
+                            height: 20
+
+                            property color iconColor: root.accentColor
+
+                            // Redraw when the theme changes.
+                            onIconColorChanged: requestPaint()
+
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                ctx.clearRect(0, 0, width, height)
+                                ctx.strokeStyle = iconColor
+                                ctx.lineWidth = 2
+                                ctx.lineJoin = "round"
+                                ctx.lineCap = "round"
+
+                                // Envelope outline.
+                                ctx.beginPath()
+                                ctx.moveTo(2, 2)
+                                ctx.lineTo(22, 2)
+                                ctx.lineTo(22, 18)
+                                ctx.lineTo(2, 18)
+                                ctx.closePath()
+                                ctx.stroke()
+
+                                // Lower folds.
+                                ctx.beginPath()
+                                ctx.moveTo(2, 18)
+                                ctx.lineTo(9, 11)
+                                ctx.moveTo(22, 18)
+                                ctx.lineTo(15, 11)
+                                ctx.stroke()
+
+                                // Envelope flap.
+                                ctx.beginPath()
+                                ctx.moveTo(2, 2)
+                                ctx.lineTo(12, 12)
+                                ctx.lineTo(22, 2)
+                                ctx.stroke()
+                            }
+                        }
                     }
 
+                    // Change background color when hovered or pressed.
                     background: Rectangle {
                         radius: 8
                         color: importMailButton.down ? root.pressedColor
                             : importMailButton.hovered ? root.hoverColor
                             : root.surfaceColor
-                        border.color: root.borderColor
+                        border.color: root.accentColor
                         border.width: 1
                     }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Mejlimport kommer senare"
                 }
 
+                // Button for closing the dialog.
                 Button {
                     id: closeKnowledgeButton
-                    text: "Stäng"
-                    width: 90
+                    width: 40
                     height: 40
                     hoverEnabled: true
 
-                    // Center the button text.
-                    contentItem: Text {
-                        text: closeKnowledgeButton.text
-                        color: root.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    Accessible.name: "Stäng"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Stäng"
+
+                    // Draw a close icon.
+                    contentItem: Item {
+                        Item {
+                            anchors.centerIn: parent
+                            width: 20
+                            height: 20
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 22
+                                height: 2
+                                radius: 1
+                                rotation: 45
+                                color: root.accentColor
+                            }
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 22
+                                height: 2
+                                radius: 1
+                                rotation: -45
+                                color: root.accentColor
+                            }
+                        }
                     }
 
                     // Change background color when hovered or pressed.
@@ -1500,7 +1739,7 @@ Rectangle {
                         color: closeKnowledgeButton.down ? root.pressedColor
                             : closeKnowledgeButton.hovered ? root.hoverColor
                             : root.surfaceColor
-                        border.color: root.borderColor
+                        border.color: root.accentColor
                         border.width: 1
                     }
 
@@ -2483,6 +2722,23 @@ Rectangle {
         }
     }
 
+    // Choose where to save the JSON backup.
+    FileDialog {
+        id: exportFileDialog
+        title: "Spara säkerhetskopia"
+        fileMode: FileDialog.SaveFile
+        nameFilters: ["JSON-filer (*.json)"]
+        defaultSuffix: "json"
+        acceptLabel: "Spara"
+        rejectLabel: "Avbryt"
+
+        // Send the destination file URL to Python.
+        onAccepted: {
+            exportStatus.text = "Exporterar…"
+            backend.export_knowledge(selectedFile.toString())
+        }
+    }
+
     // Listen for signals from the Python backend.
     Connections {
         target: backend
@@ -2546,6 +2802,11 @@ Rectangle {
             editKnowledgeInput.text = text
             editKnowledgeStatus.text = ""
             editKnowledgeDialog.open()
+        }
+
+        // Show whether the export succeeded or failed.
+        function onExportResult(message) {
+            exportStatus.text = message
         }
     }
 }
