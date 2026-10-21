@@ -1,7 +1,18 @@
 '''
+RAG evaluation experiment.
+
 Run from project root:
 
 python -m experiments.rag_evaluation
+
+Previous experiment:
+- Compared MiniLM and multilingual-e5-small for retrieval.
+- E5 retrieved the expected knowledge in all positive test cases.
+- MiniLM missed one paraphrased Huvudmatsalen query.
+
+Current experiment:
+- Keep E5 retrieval unchanged.
+- Compare Qwen3-1.7B and Qwen3-4B generation quality.
 '''
 
 from database import get_all_knowledge
@@ -58,12 +69,12 @@ TEST_CASES = [
         ),
         "expected_answer": ["11:00", "14:00"]
     },
-
     {
         "question": "När öppnar Reception 17?",
         "should_answer": True,
         "expected_retrieval": (
-            "Reception 17 öppnar klockan 9:00 och stänger klockan 18:00"
+            "Reception 17 öppnar klockan 9:00 och "
+            "stänger klockan 18:00"
         ),
         "expected_answer": ["9:00"]
     },
@@ -71,7 +82,8 @@ TEST_CASES = [
         "question": "När stänger Reception 12?",
         "should_answer": True,
         "expected_retrieval": (
-            "Reception 12 öppnar klockan 7:00 och stänger klockan 16:00"
+            "Reception 12 öppnar klockan 7:00 och "
+            "stänger klockan 16:00"
         ),
         "expected_answer": ["16:00"]
     },
@@ -79,7 +91,8 @@ TEST_CASES = [
         "question": "Vilka öppettider har Reception 5?",
         "should_answer": True,
         "expected_retrieval": (
-            "Reception 5 öppnar klockan 9:00 och stänger klockan 18:00"
+            "Reception 5 öppnar klockan 9:00 och "
+            "stänger klockan 18:00"
         ),
         "expected_answer": ["9:00", "18:00"]
     },
@@ -95,7 +108,8 @@ TEST_CASES = [
         "question": "När serverar Matsal 18 lunch?",
         "should_answer": True,
         "expected_retrieval": (
-            "Matsal 18 serverar lunch mellan klockan 10:30 och 13:30"
+            "Matsal 18 serverar lunch mellan klockan "
+            "10:30 och 13:30"
         ),
         "expected_answer": ["10:30", "13:30"]
     },
@@ -103,7 +117,8 @@ TEST_CASES = [
         "question": "Vilka lunchtider har Matsal 1?",
         "should_answer": True,
         "expected_retrieval": (
-            "Matsal 1 serverar lunch mellan klockan 11:30 och 14:30"
+            "Matsal 1 serverar lunch mellan klockan "
+            "11:30 och 14:30"
         ),
         "expected_answer": ["11:30", "14:30"]
     },
@@ -137,26 +152,28 @@ TEST_CASES = [
         "expected_retrieval": None,
         "expected_answer": None
     }
-
 ]
 
 
-EMBEDDING_MODELS = [
-    
+# Retrieval is fixed to E5 for this experiment.
+# Previous evaluation compared E5 against MiniLM.
+EMBEDDING_MODEL = {
+    "name": "E5",
+    "model_name": "intfloat/multilingual-e5-small",
+    "use_e5_prefix": True
+}
+
+
+LLM_MODELS = [
     {
-        "name": "MiniLM",
-        "model_name": "paraphrase-multilingual-MiniLM-L12-v2",
-        "use_e5_prefix": False
+        "name": "Qwen3-1.7B",
+        "model_name": "Qwen/Qwen3-1.7B"
     },
     {
-        "name": "E5",
-        "model_name": "intfloat/multilingual-e5-small",
-        "use_e5_prefix": True
+        "name": "Qwen3-4B",
+        "model_name": "Qwen/Qwen3-4B"
     }
 ]
-
-
-llm = LocalLLMProvider("Qwen/Qwen3-1.7B")
 
 
 def retrieve_with_model(
@@ -166,7 +183,7 @@ def retrieve_with_model(
     use_e5_prefix: bool,
     top_k: int = 5,
 ) -> list[dict]:
-    """Retrieve knowledge using a selected embedding model.
+    """Retrieve knowledge using the selected embedding model.
 
     Args:
         query: User question.
@@ -218,19 +235,32 @@ def retrieve_with_model(
 
 
 def run_evaluation() -> None:
-    """Compare retrieval and generation across embedding models."""
+    """Compare generation quality between local LLM models."""
 
     knowledge = get_all_knowledge()
 
-    for model_config in EMBEDDING_MODELS:
-        print()
-        print("#" * 70)
-        print("EMBEDDING MODEL:", model_config["name"])
-        print("#" * 70)
+    print()
+    print("#" * 70)
+    print("EMBEDDING MODEL:", EMBEDDING_MODEL["name"])
+    print("#" * 70)
 
-        embedding_model = SentenceTransformer(
-            model_config["model_name"]
+    embedding_model = SentenceTransformer(
+        EMBEDDING_MODEL["model_name"]
+    )
+
+    for llm_config in LLM_MODELS:
+        print()
+        print("*" * 70)
+        print("LLM MODEL:", llm_config["name"])
+        print("*" * 70)
+
+        llm = LocalLLMProvider(
+            llm_config["model_name"]
         )
+
+        generation_pass_count = 0
+        retrieval_pass_count = 0
+        retrieval_test_count = 0
 
         for test in TEST_CASES:
             print("=" * 60)
@@ -241,7 +271,7 @@ def run_evaluation() -> None:
                 test["question"],
                 knowledge,
                 embedding_model,
-                model_config["use_e5_prefix"]
+                EMBEDDING_MODEL["use_e5_prefix"]
             )
 
             print("\nRetrieved:")
@@ -318,6 +348,7 @@ ANSWER:
 
                 no_information_phrases = [
                     "inte tillräcklig information",
+                    "inte tillräckligt med information",
                     "ingen information",
                     "inget information",
                     "inte information",
@@ -329,6 +360,9 @@ ANSWER:
                     for phrase in no_information_phrases
                 )
 
+            if generation_pass:
+                generation_pass_count += 1
+
             print(
                 "Generation result:",
                 "PASS" if generation_pass else "FAIL"
@@ -336,6 +370,8 @@ ANSWER:
 
             # Evaluate retrieval.
             if test["expected_retrieval"] is not None:
+                retrieval_test_count += 1
+
                 retrieved_texts = [
                     result["text"].lower()
                     for result in results
@@ -346,6 +382,9 @@ ANSWER:
                     for text in retrieved_texts
                 )
 
+                if retrieval_pass:
+                    retrieval_pass_count += 1
+
                 print(
                     "Retrieval result:",
                     "PASS" if retrieval_pass else "FAIL"
@@ -355,6 +394,19 @@ ANSWER:
                 print("Retrieval result: N/A")
 
             print()
+
+        print()
+        print("-" * 70)
+        print("SUMMARY:", llm_config["name"])
+        print(
+            "Generation:",
+            f"{generation_pass_count}/{len(TEST_CASES)} PASS"
+        )
+        print(
+            "Retrieval:",
+            f"{retrieval_pass_count}/{retrieval_test_count} PASS"
+        )
+        print("-" * 70)
 
 
 if __name__ == "__main__":
