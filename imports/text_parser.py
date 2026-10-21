@@ -32,6 +32,9 @@ def extract_txt_chunks(file_path: str) -> list[str]:
     except OSError as error:
         raise ValueError("The file could not be read.") from error
 
+    if not text.strip():
+        raise ValueError("The file is empty.")
+
     chunks = [
         chunk.strip()
         for chunk in text.split("\n\n")
