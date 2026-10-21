@@ -30,6 +30,7 @@ from database import (
 from imports.document_importer import import_docx_to_database
 from imports.pdf_importer import import_pdf_to_database
 from imports.text_importer import import_txt_to_database
+from imports.mail_importer import import_mail_to_database
 from exporter import export_knowledge_to_json
 
 
@@ -353,6 +354,42 @@ class Backend(QObject):
             self.knowledgeSaveResult.emit("No new knowledge was added")
         else:
             self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from pdf file.")
+
+    @Slot(str)
+    def add_mail_knowledge(self, file_path: str) -> None:
+        """Import knowledge from an EML file.
+
+        Args:
+            file_path: File URL received from QML.
+
+        Returns:
+            None.
+        """
+        # Convert the file URL to a local file path.
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            added_count = import_mail_to_database(local_path)
+        except FileNotFoundError:
+            self.knowledgeSaveResult.emit(
+                "The selected file does not exist."
+            )
+            return
+        except ValueError as error:
+            self.knowledgeSaveResult.emit(str(error))
+            return
+        except OSError:
+            self.knowledgeSaveResult.emit(
+                "The file could not be read."
+            )
+            return
+
+        if added_count == 0:
+            self.knowledgeSaveResult.emit("No new knowledge was added.")
+        else:
+            self.knowledgeSaveResult.emit(
+                f"Imported {added_count} knowledge entries from EML file."
+            )
 
 
     @Slot(str, str, bool, bool, bool, bool)
