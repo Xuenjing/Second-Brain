@@ -1356,33 +1356,98 @@ Rectangle {
 
                 // Button for importing PDF files.
                 Button {
-                    id: importPdfButton
-                    text: "Importera .pdf-fil"
-                    width: 160
-                    height: 40
-                    hoverEnabled: true
+                id: importPdfButton
+                width: 40
+                height: 40
+                hoverEnabled: true
 
-                    // Center the button text.
-                    contentItem: Text {
-                        text: importPdfButton.text
-                        color: root.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                Accessible.name: "Importera .pdf-fil"
+                ToolTip.visible: hovered
+                ToolTip.text: "Importera .pdf-fil"
+
+                // Draw a PDF document icon.
+                contentItem: Item {
+                    Item {
+                        anchors.centerIn: parent
+                        width: 24
+                        height: 26
+
+                        Canvas {
+                            anchors.fill: parent
+
+                            property color iconColor: root.accentColor
+
+                            // Redraw when the theme changes.
+                            onIconColorChanged: requestPaint()
+
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                ctx.clearRect(0, 0, width, height)
+                                ctx.strokeStyle = iconColor
+                                ctx.lineWidth = 1.8
+                                ctx.lineJoin = "round"
+                                ctx.lineCap = "round"
+
+                                // Document outline.
+                                ctx.beginPath()
+                                ctx.moveTo(6, 1)
+                                ctx.lineTo(16, 1)
+                                ctx.lineTo(23, 8)
+                                ctx.lineTo(23, 25)
+                                ctx.lineTo(6, 25)
+                                ctx.closePath()
+                                ctx.stroke()
+
+                                // Folded corner.
+                                ctx.beginPath()
+                                ctx.moveTo(16, 1)
+                                ctx.lineTo(16, 8)
+                                ctx.lineTo(23, 8)
+                                ctx.stroke()
+
+                                // Text lines.
+                                ctx.beginPath()
+                                ctx.moveTo(10, 18)
+                                ctx.lineTo(19, 18)
+                                ctx.moveTo(10, 21)
+                                ctx.lineTo(19, 21)
+                                ctx.stroke()
+                            }
+                        }
+
+                        // PDF label on the document.
+                        Rectangle {
+                            x: 0
+                            y: 8
+                            width: 20
+                            height: 10
+                            radius: 2
+                            color: root.accentColor
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "PDF"
+                                font.pixelSize: 8
+                                font.bold: true
+                                color: root.surfaceColor
+                            }
+                        }
                     }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: importPdfButton.down ? root.pressedColor
-                            : importPdfButton.hovered ? root.hoverColor
-                            : root.surfaceColor
-                        border.color: root.borderColor
-                        border.width: 1
-                    }
-
-                    onClicked: pdfFileDialog.open()
                 }
+
+                // Change background color when hovered or pressed.
+                background: Rectangle {
+                    radius: 8
+                    color: importPdfButton.down ? root.pressedColor
+                        : importPdfButton.hovered ? root.hoverColor
+                        : root.surfaceColor
+                    border.color: root.accentColor
+                    border.width: 1
+                }
+
+                // Open the PDF file picker.
+                onClicked: pdfFileDialog.open()
+            }
 
                 // Button for email import.
                 Button {
