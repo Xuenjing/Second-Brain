@@ -70,8 +70,15 @@ class Thinker(QThread):
 Use only the information in the context below to answer the question.
 
 Rules:
-- Answer only using information from the context.
-- If the answer is not available in the context, say so clearly.
+- Pay close attention to negation such as "not", "no", "does not", "inte", "inget" and "har inte".
+- If the context explicitly states that something is not true, do not answer that it is true.
+- Base the answer on the complete relevant statement, not only on matching words.
+- Identify the statement in the context that refers to the same person or entity as the question.
+- Answer strictly according to that statement.
+- Do not infer information about one person or entity from information about another.
+- The context may contain information that is related to the topic but does not answer the question.
+- If the context does not explicitly contain the information needed to answer the question, respond that there is not enough information in the knowledge base.
+- Answer in the same language as the question.
 - Do not make up information.
 
 CONTEXT:
