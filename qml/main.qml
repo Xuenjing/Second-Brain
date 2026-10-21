@@ -1689,9 +1689,9 @@ Rectangle {
                     height: 40
                     hoverEnabled: true
 
-                    Accessible.name: "Importera mejl (kommer senare)"
+                    Accessible.name: "Importera .eml-fil"
                     ToolTip.visible: hovered
-                    ToolTip.text: "Importera mejl – kommer senare"
+                    ToolTip.text: "Importera .eml-fil"
 
                     // Draw an envelope icon.
                     contentItem: Item {
@@ -1749,6 +1749,9 @@ Rectangle {
                         border.color: root.accentColor
                         border.width: 1
                     }
+
+                    // Open the file picker to select an email.
+                    onClicked: mailFileDialog.open()
                 }
             }
             
@@ -2723,6 +2726,20 @@ Rectangle {
         onAccepted: {
             knowledgeSaveStatus.text = ""
             backend.add_pdf_knowledge(selectedFile)
+        }
+    }
+
+    // File picker for importing a saved email.
+    FileDialog {
+        id: mailFileDialog
+        title: "Välj ett mejl"
+        nameFilters: ["Mejlfiler (*.eml)"]
+        fileMode: FileDialog.OpenFile
+
+        // Send the selected file URL to Python.
+        onAccepted: {
+            knowledgeSaveStatus.text = ""
+            backend.add_mail_knowledge(selectedFile.toString())
         }
     }
 
