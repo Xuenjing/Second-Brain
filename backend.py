@@ -29,6 +29,7 @@ from database import (
 )
 from imports.document_importer import import_docx_to_database
 from imports.pdf_importer import import_pdf_to_database
+from imports.text_importer import import_txt_to_database
 from exporter import export_knowledge_to_json
 
 
@@ -284,54 +285,24 @@ class Backend(QObject):
 
     @Slot(str)
     def add_txt_knowledge(self, file_path: str) -> None:
-        """
-        Import knowledge from a UTF-8 text file.
+        """Import knowledge from a UTF-8 text file.
 
-        The file is split into chunks based on paragraphs.
-        Each chunk is embedded and stored separately in the database.
-
-        Args:
-            file_path: File URL received from the QML.
+            Args:
+                file_path: File URL received from the QML.
         """
 
         # convert to local windows file path
         local_path = QUrl(file_path).toLocalFile() 
-        path = Path(local_path)
 
-        # safeguards
-        if path.suffix.lower() != ".txt":
-            self.knowledgeSaveResult.emit("Only .txt files are supported.")
-            return
-        if not path.exists():
-            self.knowledgeSaveResult.emit("The selected file does not exist.")
-            return
         try:
-            text = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            self.knowledgeSaveResult.emit("The file could not be read as UTF-8.")
+            added_count = import_txt_to_database(local_path)
+        except FileNotFoundError:
+            self.knowledgeSaveResult.emit("The selected file does not exist")
             return
-        except OSError:
-            self.knowledgeSaveResult.emit("The file could not be read.")
-            return
-        if not text.strip():
-            self.knowledgeSaveResult.emit("The file is empty.")
+        except ValueError as error:
+            self.knowledgeSaveResult.emit(str(error))
             return
         
-        # sort the text into chunks if text can be split into paragraphs
-        chunks = [
-            chunk.strip()
-            for chunk in text.split("\n\n") 
-            if chunk.strip()
-        ]
-
-        added_count = 0
-
-        for chunk in chunks:
-            embedding = create_embedding(chunk)
-            added = add_knowledge(chunk, embedding, source=path.name)
-            if added:
-                added_count += 1
-
         if added_count == 0:
             self.knowledgeSaveResult.emit("No new knowledge was added.")
         else:
