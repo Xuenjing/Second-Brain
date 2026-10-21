@@ -1222,14 +1222,70 @@ Rectangle {
             border.width: 1
         }
 
-        // Display the dialog title.
-        header: Label {
-            text: knowledgeDialog.title
-            color: root.textColor
-            font.pixelSize: 18
-            font.bold: true
-            padding: 16
-        }
+        // Dialog title and close button.
+        header: Item {
+            implicitHeight: 56
+        
+            Label {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    anchors.right: closeKnowledgeButton.left
+                    anchors.rightMargin: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: knowledgeDialog.title
+                    color: root.textColor
+                    font.pixelSize: 18
+                    font.bold: true
+                    elide: Text.ElideRight
+                }
+
+                Button {
+                    id: closeKnowledgeButton
+                    width: 28
+                    height: 28
+                    padding: 0
+                    hoverEnabled: true
+
+                    anchors.right: parent.right
+                    anchors.rightMargin: 12
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Accessible.name: "Stäng"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Stäng"
+
+                    // Draw a small close icon.
+                    contentItem: Item {
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 14
+                            height: 2
+                            radius: 1
+                            rotation: 45
+                            color: root.secondaryTextColor
+                        }
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 14
+                            height: 2
+                            radius: 1
+                            rotation: -45
+                            color: root.secondaryTextColor
+                        }
+                    }
+
+                    // Show the background when hovered or pressed.
+                    background: Rectangle {
+                        radius: 6
+                        color: closeKnowledgeButton.down ? root.pressedColor
+                            : closeKnowledgeButton.hovered ? root.hoverColor
+                            : "transparent"
+                    }
+
+                    onClicked: knowledgeDialog.close()
+                }
+            }
 
         // Arrange the dialog content vertically.
         contentItem: Column {
@@ -1624,7 +1680,7 @@ Rectangle {
 
                 // Open the PDF file picker.
                 onClicked: pdfFileDialog.open()
-            }
+                }
 
                 // Button for email import.
                 Button {
@@ -1693,58 +1749,6 @@ Rectangle {
                         border.color: root.accentColor
                         border.width: 1
                     }
-                }
-
-                // Button for closing the dialog.
-                Button {
-                    id: closeKnowledgeButton
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-
-                    Accessible.name: "Stäng"
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Stäng"
-
-                    // Draw a close icon.
-                    contentItem: Item {
-                        Item {
-                            anchors.centerIn: parent
-                            width: 20
-                            height: 20
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 22
-                                height: 2
-                                radius: 1
-                                rotation: 45
-                                color: root.accentColor
-                            }
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 22
-                                height: 2
-                                radius: 1
-                                rotation: -45
-                                color: root.accentColor
-                            }
-                        }
-                    }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: closeKnowledgeButton.down ? root.pressedColor
-                            : closeKnowledgeButton.hovered ? root.hoverColor
-                            : root.surfaceColor
-                        border.color: root.accentColor
-                        border.width: 1
-                    }
-
-                    // Close the dialog.
-                    onClicked: knowledgeDialog.close()
                 }
             }
             
