@@ -49,25 +49,6 @@ ApplicationWindow {
     // Track whether a question is being processed.
     property bool isThinking: false
 
-    // Track whether sort buttons are active.
-    property bool pdfFilterActive: true
-    property bool docxFilterActive: true
-    property bool txtFilterActive: true
-    property bool manualFilterActive: true
-    property string sortOrder: "desc"
-
-    // Refresh filter state.
-    function refreshKnowledge() {
-        backend.load_filtered_knowledge(
-            knowledgeSearchField.text,
-            root.sortOrder,
-            root.txtFilterActive,
-            root.docxFilterActive,
-            root.pdfFilterActive,
-            root.manualFilterActive
-        )
-    }
-
     // Store questions and answers displayed in the chat.
     ListModel {
         id: chatModel
@@ -164,7 +145,7 @@ ApplicationWindow {
                 // Open the dialog and load saved knowledge.
                 onClicked: {
                     knowledgeViewDialog.open()
-                    root.refreshKnowledge()
+                    knowledgeViewDialog.requestRefresh()
                 }
             }
 
@@ -935,619 +916,59 @@ Rectangle {
     }
 
     // Dialog for viewing and managing saved knowledge.
-    Dialog {
+    KnowledgeViewDialog {
         id: knowledgeViewDialog
-        title: "Kunskapsbas"
 
-        // Block interaction with the main window while the dialog is open.
-        modal: true
-
-        // Limit the dialog size to fit within the main window.
-        width: Math.min(800, root.width - 48)
-        height: Math.min(600, root.height - 48)
-
-        // Center the dialog in the main window's content area.
         parent: root.contentItem
         anchors.centerIn: parent
 
-        // Rounded background with a subtle border.
-        background: Rectangle {
-            color: root.surfaceColor
-            radius: 12
-            border.color: root.borderColor
-            border.width: 1
+        width: Math.min(800, root.width - 48)
+        height: Math.min(600, root.height - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        accentColor: root.accentColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        windowColor: root.windowColor
+
+        dangerColor: root.dangerColor
+        dangerBorderColor: root.dangerBorderColor
+        dangerHoverColor: root.dangerHoverColor
+        dangerPressedColor: root.dangerPressedColor
+
+        onRefreshRequested: function(
+            searchText,
+            sortOrder,
+            txtFilterActive,
+            docxFilterActive,
+            pdfFilterActive,
+            manualFilterActive
+        ) {
+            backend.load_filtered_knowledge(
+                searchText,
+                sortOrder,
+                txtFilterActive,
+                docxFilterActive,
+                pdfFilterActive,
+                manualFilterActive
+            )
         }
 
-        // Display the dialog title.
-        header: Label {
-            text: knowledgeViewDialog.title
-            color: root.textColor
-            font.pixelSize: 18
-            font.bold: true
-            padding: 16
+        onEditRequested: function(id, text) {
+            editKnowledgeDialog.knowledgeId = id
+            editKnowledgeInput.text = text
+            editKnowledgeStatus.text = ""
+            editKnowledgeDialog.open()
         }
 
-        // Keep the search field separate from the results list.
-        contentItem: Item {
-            TextField {
-                id: knowledgeSearchField
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: 44
-                placeholderText: "Sök bland sparad kunskap"
-
-                // Text colors and space inside the field.
-                color: root.textColor
-                placeholderTextColor: root.secondaryTextColor
-                font.pixelSize: 14
-                padding: 12
-
-                // Highlight the border when the field has keyboard focus.
-                background: Rectangle {
-                    color: root.windowColor
-                    radius: 8
-                    border.color: knowledgeSearchField.activeFocus
-                        ? root.accentColor
-                        : root.borderColor
-                    border.width: 1
-                }
-
-                // Search saved knowledge as the user types.
-                onTextEdited: root.refreshKnowledge()
-            }
-
-            // Row containing sort and filter buttons.
-            Row {
-                id: sortButtons
-                anchors.top: knowledgeSearchField.bottom
-                anchors.topMargin: 6
-                anchors.right: parent.right
-                spacing: 30
-
-                Row {
-                    id: filterButtons
-                    spacing: 6
-                
-
-                    // Button for displaying sort by TXT.
-                    Button {
-                        id: filterTxtButton
-                        text: "TXT"
-                        width: 40
-                        height: 40
-                        hoverEnabled: true
-
-                        // Center the button text.
-                        contentItem: Text {
-                            text: filterTxtButton.text
-                            color: root.textColor
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        // Change background color when hovered or toggled on/off.
-                        background: Rectangle {
-                            radius: 8
-                            color: filterTxtButton.down ? root.pressedColor
-                                : root.txtFilterActive || filterTxtButton.hovered
-                                    ? root.hoverColor
-                                    : root.surfaceColor
-                            border.color: root.txtFilterActive
-                                ? root.accentColor
-                                : root.borderColor
-                            border.width: 1
-                        }
-
-                        // Toggle.
-                        onClicked: {
-                            root.txtFilterActive = !root.txtFilterActive
-                            root.refreshKnowledge()
-                        }
-
-                        // Tooltip.
-                        ToolTip.visible: hovered
-                        ToolTip.text: "TXT-filer"
-                    }
-
-                    // Button for displaying filter by DOCX.
-                    Button {
-                        id: filterDocxButton
-                        text: "DOCX"
-                        width: 40
-                        height: 40
-                        hoverEnabled: true
-
-                        // Center the button text.
-                        contentItem: Text {
-                            text: filterDocxButton.text
-                            color: root.textColor
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        // Change background color when hovered or toggled on/off.
-                        background: Rectangle {
-                            radius: 8
-                            color: filterDocxButton.down ? root.pressedColor
-                                : root.docxFilterActive || filterDocxButton.hovered
-                                    ? root.hoverColor
-                                    : root.surfaceColor
-                            border.color: root.docxFilterActive
-                                ? root.accentColor
-                                : root.borderColor
-                            border.width: 1
-                        }
-
-                        // Toggle.
-                        onClicked: {
-                            root.docxFilterActive = !root.docxFilterActive
-                            root.refreshKnowledge()
-                        }
-
-                        // Tooltip.
-                        ToolTip.visible: hovered
-                        ToolTip.text: "DOCX-filer"
-                    }
-
-                    // Button for displaying sort by PDF.
-                    Button {
-                        id: filterPdfButton
-                        text: "PDF"
-                        width: 40
-                        height: 40
-                        hoverEnabled: true
-
-                        // Center the button text.
-                        contentItem: Text {
-                            text: filterPdfButton.text
-                            color: root.textColor
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        // Change background color when hovered or toggled on/off.
-                        background: Rectangle {
-                            radius: 8
-                            color: filterPdfButton.down ? root.pressedColor
-                                : root.pdfFilterActive || filterPdfButton.hovered
-                                    ? root.hoverColor
-                                    : root.surfaceColor
-                            border.color: root.pdfFilterActive
-                                ? root.accentColor
-                                : root.borderColor
-                            border.width: 1
-                        }
-
-                        // Toggle.
-                        onClicked: {
-                            root.pdfFilterActive = !root.pdfFilterActive
-                            root.refreshKnowledge()
-                        }
-
-                        // Tooltip.
-                        ToolTip.visible: hovered
-                        ToolTip.text: "PDF-filer"
-                    }
-
-
-                    // Button for filtering by manual posts.
-                    Button {
-                        id: filterManualButton
-                        text: "M"
-                        width: 40
-                        height: 40
-                        hoverEnabled: true
-
-                        // Center the button text.
-                        contentItem: Text {
-                            text: filterManualButton.text
-                            color: root.textColor
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter       
-                        }
-
-                        // Change background color when hovered or toggled on/off.
-                        background: Rectangle {
-                            radius: 8
-                            color: filterManualButton.down ? root.pressedColor
-                                : root.manualFilterActive || filterManualButton.hovered
-                                    ? root.hoverColor
-                                    : root.surfaceColor
-                            border.color: root.manualFilterActive
-                                ? root.accentColor
-                                : root.borderColor
-                            border.width: 1
-                        }
-
-                        // Toggle.
-                        onClicked: {
-                            root.manualFilterActive = !root.manualFilterActive
-                            root.refreshKnowledge()
-                        }
-
-                        // Tooltip.
-                        ToolTip.visible: hovered
-                        ToolTip.text: "Manuella poster"
-                    }
-                }
-
-                // Row for sort by date buttons.
-                Row {
-                    id: dateSortButtons
-                    spacing: 6
-                
-
-                    Button {
-                        id: sortAscendingButton
-                        width: 40
-                        height: 40
-                        hoverEnabled: true
-
-                        // Display an upward arrow.
-                        contentItem: Text {
-                            text: "↑"
-                            color: root.sortOrder === "asc"
-                                ? root.accentColor
-                                : root.secondaryTextColor 
-                            font.pixelSize: 20
-                            font.bold: true
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        // Highlight the background when hovered or toggled.
-                        background: Rectangle {
-                            radius: 8
-                            color: sortAscendingButton.down ? root.pressedColor
-                                : root.sortOrder === "asc" || sortAscendingButton.hovered
-                                    ? root.hoverColor
-                                    : root.surfaceColor
-                            border.color: root.sortOrder === "asc"
-                                ? root.accentColor
-                                : root.borderColor
-                            border.width: 1
-                        }
-
-                        // Request all posts in ascending date order.
-                        onClicked: {
-                            root.sortOrder = "asc"
-                            root.refreshKnowledge()
-                        }
-
-                        // Explain the sorting order when hovered.
-                        ToolTip.visible: hovered
-                        ToolTip.text: "Äldst först"
-                    }
-
-                    Button {
-                        id: sortDescendingButton
-                        width: 40
-                        height: 40
-                        hoverEnabled: true
-
-                        // Display a downward arrow.
-                        contentItem: Text {
-                            text: "↓"
-                            color: root.sortOrder === "desc"
-                                ? root.accentColor
-                                : root.secondaryTextColor
-                            font.pixelSize: 20
-                            font.bold: true
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        // Highlight the background when hovered or toggled.
-                        background: Rectangle {
-                            radius: 8
-                            color: sortDescendingButton.down ? root.pressedColor
-                                : root.sortOrder === "desc" || sortDescendingButton.hovered
-                                    ? root.hoverColor
-                                    : root.surfaceColor
-                            border.color: root.sortOrder === "desc"
-                                ? root.accentColor
-                                : root.borderColor
-                            border.width: 1
-                        }
-
-                        // Request all posts in descending date order.
-                        onClicked: {
-                            root.sortOrder = "desc"
-                            root.refreshKnowledge()
-                        }
-
-                        // Explain the sorting order when hovered.
-                        ToolTip.visible: hovered
-                        ToolTip.text: "Nyast först"
-                    }
-                }
-            }
-
-            // Display saved knowledge below the sorting buttons.
-            ListView {
-                id: knowledgeList
-                anchors.top: sortButtons.bottom
-                anchors.topMargin: 6
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                clip: true
-                spacing: 12
-                model: []
-
-                ScrollBar.vertical: ScrollBar {}
-
-                // Show each knowledge post.
-                delegate: Rectangle {
-                    id: postItem
-                    required property var modelData
-
-                    width: knowledgeList.width
-
-                    // Fit both the text and action buttons, with vertical padding.
-                    height: Math.max(postContent.height, postActions.height) + 24
-                    color: root.windowColor
-                    radius: 8
-
-                    // Leave space on the right for the action buttons.
-                    Column {
-                        id: postContent
-                        x: 12
-                        y: 12
-                        width: parent.width - postActions.width - 36
-                        spacing: 8
-
-                        // Display the saved text.
-                        Label {
-                            width: parent.width
-                            text: postItem.modelData.text
-                            textFormat: Text.PlainText
-                            wrapMode: Text.WordWrap
-                            color: root.textColor
-                        }
-
-                        // Display the source and creation date.
-                        Label {
-                            width: parent.width
-                            text: "Källa: " + postItem.modelData.source
-                                + " | Skapad: " + postItem.modelData.created_at
-                            textFormat: Text.PlainText
-                            wrapMode: Text.WordWrap
-                            color: root.secondaryTextColor
-                            font.pixelSize: 12
-                        }
-                    }
-
-                    // Place the action buttons next to each other on the right.
-                    Row {
-                        id: postActions
-                        spacing: 8
-                        anchors.right: parent.right
-                        anchors.rightMargin: 12
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        Button {
-                            id: editPostButton
-                            text: "Redigera"
-                            width: 40
-                            height: 40
-                            hoverEnabled: true
-
-                            // Description when howered.
-                            Accessible.name: "Redigera kunskapspost"
-                            ToolTip.visible: hovered
-                            ToolTip.text: "Redigera kunskapspost"
-
-                            // Draw a pencil icon.
-                            contentItem: Item {
-                                Item {
-                                    anchors.centerIn: parent
-                                    width: 24
-                                    height: 24
-                                    rotation: 45
-
-                                    // Pencil body.
-                                    Rectangle {
-                                        x: 9
-                                        y: 5
-                                        width: 6
-                                        height: 13
-                                        radius: 1
-                                        color: root.accentColor
-
-                                        // Line along the pencil.
-                                        Rectangle {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            y: 2
-                                            width: 1
-                                            height: 9
-                                            color: root.surfaceColor
-                                        }
-                                    }
-
-                                    // Pencil cap.
-                                    Rectangle {
-                                        x: 9
-                                        y: 1
-                                        width: 6
-                                        height: 3
-                                        radius: 1
-                                        color: root.accentColor
-                                    }
-
-                                    // Pencil tip.
-                                    Rectangle {
-                                        x: 10
-                                        y: 17
-                                        width: 4
-                                        height: 4
-                                        rotation: 45
-                                        color: root.accentColor
-                                    }
-                                }
-                            }
-
-                            // Change background color when hovered or pressed.
-                            background: Rectangle {
-                                radius: 8
-                                color: editPostButton.down ? root.pressedColor
-                                    : editPostButton.hovered ? root.hoverColor
-                                    : root.surfaceColor
-                                border.color: root.accentColor
-                                border.width: 1
-                            }
-
-                            // Fill the edit dialog with the selected post.
-                            onClicked: {
-                                editKnowledgeDialog.knowledgeId = postItem.modelData.id
-                                editKnowledgeInput.text = postItem.modelData.text
-                                editKnowledgeStatus.text = ""
-                                editKnowledgeDialog.open()
-                            }
-                        }
-
-                        Button {
-                            id: deletePostButton
-                            text: "Ta bort"
-                            width: 40
-                            height: 40
-                            hoverEnabled: true
-
-                            // Description when hovered.
-                            Accessible.name: "Ta bort kunskapspost"
-                            ToolTip.visible: hovered
-                            ToolTip.text: "Ta bort kunskapspost"
-
-                            // Draw a trash can icon.
-                            contentItem: Item {
-                                Item {
-                                    anchors.centerIn: parent
-                                    width: 20
-                                    height: 24
-
-                                    // Handle.
-                                    Rectangle {
-                                        x: 7
-                                        y: 1
-                                        width: 6
-                                        height: 5
-                                        radius: 1
-                                        color: "transparent"
-                                        border.color: root.dangerColor
-                                        border.width: 2
-                                    }
-
-                                    // Lid.
-                                    Rectangle {
-                                        x: 2
-                                        y: 5
-                                        width: 16
-                                        height: 2
-                                        radius: 1
-                                        color: root.dangerColor
-                                    }
-
-                                    // Bin.
-                                    Rectangle {
-                                        x: 4
-                                        y: 9
-                                        width: 12
-                                        height: 14
-                                        radius: 2
-                                        color: root.dangerColor
-
-                                        // Vertical lines inside the bin.
-                                        Repeater {
-                                            model: 3
-
-                                            Rectangle {
-                                                required property int index
-                                                x: 3 + index * 3
-                                                y: 3
-                                                width: 1
-                                                height: 8
-                                                radius: 0.5
-                                                color: root.surfaceColor
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Use red colors for the delete button.
-                            background: Rectangle {
-                                radius: 8
-                                color: deletePostButton.down ? root.dangerPressedColor
-                                    : deletePostButton.hovered ? root.dangerHoverColor
-                                    : root.surfaceColor
-                                border.color: root.dangerBorderColor
-                                border.width: 1
-                            }
-
-                            // Ask for confirmation before deleting the selected post.
-                            onClicked: {
-                                deleteKnowledgeDialog.knowledgeId = postItem.modelData.id
-                                deleteKnowledgeDialog.postText = postItem.modelData.text
-                                deleteKnowledgeStatus.text = ""
-                                deleteKnowledgeDialog.open()
-                            }
-                        }
-                    }
-                }
-
-                // Show a message when there are no posts to display.
-                Label {
-                    anchors.centerIn: parent
-                    visible: knowledgeList.count === 0
-                    text: "Inga kunskapsposter att visa."
-                    color: root.secondaryTextColor
-                }
-            }
-        }
-
-        // Button that closes the dialog.
-        footer: Item {
-            implicitHeight: 64
-
-            Button {
-                id: closeKnowledgeViewButton
-                text: "Stäng"
-                width: 90
-                height: 40
-
-                // Place the button on the right and center it vertically.
-                anchors.right: parent.right
-                anchors.rightMargin: 12
-                anchors.verticalCenter: parent.verticalCenter
-                hoverEnabled: true
-
-                // Center the button text.
-                contentItem: Text {
-                    text: closeKnowledgeViewButton.text
-                    color: root.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                // Change background color when hovered or pressed.
-                background: Rectangle {
-                    radius: 8
-                    color: closeKnowledgeViewButton.down ? root.pressedColor
-                        : closeKnowledgeViewButton.hovered ? root.hoverColor
-                        : root.surfaceColor
-                    border.color: root.borderColor
-                    border.width: 1
-                }
-
-                // Close the knowledge dialog.
-                onClicked: knowledgeViewDialog.close()
-            }
+        onDeleteRequested: function(id, text) {
+            deleteKnowledgeDialog.knowledgeId = id
+            deleteKnowledgeDialog.postText = text
+            deleteKnowledgeStatus.text = ""
+            deleteKnowledgeDialog.open()
         }
     }
 
@@ -1936,7 +1357,7 @@ Rectangle {
 
         // Update the list with the received posts.
         function onKnowledgeLoaded(posts) {
-            knowledgeList.model = posts
+            knowledgeViewDialog.setPosts(posts)
         }
 
         // Show the edit result and refresh the list if saving succeeded.
@@ -1944,7 +1365,7 @@ Rectangle {
             editKnowledgeStatus.text = message
 
             if (success) {
-                root.refreshKnowledge()
+                knowledgeViewDialog.requestRefresh()
             }
         }
 
@@ -1952,7 +1373,7 @@ Rectangle {
         function onKnowledgeDeleteResult(success, message) {
             if (success) {
                 deleteKnowledgeDialog.close()
-                root.refreshKnowledge()
+                knowledgeViewDialog.requestRefresh()
             } else {
                 deleteKnowledgeStatus.text = message
             }
