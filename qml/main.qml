@@ -901,566 +901,36 @@ Rectangle {
         }
     }
 
-    // Dialog for adding knowledge manually or importing a text file.
-    Dialog {
+    // Dialog for adding knowledge manually or importing files.
+    KnowledgeDialog {
         id: knowledgeDialog
-        title: "Lägg till kunskap"
 
-        // Block interaction with the main window while the dialog is open.
-        modal: true
-        width: 800
-        height: 400
-
-        // Center the dialog in the main window's content area.
-        anchors.centerIn: parent
         parent: root.contentItem
+        anchors.centerIn: parent
 
-        // Rounded background with a subtle border.
-        background: Rectangle {
-            color: root.surfaceColor
-            radius: 12
-            border.color: root.borderColor
-            border.width: 1
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        accentColor: root.accentColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        windowColor: root.windowColor
+
+        onSaveRequested: function(text) {
+            backend.add_manual_knowledge(text)
         }
 
-        // Dialog title and close button.
-        header: Item {
-            implicitHeight: 56
-        
-            Label {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 16
-                    anchors.right: closeKnowledgeButton.left
-                    anchors.rightMargin: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: knowledgeDialog.title
-                    color: root.textColor
-                    font.pixelSize: 18
-                    font.bold: true
-                    elide: Text.ElideRight
-                }
-
-                Button {
-                    id: closeKnowledgeButton
-                    width: 28
-                    height: 28
-                    padding: 0
-                    hoverEnabled: true
-
-                    anchors.right: parent.right
-                    anchors.rightMargin: 12
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    Accessible.name: "Stäng"
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Stäng"
-
-                    // Draw a small close icon.
-                    contentItem: Item {
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 14
-                            height: 2
-                            radius: 1
-                            rotation: 45
-                            color: root.secondaryTextColor
-                        }
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 14
-                            height: 2
-                            radius: 1
-                            rotation: -45
-                            color: root.secondaryTextColor
-                        }
-                    }
-
-                    // Show the background when hovered or pressed.
-                    background: Rectangle {
-                        radius: 6
-                        color: closeKnowledgeButton.down ? root.pressedColor
-                            : closeKnowledgeButton.hovered ? root.hoverColor
-                            : "transparent"
-                    }
-
-                    onClicked: knowledgeDialog.close()
-                }
-            }
-
-        // Arrange the dialog content vertically.
-        contentItem: Column {
-            spacing: 12
-
-            Label {
-                text: "Skriv eller klistra in information:"
-                color: root.textColor
-            }
-
-            // Allow scrolling through longer text.
-            ScrollView {
-                width: parent.width
-                height: 200
-
-                // Input field for new knowledge.
-                TextArea {
-                    id: knowledgeInput
-                    placeholderText: "Information till kunskapsbasen"
-                    wrapMode: TextArea.Wrap
-                    textFormat: TextEdit.PlainText
-
-                    // Text colors and space inside the field.
-                    color: root.textColor
-                    placeholderTextColor: root.secondaryTextColor
-                    font.pixelSize: 14
-                    padding: 12
-
-                    // Highlight the border when the field has keyboard focus.
-                    background: Rectangle {
-                        color: root.windowColor
-                        radius: 8
-                        border.color: knowledgeInput.activeFocus
-                            ? root.accentColor
-                            : root.borderColor
-                        border.width: 1
-                    }
-                }
-            }
-
-            // Place the dialog buttons next to each other.
-            Row {
-                spacing: 12
-
-                Button {
-                    id: saveKnowledgeButton
-                    text: "Spara"
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-
-                    // Description when howered.
-                    Accessible.name: "Spara kunskap"
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Spara kunskap"
-
-                    // Draw a save icon.
-                    contentItem: Item {
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 22
-                            height: 22
-                            radius: 3
-                            color: root.accentColor
-
-                            // Upper inset.
-                            Rectangle {
-                                x: 5
-                                y: 0
-                                width: 12
-                                height: 8
-                                color: root.surfaceColor
-
-                                Rectangle {
-                                    x: 8
-                                    y: 1
-                                    width: 2
-                                    height: 5
-                                    color: root.accentColor
-                                }
-                            }
-
-                            // Label area.
-                            Rectangle {
-                                x: 4
-                                y: 12
-                                width: 14
-                                height: 8
-                                radius: 1
-                                color: root.surfaceColor
-                            }
-                        }
-                    }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: saveKnowledgeButton.down ? root.pressedColor
-                            : saveKnowledgeButton.hovered ? root.hoverColor
-                            : root.surfaceColor
-                        border.color: root.accentColor
-                        border.width: 1
-                    }
-
-                    // Clear the previous status and send the text to Python.
-                    onClicked: {
-                        knowledgeSaveStatus.text = ""
-                        backend.add_manual_knowledge(knowledgeInput.text)
-                    }
-                }
-
-                // Button for importing TXT files.
-                Button {
-                    id: importFileButton
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-
-                    Accessible.name: "Importera .txt-fil"
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Importera .txt-fil"
-
-                    // Draw a TXT document icon.
-                    contentItem: Item {
-                        Item {
-                            anchors.centerIn: parent
-                            width: 24
-                            height: 26
-
-                            Canvas {
-                                anchors.fill: parent
-
-                                property color iconColor: root.accentColor
-
-                                // Redraw when the theme changes.
-                                onIconColorChanged: requestPaint()
-
-                                onPaint: {
-                                    const ctx = getContext("2d")
-                                    ctx.clearRect(0, 0, width, height)
-                                    ctx.strokeStyle = iconColor
-                                    ctx.lineWidth = 1.8
-                                    ctx.lineJoin = "round"
-                                    ctx.lineCap = "round"
-
-                                    // Document outline.
-                                    ctx.beginPath()
-                                    ctx.moveTo(6, 1)
-                                    ctx.lineTo(16, 1)
-                                    ctx.lineTo(23, 8)
-                                    ctx.lineTo(23, 25)
-                                    ctx.lineTo(6, 25)
-                                    ctx.closePath()
-                                    ctx.stroke()
-
-                                    // Folded corner.
-                                    ctx.beginPath()
-                                    ctx.moveTo(16, 1)
-                                    ctx.lineTo(16, 8)
-                                    ctx.lineTo(23, 8)
-                                    ctx.stroke()
-
-                                    // Text lines.
-                                    ctx.beginPath()
-                                    ctx.moveTo(10, 18)
-                                    ctx.lineTo(19, 18)
-                                    ctx.moveTo(10, 21)
-                                    ctx.lineTo(19, 21)
-                                    ctx.stroke()
-                                }
-                            }
-
-                            // TXT label on the document.
-                            Rectangle {
-                                x: 0
-                                y: 8
-                                width: 20
-                                height: 10
-                                radius: 2
-                                color: root.accentColor
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "TXT"
-                                    font.pixelSize: 8
-                                    font.bold: true
-                                    color: root.surfaceColor
-                                }
-                            }
-                        }
-                    }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: importFileButton.down ? root.pressedColor
-                            : importFileButton.hovered ? root.hoverColor
-                            : root.surfaceColor
-                        border.color: root.accentColor
-                        border.width: 1
-                    }
-
-                    // Open the file picker to select a text file.
-                    onClicked: textFileDialog.open()
-                }
-
-                // Button for importing docx files.
-                Button {
-                    id: importDocxButton
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-
-                    Accessible.name: "Importera .docx-fil"
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Importera .docx-fil"
-
-                    // Draw a DOCX document icon.
-                    contentItem: Item {
-                        Item {
-                            anchors.centerIn: parent
-                            width: 24
-                            height: 26
-
-                            Canvas {
-                                anchors.fill: parent
-
-                                property color iconColor: root.accentColor
-
-                                // Redraw when the theme changes.
-                                onIconColorChanged: requestPaint()
-
-                                onPaint: {
-                                    const ctx = getContext("2d")
-                                    ctx.clearRect(0, 0, width, height)
-                                    ctx.strokeStyle = iconColor
-                                    ctx.lineWidth = 1.8
-                                    ctx.lineJoin = "round"
-                                    ctx.lineCap = "round"
-
-                                    // Document outline.
-                                    ctx.beginPath()
-                                    ctx.moveTo(6, 1)
-                                    ctx.lineTo(16, 1)
-                                    ctx.lineTo(23, 8)
-                                    ctx.lineTo(23, 25)
-                                    ctx.lineTo(6, 25)
-                                    ctx.closePath()
-                                    ctx.stroke()
-
-                                    // Folded corner.
-                                    ctx.beginPath()
-                                    ctx.moveTo(16, 1)
-                                    ctx.lineTo(16, 8)
-                                    ctx.lineTo(23, 8)
-                                    ctx.stroke()
-
-                                    // Text lines.
-                                    ctx.beginPath()
-                                    ctx.moveTo(10, 18)
-                                    ctx.lineTo(19, 18)
-                                    ctx.moveTo(10, 21)
-                                    ctx.lineTo(19, 21)
-                                    ctx.stroke()
-                                }
-                            }
-
-                            // DOCX label on the document.
-                            Rectangle {
-                                x: 0
-                                y: 8
-                                width: 20
-                                height: 10
-                                radius: 2
-                                color: root.accentColor
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "DOCX"
-                                    font.pixelSize: 7
-                                    font.bold: true
-                                    color: root.surfaceColor
-                                }
-                            }
-                        }
-                    }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: importDocxButton.down ? root.pressedColor
-                            : importDocxButton.hovered ? root.hoverColor
-                            : root.surfaceColor
-                        border.color: root.accentColor
-                        border.width: 1
-                    }
-
-                    // Open the file picker to select a DOCX file.
-                    onClicked: docxFileDialog.open()
-                }
-
-                // Button for importing PDF files.
-                Button {
-                id: importPdfButton
-                width: 40
-                height: 40
-                hoverEnabled: true
-
-                Accessible.name: "Importera .pdf-fil"
-                ToolTip.visible: hovered
-                ToolTip.text: "Importera .pdf-fil"
-
-                // Draw a PDF document icon.
-                contentItem: Item {
-                    Item {
-                        anchors.centerIn: parent
-                        width: 24
-                        height: 26
-
-                        Canvas {
-                            anchors.fill: parent
-
-                            property color iconColor: root.accentColor
-
-                            // Redraw when the theme changes.
-                            onIconColorChanged: requestPaint()
-
-                            onPaint: {
-                                const ctx = getContext("2d")
-                                ctx.clearRect(0, 0, width, height)
-                                ctx.strokeStyle = iconColor
-                                ctx.lineWidth = 1.8
-                                ctx.lineJoin = "round"
-                                ctx.lineCap = "round"
-
-                                // Document outline.
-                                ctx.beginPath()
-                                ctx.moveTo(6, 1)
-                                ctx.lineTo(16, 1)
-                                ctx.lineTo(23, 8)
-                                ctx.lineTo(23, 25)
-                                ctx.lineTo(6, 25)
-                                ctx.closePath()
-                                ctx.stroke()
-
-                                // Folded corner.
-                                ctx.beginPath()
-                                ctx.moveTo(16, 1)
-                                ctx.lineTo(16, 8)
-                                ctx.lineTo(23, 8)
-                                ctx.stroke()
-
-                                // Text lines.
-                                ctx.beginPath()
-                                ctx.moveTo(10, 18)
-                                ctx.lineTo(19, 18)
-                                ctx.moveTo(10, 21)
-                                ctx.lineTo(19, 21)
-                                ctx.stroke()
-                            }
-                        }
-
-                        // PDF label on the document.
-                        Rectangle {
-                            x: 0
-                            y: 8
-                            width: 20
-                            height: 10
-                            radius: 2
-                            color: root.accentColor
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "PDF"
-                                font.pixelSize: 8
-                                font.bold: true
-                                color: root.surfaceColor
-                            }
-                        }
-                    }
-                }
-
-                // Change background color when hovered or pressed.
-                background: Rectangle {
-                    radius: 8
-                    color: importPdfButton.down ? root.pressedColor
-                        : importPdfButton.hovered ? root.hoverColor
-                        : root.surfaceColor
-                    border.color: root.accentColor
-                    border.width: 1
-                }
-
-                // Open the PDF file picker.
-                onClicked: pdfFileDialog.open()
-                }
-
-                // Button for email import.
-                Button {
-                    id: importMailButton
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-
-                    Accessible.name: "Importera mejl (kommer senare)"
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Importera mejl – kommer senare"
-
-                    // Draw an envelope icon.
-                    contentItem: Item {
-                        Canvas {
-                            anchors.centerIn: parent
-                            width: 24
-                            height: 20
-
-                            property color iconColor: root.accentColor
-
-                            // Redraw when the theme changes.
-                            onIconColorChanged: requestPaint()
-
-                            onPaint: {
-                                const ctx = getContext("2d")
-                                ctx.clearRect(0, 0, width, height)
-                                ctx.strokeStyle = iconColor
-                                ctx.lineWidth = 2
-                                ctx.lineJoin = "round"
-                                ctx.lineCap = "round"
-
-                                // Envelope outline.
-                                ctx.beginPath()
-                                ctx.moveTo(2, 2)
-                                ctx.lineTo(22, 2)
-                                ctx.lineTo(22, 18)
-                                ctx.lineTo(2, 18)
-                                ctx.closePath()
-                                ctx.stroke()
-
-                                // Lower folds.
-                                ctx.beginPath()
-                                ctx.moveTo(2, 18)
-                                ctx.lineTo(9, 11)
-                                ctx.moveTo(22, 18)
-                                ctx.lineTo(15, 11)
-                                ctx.stroke()
-
-                                // Envelope flap.
-                                ctx.beginPath()
-                                ctx.moveTo(2, 2)
-                                ctx.lineTo(12, 12)
-                                ctx.lineTo(22, 2)
-                                ctx.stroke()
-                            }
-                        }
-                    }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: importMailButton.down ? root.pressedColor
-                            : importMailButton.hovered ? root.hoverColor
-                            : root.surfaceColor
-                        border.color: root.accentColor
-                        border.width: 1
-                    }
-                }
-            }
-            
-            // Display feedback from Python about saving or importing knowledge.
-            Label {
-                id: knowledgeSaveStatus
-                width: parent.width
-                text: ""
-                color: root.textColor
-                wrapMode: Text.WordWrap
-            }
+        onTxtImportRequested: {
+            textFileDialog.open()
+        }
+
+        onDocxImportRequested: {
+            docxFileDialog.open()
+        }
+
+        onPdfImportRequested: {
+            pdfFileDialog.open()
         }
     }
 
@@ -2396,7 +1866,7 @@ Rectangle {
 
         // Send the selected file URL to Python.
         onAccepted: {
-            knowledgeSaveStatus.text = ""
+            knowledgeDialog.clearSaveStatus()
             backend.add_txt_knowledge(selectedFile.toString())
         }
     }
@@ -2409,7 +1879,7 @@ Rectangle {
 
         // Send the selected file URL to Python.
         onAccepted: {
-            knowledgeSaveStatus.text = ""
+            knowledgeDialog.clearSaveStatus()
             backend.add_docx_knowledge(selectedFile)
         }
     }
@@ -2422,7 +1892,7 @@ Rectangle {
 
         // Send the selected file URL to python.
         onAccepted: {
-            knowledgeSaveStatus.text = ""
+            knowledgeDialog.clearSaveStatus()
             backend.add_pdf_knowledge(selectedFile)
         }
     }
@@ -2461,7 +1931,7 @@ Rectangle {
 
         // Show the result of saving or importing knowledge.
         function onKnowledgeSaveResult(message) {
-            knowledgeSaveStatus.text = message
+            knowledgeDialog.setSaveStatus(message)
         }
 
         // Update the list with the received posts.

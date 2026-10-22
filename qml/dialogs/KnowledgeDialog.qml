@@ -1,0 +1,558 @@
+import QtQuick
+import QtQuick.Controls
+
+Dialog {
+    id: knowledgeDialog
+
+    property color surfaceColor
+    property color borderColor
+    property color textColor
+    property color secondaryTextColor
+    property color accentColor
+    property color hoverColor
+    property color pressedColor
+    property color windowColor
+
+    signal saveRequested(string text)
+    signal txtImportRequested()
+    signal docxImportRequested()
+    signal pdfImportRequested()
+
+    function setSaveStatus(message) {
+    knowledgeSaveStatus.text = message
+    }
+
+    function clearSaveStatus() {
+        knowledgeSaveStatus.text = ""
+    }    
+
+    title: "Lägg till kunskap"
+    modal: true
+    width: 800
+    height: 400
+
+    background: Rectangle {
+        color: knowledgeDialog.surfaceColor
+        radius: 12
+        border.color: knowledgeDialog.borderColor
+        border.width: 1
+    }
+
+    header: Item {
+        implicitHeight: 56
+
+        Label {
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.right: closeKnowledgeButton.left
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            text: knowledgeDialog.title
+            color: knowledgeDialog.textColor
+            font.pixelSize: 18
+            font.bold: true
+            elide: Text.ElideRight
+        }
+
+        Button {
+            id: closeKnowledgeButton
+
+            width: 28
+            height: 28
+            padding: 0
+            hoverEnabled: true
+
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            Accessible.name: "Stäng"
+            ToolTip.visible: hovered
+            ToolTip.text: "Stäng"
+
+            contentItem: Item {
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: 45
+                    color: knowledgeDialog.secondaryTextColor
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: -45
+                    color: knowledgeDialog.secondaryTextColor
+                }
+            }
+
+            background: Rectangle {
+                radius: 6
+
+                color: closeKnowledgeButton.down
+                    ? knowledgeDialog.pressedColor
+                    : closeKnowledgeButton.hovered
+                        ? knowledgeDialog.hoverColor
+                        : "transparent"
+            }
+
+            onClicked: knowledgeDialog.close()
+        }
+    }
+
+    contentItem: Column {
+        spacing: 12
+
+        Label {
+            text: "Skriv eller klistra in information:"
+            color: knowledgeDialog.textColor
+        }
+
+        ScrollView {
+            width: parent.width
+            height: 200
+
+            TextArea {
+                id: knowledgeInput
+
+                placeholderText: "Information till kunskapsbasen"
+                wrapMode: TextArea.Wrap
+                textFormat: TextEdit.PlainText
+
+                color: knowledgeDialog.textColor
+                placeholderTextColor: knowledgeDialog.secondaryTextColor
+                font.pixelSize: 14
+                padding: 12
+
+                background: Rectangle {
+                    color: knowledgeDialog.windowColor
+                    radius: 8
+
+                    border.color: knowledgeInput.activeFocus
+                        ? knowledgeDialog.accentColor
+                        : knowledgeDialog.borderColor
+
+                    border.width: 1
+                }
+            }
+        }
+
+        Row {
+            spacing: 12
+
+            Button {
+                id: saveKnowledgeButton
+                text: "Spara"
+                width: 40
+                height: 40
+                hoverEnabled: true
+
+                Accessible.name: "Spara kunskap"
+                ToolTip.visible: hovered
+                ToolTip.text: "Spara kunskap"
+
+                contentItem: Item {
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 22
+                        height: 22
+                        radius: 3
+                        color: knowledgeDialog.accentColor
+
+                        Rectangle {
+                            x: 5
+                            y: 0
+                            width: 12
+                            height: 8
+                            color: knowledgeDialog.surfaceColor
+
+                            Rectangle {
+                                x: 8
+                                y: 1
+                                width: 2
+                                height: 5
+                                color: knowledgeDialog.accentColor
+                            }
+                        }
+
+                        Rectangle {
+                            x: 4
+                            y: 12
+                            width: 14
+                            height: 8
+                            radius: 1
+                            color: knowledgeDialog.surfaceColor
+                        }
+                    }
+                }
+
+                background: Rectangle {
+                    radius: 8
+
+                    color: saveKnowledgeButton.down
+                        ? knowledgeDialog.pressedColor
+                        : saveKnowledgeButton.hovered
+                            ? knowledgeDialog.hoverColor
+                            : knowledgeDialog.surfaceColor
+
+                    border.color: knowledgeDialog.accentColor
+                    border.width: 1
+                }
+
+                onClicked: {
+                    knowledgeSaveStatus.text = ""
+                    knowledgeDialog.saveRequested(knowledgeInput.text)
+                }
+            }
+
+            Button {
+                id: importFileButton
+                width: 40
+                height: 40
+                hoverEnabled: true
+
+                Accessible.name: "Importera .txt-fil"
+                ToolTip.visible: hovered
+                ToolTip.text: "Importera .txt-fil"
+
+                contentItem: Item {
+                    Item {
+                        anchors.centerIn: parent
+                        width: 24
+                        height: 26
+
+                        Canvas {
+                            anchors.fill: parent
+
+                            property color iconColor: knowledgeDialog.accentColor
+
+                            onIconColorChanged: requestPaint()
+
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                ctx.clearRect(0, 0, width, height)
+                                ctx.strokeStyle = iconColor
+                                ctx.lineWidth = 1.8
+                                ctx.lineJoin = "round"
+                                ctx.lineCap = "round"
+
+                                ctx.beginPath()
+                                ctx.moveTo(6, 1)
+                                ctx.lineTo(16, 1)
+                                ctx.lineTo(23, 8)
+                                ctx.lineTo(23, 25)
+                                ctx.lineTo(6, 25)
+                                ctx.closePath()
+                                ctx.stroke()
+
+                                ctx.beginPath()
+                                ctx.moveTo(16, 1)
+                                ctx.lineTo(16, 8)
+                                ctx.lineTo(23, 8)
+                                ctx.stroke()
+
+                                ctx.beginPath()
+                                ctx.moveTo(10, 18)
+                                ctx.lineTo(19, 18)
+                                ctx.moveTo(10, 21)
+                                ctx.lineTo(19, 21)
+                                ctx.stroke()
+                            }
+                        }
+
+                        Rectangle {
+                            x: 0
+                            y: 8
+                            width: 20
+                            height: 10
+                            radius: 2
+                            color: knowledgeDialog.accentColor
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "TXT"
+                                font.pixelSize: 8
+                                font.bold: true
+                                color: knowledgeDialog.surfaceColor
+                            }
+                        }
+                    }
+                }
+
+                background: Rectangle {
+                    radius: 8
+
+                    color: importFileButton.down
+                        ? knowledgeDialog.pressedColor
+                        : importFileButton.hovered
+                            ? knowledgeDialog.hoverColor
+                            : knowledgeDialog.surfaceColor
+
+                    border.color: knowledgeDialog.accentColor
+                    border.width: 1
+                }
+
+                onClicked: knowledgeDialog.txtImportRequested()
+            }
+
+            Button {
+                id: importDocxButton
+                width: 40
+                height: 40
+                hoverEnabled: true
+
+                Accessible.name: "Importera .docx-fil"
+                ToolTip.visible: hovered
+                ToolTip.text: "Importera .docx-fil"
+
+                contentItem: Item {
+                    Item {
+                        anchors.centerIn: parent
+                        width: 24
+                        height: 26
+
+                        Canvas {
+                            anchors.fill: parent
+
+                            property color iconColor: knowledgeDialog.accentColor
+
+                            onIconColorChanged: requestPaint()
+
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                ctx.clearRect(0, 0, width, height)
+                                ctx.strokeStyle = iconColor
+                                ctx.lineWidth = 1.8
+                                ctx.lineJoin = "round"
+                                ctx.lineCap = "round"
+
+                                ctx.beginPath()
+                                ctx.moveTo(6, 1)
+                                ctx.lineTo(16, 1)
+                                ctx.lineTo(23, 8)
+                                ctx.lineTo(23, 25)
+                                ctx.lineTo(6, 25)
+                                ctx.closePath()
+                                ctx.stroke()
+
+                                ctx.beginPath()
+                                ctx.moveTo(16, 1)
+                                ctx.lineTo(16, 8)
+                                ctx.lineTo(23, 8)
+                                ctx.stroke()
+
+                                ctx.beginPath()
+                                ctx.moveTo(10, 18)
+                                ctx.lineTo(19, 18)
+                                ctx.moveTo(10, 21)
+                                ctx.lineTo(19, 21)
+                                ctx.stroke()
+                            }
+                        }
+
+                        Rectangle {
+                            x: 0
+                            y: 8
+                            width: 20
+                            height: 10
+                            radius: 2
+                            color: knowledgeDialog.accentColor
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "DOCX"
+                                font.pixelSize: 7
+                                font.bold: true
+                                color: knowledgeDialog.surfaceColor
+                            }
+                        }
+                    }
+                }
+
+                background: Rectangle {
+                    radius: 8
+
+                    color: importDocxButton.down
+                        ? knowledgeDialog.pressedColor
+                        : importDocxButton.hovered
+                            ? knowledgeDialog.hoverColor
+                            : knowledgeDialog.surfaceColor
+
+                    border.color: knowledgeDialog.accentColor
+                    border.width: 1
+                }
+
+                onClicked: knowledgeDialog.docxImportRequested()
+            }
+
+            Button {
+                id: importPdfButton
+                width: 40
+                height: 40
+                hoverEnabled: true
+
+                Accessible.name: "Importera .pdf-fil"
+                ToolTip.visible: hovered
+                ToolTip.text: "Importera .pdf-fil"
+
+                contentItem: Item {
+                    Item {
+                        anchors.centerIn: parent
+                        width: 24
+                        height: 26
+
+                        Canvas {
+                            anchors.fill: parent
+
+                            property color iconColor: knowledgeDialog.accentColor
+
+                            onIconColorChanged: requestPaint()
+
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                ctx.clearRect(0, 0, width, height)
+                                ctx.strokeStyle = iconColor
+                                ctx.lineWidth = 1.8
+                                ctx.lineJoin = "round"
+                                ctx.lineCap = "round"
+
+                                ctx.beginPath()
+                                ctx.moveTo(6, 1)
+                                ctx.lineTo(16, 1)
+                                ctx.lineTo(23, 8)
+                                ctx.lineTo(23, 25)
+                                ctx.lineTo(6, 25)
+                                ctx.closePath()
+                                ctx.stroke()
+
+                                ctx.beginPath()
+                                ctx.moveTo(16, 1)
+                                ctx.lineTo(16, 8)
+                                ctx.lineTo(23, 8)
+                                ctx.stroke()
+
+                                ctx.beginPath()
+                                ctx.moveTo(10, 18)
+                                ctx.lineTo(19, 18)
+                                ctx.moveTo(10, 21)
+                                ctx.lineTo(19, 21)
+                                ctx.stroke()
+                            }
+                        }
+
+                        Rectangle {
+                            x: 0
+                            y: 8
+                            width: 20
+                            height: 10
+                            radius: 2
+                            color: knowledgeDialog.accentColor
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "PDF"
+                                font.pixelSize: 8
+                                font.bold: true
+                                color: knowledgeDialog.surfaceColor
+                            }
+                        }
+                    }
+                }
+
+                background: Rectangle {
+                    radius: 8
+
+                    color: importPdfButton.down
+                        ? knowledgeDialog.pressedColor
+                        : importPdfButton.hovered
+                            ? knowledgeDialog.hoverColor
+                            : knowledgeDialog.surfaceColor
+
+                    border.color: knowledgeDialog.accentColor
+                    border.width: 1
+                }
+
+                onClicked: knowledgeDialog.pdfImportRequested()
+            }
+
+            Button {
+                id: importMailButton
+                width: 40
+                height: 40
+                hoverEnabled: true
+
+                Accessible.name: "Importera mejl (kommer senare)"
+                ToolTip.visible: hovered
+                ToolTip.text: "Importera mejl – kommer senare"
+
+                contentItem: Item {
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: 24
+                        height: 20
+
+                        property color iconColor: knowledgeDialog.accentColor
+
+                        onIconColorChanged: requestPaint()
+
+                        onPaint: {
+                            const ctx = getContext("2d")
+                            ctx.clearRect(0, 0, width, height)
+                            ctx.strokeStyle = iconColor
+                            ctx.lineWidth = 2
+                            ctx.lineJoin = "round"
+                            ctx.lineCap = "round"
+
+                            ctx.beginPath()
+                            ctx.moveTo(2, 2)
+                            ctx.lineTo(22, 2)
+                            ctx.lineTo(22, 18)
+                            ctx.lineTo(2, 18)
+                            ctx.closePath()
+                            ctx.stroke()
+
+                            ctx.beginPath()
+                            ctx.moveTo(2, 18)
+                            ctx.lineTo(9, 11)
+                            ctx.moveTo(22, 18)
+                            ctx.lineTo(15, 11)
+                            ctx.stroke()
+
+                            ctx.beginPath()
+                            ctx.moveTo(2, 2)
+                            ctx.lineTo(12, 12)
+                            ctx.lineTo(22, 2)
+                            ctx.stroke()
+                        }
+                    }
+                }
+
+                background: Rectangle {
+                    radius: 8
+
+                    color: importMailButton.down
+                        ? knowledgeDialog.pressedColor
+                        : importMailButton.hovered
+                            ? knowledgeDialog.hoverColor
+                            : knowledgeDialog.surfaceColor
+
+                    border.color: knowledgeDialog.accentColor
+                    border.width: 1
+                }
+            }
+        }
+
+        Label {
+            id: knowledgeSaveStatus
+            width: parent.width
+            text: ""
+            color: knowledgeDialog.textColor
+            wrapMode: Text.WordWrap
+        }
+    }
+}
