@@ -958,9 +958,7 @@ Rectangle {
         }
 
         onEditRequested: function(id, text) {
-            editKnowledgeDialog.knowledgeId = id
-            editKnowledgeInput.text = text
-            editKnowledgeStatus.text = ""
+            editKnowledgeDialog.loadKnowledge(id, text)
             editKnowledgeDialog.open()
         }
 
@@ -973,162 +971,25 @@ Rectangle {
     }
 
     // Dialog for editing a saved knowledge post.
-    Dialog {
+    EditKnowledgeDialog {
         id: editKnowledgeDialog
-        title: "Redigera kunskap"
 
-        // Store the selected post's ID. -1 means no post is selected.
-        property int knowledgeId: -1
-
-        // Block interaction with the main window while the dialog is open.
-        modal: true
-
-        // Limit the dialog size to fit within the main window.
-        width: Math.min(500, root.width - 48)
-        height: Math.min(380, root.height - 48)
-
-        // Center the dialog in the main window's content area.
         parent: root.contentItem
         anchors.centerIn: parent
 
-        // Rounded background with a subtle border.
-        background: Rectangle {
-            color: root.surfaceColor
-            radius: 12
-            border.color: root.borderColor
-            border.width: 1
-        }
+        width: Math.min(500, root.width - 48)
+        height: Math.min(380, root.height - 48)
 
-        // Display the dialog title.
-        header: Label {
-            text: editKnowledgeDialog.title
-            color: root.textColor
-            font.pixelSize: 18
-            font.bold: true
-            padding: 16
-        }
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        windowColor: root.windowColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
 
-        contentItem: Item {
-            // Leave room below the text field for status messages.
-            ScrollView {
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: editKnowledgeStatus.top
-                anchors.bottomMargin: 12
-
-                // Fit the text to the available width.
-                contentWidth: availableWidth
-                clip: true
-
-                // Show the selected post's text and allow editing.
-                TextArea {
-                    id: editKnowledgeInput
-                    placeholderText: "Ändra kunskapspostens text"
-                    wrapMode: TextArea.Wrap
-                    textFormat: TextEdit.PlainText
-
-                    // Text colors and space inside the field.
-                    color: root.textColor
-                    placeholderTextColor: root.secondaryTextColor
-                    padding: 12
-
-                    // Use the current theme colors.
-                    background: Rectangle {
-                        color: root.windowColor
-                        radius: 8
-                    }
-                }
-            }
-
-            // Display feedback from the backend.
-            Label {
-                id: editKnowledgeStatus
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                text: ""
-                color: root.textColor
-                wrapMode: Text.WordWrap
-            }
-        }
-
-        // Bottom area with save and cancel buttons.
-        footer: Item {
-            implicitHeight: 64
-
-            // Place the buttons next to each other on the right.
-            Row {
-                anchors.right: parent.right
-                anchors.rightMargin: 12
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 12
-
-                Button {
-                    id: saveEditButton
-                    text: "Spara"
-                    width: 100
-                    height: 40
-                    hoverEnabled: true
-
-                    // Center the button text.
-                    contentItem: Text {
-                        text: saveEditButton.text
-                        color: "#FFFFFF"
-                        font.pixelSize: 14
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: saveEditButton.down ? "#1D4ED8"
-                            : saveEditButton.hovered ? "#3B82F6"
-                            : "#2563EB"
-                    }
-
-                    // Send the post id and updated text to Python.
-                    onClicked: {
-                        editKnowledgeStatus.text = ""
-                        backend.edit_saved_knowledge(
-                            editKnowledgeDialog.knowledgeId,
-                            editKnowledgeInput.text
-                        )
-                    }
-                }
-
-                Button {
-                    id: cancelEditButton
-                    text: "Avbryt"
-                    width: 100
-                    height: 40
-                    hoverEnabled: true
-
-                    // Center the button text.
-                    contentItem: Text {
-                        text: cancelEditButton.text
-                        color: root.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: cancelEditButton.down ? root.pressedColor
-                            : cancelEditButton.hovered ? root.hoverColor
-                            : root.surfaceColor
-                        border.color: root.borderColor
-                        border.width: 1
-                    }
-
-                    // Close the dialog without saving pending changes.
-                    onClicked: editKnowledgeDialog.close()
-                }
-            }
+        onSaveRequested: function(id, text) {
+            backend.edit_saved_knowledge(id, text)
         }
     }
 
@@ -1362,7 +1223,7 @@ Rectangle {
 
         // Show the edit result and refresh the list if saving succeeded.
         function onKnowledgeEditResult(success, message) {
-            editKnowledgeStatus.text = message
+            editKnowledgeDialog.setStatus(message)
 
             if (success) {
                 knowledgeViewDialog.requestRefresh()
@@ -1394,9 +1255,7 @@ Rectangle {
 
         // Open knowledgeview for clicked entry
         function onKnowledgeEntryOpened(id, text, source, created_at) {
-            editKnowledgeDialog.knowledgeId = id
-            editKnowledgeInput.text = text
-            editKnowledgeStatus.text = ""
+            editKnowledgeDialog.loadKnowledge(id, text)
             editKnowledgeDialog.open()
         }
 
