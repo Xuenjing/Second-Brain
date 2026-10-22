@@ -242,6 +242,11 @@ ApplicationWindow {
         onPdfImportRequested: {
             pdfFileDialog.open()
         }
+
+        onMailImportRequested: {
+            mailFileDialog.open()
+        }
+
     }
 
     // Dialog for viewing and managing saved knowledge.
@@ -402,6 +407,20 @@ ApplicationWindow {
             backend.add_pdf_knowledge(selectedFile)
         }
     }
+
+    // File picker for importing a mail file.
+    FileDialog {
+        id: mailFileDialog
+
+        title: "Välj ett mejl"
+        nameFilters: ["Mejlfiler (*.eml)"]
+        fileMode: FileDialog.OpenFile
+
+        onAccepted: {
+            knowledgeDialog.clearSaveStatus()
+            backend.add_mail_knowledge(selectedFile.toString())
+        }
+    }    
 
     // Choose where to save the JSON backup.
     FileDialog {

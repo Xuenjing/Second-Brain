@@ -17,6 +17,7 @@ Dialog {
     signal txtImportRequested()
     signal docxImportRequested()
     signal pdfImportRequested()
+    signal mailImportRequested()
 
     function setSaveStatus(message) {
     knowledgeSaveStatus.text = message
@@ -543,6 +544,10 @@ Dialog {
 
                     border.color: knowledgeDialog.accentColor
                     border.width: 1
+                }
+
+                onClicked: {
+                    knowledgeDialog.mailImportRequested()
                 }
             }
         }
