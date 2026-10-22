@@ -963,9 +963,7 @@ Rectangle {
         }
 
         onDeleteRequested: function(id, text) {
-            deleteKnowledgeDialog.knowledgeId = id
-            deleteKnowledgeDialog.postText = text
-            deleteKnowledgeStatus.text = ""
+            deleteKnowledgeDialog.loadKnowledge(id, text)
             deleteKnowledgeDialog.open()
         }
     }
@@ -994,151 +992,27 @@ Rectangle {
     }
 
     // Ask for confirmation before deleting a knowledge post.
-    Dialog {
+    DeleteKnowledgeDialog {
         id: deleteKnowledgeDialog
-        title: "Ta bort kunskap"
 
-        // Store the selected post's ID and text.
-        property int knowledgeId: -1
-        property string postText: ""
-
-        // Block interaction with the main window while the dialog is open.
-        modal: true
-
-        // Limit the dialog size to fit within the main window.
-        width: Math.min(500, root.width - 48)
-        height: Math.min(320, root.height - 48)
-
-        // Center the dialog in the main window's content area.
         parent: root.contentItem
         anchors.centerIn: parent
 
-        // Rounded background with a subtle border.
-        background: Rectangle {
-            color: root.surfaceColor
-            radius: 12
-            border.color: root.borderColor
-            border.width: 1
+        width: Math.min(500, root.width - 48)
+        height: Math.min(320, root.height - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        dangerColor: root.dangerColor
+
+        onDeleteRequested: function(id) {
+            backend.delete_saved_knowledge(id)
         }
-
-        // Display the dialog title.
-        header: Label {
-            text: deleteKnowledgeDialog.title
-            color: root.textColor
-            font.pixelSize: 18
-            font.bold: true
-            padding: 16
-        }
-
-        // Place the question, post text and status message below each other.
-        contentItem: Column {
-            spacing: 12
-
-            // Ask the user to confirm deletion.
-            Label {
-                width: parent.width
-                text: "Vill du ta bort den här kunskapsposten?"
-                color: root.textColor
-                wrapMode: Text.WordWrap
-            }
-
-            // Show a preview of the selected post.
-            Label {
-                width: parent.width
-                text: deleteKnowledgeDialog.postText
-                textFormat: Text.PlainText
-                maximumLineCount: 4
-                elide: Text.ElideRight
-                wrapMode: Text.WordWrap
-                color: "#94A3B8"
-            }
-
-            // Show feedback if the post could not be deleted.
-            Label {
-                id: deleteKnowledgeStatus
-                width: parent.width
-                text: ""
-                color: root.dangerColor
-                wrapMode: Text.WordWrap
-            }
-        }
-
-        // Bottom area with delete and cancel buttons.
-        footer: Item {
-            implicitHeight: 64
-
-            // Place the buttons next to each other on the right.
-            Row {
-                anchors.right: parent.right
-                anchors.rightMargin: 12
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 12
-
-                Button {
-                    id: confirmDeleteButton
-                    text: "Ta bort"
-                    width: 100
-                    height: 40
-                    hoverEnabled: true
-
-                    // Center the button text.
-                    contentItem: Text {
-                        text: confirmDeleteButton.text
-                        color: "#FFFFFF"
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    // Change the red background when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: confirmDeleteButton.down ? "#991B1B"
-                            : confirmDeleteButton.hovered ? "#EF4444"
-                            : "#DC2626"
-                    }
-
-                    // Delete only after the user confirms.
-                    onClicked: {
-                        deleteKnowledgeStatus.text = ""
-                        backend.delete_saved_knowledge(
-                            deleteKnowledgeDialog.knowledgeId
-                        )
-                    }
-                }
-
-                Button {
-                    id: cancelDeleteButton
-                    text: "Avbryt"
-                    width: 100
-                    height: 40
-                    hoverEnabled: true
-
-                    // Center the button text.
-                    contentItem: Text {
-                        text: cancelDeleteButton.text
-                        color: root.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    // Change background color when hovered or pressed.
-                    background: Rectangle {
-                        radius: 8
-                        color: cancelDeleteButton.down ? root.pressedColor
-                            : cancelDeleteButton.hovered ? root.hoverColor
-                            : root.surfaceColor
-                        border.color: root.borderColor
-                        border.width: 1
-                    }
-
-                    // Close the dialog without deleting the post.
-                    onClicked: deleteKnowledgeDialog.close()
-                }
-            }
-        }
-    }
+    }    
 
     // File picker for importing a text file.
     FileDialog {
@@ -1236,7 +1110,7 @@ Rectangle {
                 deleteKnowledgeDialog.close()
                 knowledgeViewDialog.requestRefresh()
             } else {
-                deleteKnowledgeStatus.text = message
+                deleteKnowledgeDialog.setStatus(message)
             }
         }
 
