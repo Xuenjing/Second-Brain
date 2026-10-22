@@ -13,6 +13,7 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 
 import "components"
+import "dialogs"
 
 
 // Main application window.
@@ -872,221 +873,31 @@ Rectangle {
     }
 
     // Dialog for application settings.
-    Dialog {
+    SettingsDialog {
         id: settingsDialog
-        title: "Inställningar"
-        modal: true
+
         parent: root.contentItem
         anchors.centerIn: parent
 
         width: Math.min(500, root.width - 48)
         height: Math.min(400, root.height - 48)
 
-        background: Rectangle {
-            color: root.surfaceColor
-            radius: 12
-            border.color: root.borderColor
-            border.width: 1
+        darkMode: root.darkMode
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        accentColor: root.accentColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+
+        onThemeToggleRequested: {
+            root.darkMode = !root.darkMode
         }
 
-        header: Label {
-            text: settingsDialog.title
-            color: root.textColor
-            font.pixelSize: 18
-            font.bold: true
-            padding: 16
-        }
-
-        // Arrange the settings vertically.
-        contentItem: Column {
-            spacing: 12
-
-            Label {
-                text: "Utseende"
-                color: root.textColor
-                font.pixelSize: 16
-                font.bold: true
-            }
-
-            // Place the theme labels on each side of the toggle.
-            Row {
-                spacing: 12
-
-                Label {
-                    text: "Ljust"
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: root.darkMode
-                        ? root.secondaryTextColor
-                        : root.textColor
-                    font.pixelSize: 14
-                    font.bold: !root.darkMode
-                }
-
-                // Toggle between light and dark mode.
-                Button {
-                    id: themeToggle
-                    width: 100
-                    height: 36
-                    padding: 0
-                    hoverEnabled: true
-
-                    Accessible.name: "Byt mellan ljust och mörkt läge"
-                    ToolTip.visible: hovered
-                    ToolTip.text: root.darkMode
-                        ? "Byt till ljust läge"
-                        : "Byt till mörkt läge"
-
-                    onClicked: root.darkMode = !root.darkMode
-
-                    background: Rectangle {
-                        radius: height / 2
-                        color: root.darkMode ? "#0B1220" : "#E2E8F0"
-                        border.color: themeToggle.activeFocus
-                            ? root.accentColor
-                            : root.borderColor
-                        border.width: 1
-
-                        // Highlight the current mode.
-                        Rectangle {
-                            width: 44
-                            height: 28
-                            y: 4
-                            x: root.darkMode ? 52 : 4
-                            radius: height / 2
-                            color: root.darkMode ? "#334155" : "#FFFFFF"
-
-                            Behavior on x {
-                                NumberAnimation {
-                                    duration: 180
-                                    easing.type: Easing.InOutQuad
-                                }
-                            }
-                        }
-                    }
-
-                    contentItem: Item {
-                        // Sun symbol.
-                        Text {
-                            width: parent.width / 2
-                            height: parent.height
-                            text: "\u263C"
-                            font.pixelSize: 24
-                            color: root.darkMode ? "#94A3B8" : "#0F172A"
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        // Moon symbol.
-                        Text {
-                            x: parent.width / 2
-                            width: parent.width / 2
-                            height: parent.height
-                            text: "\u263D"
-                            font.pixelSize: 24
-                            color: root.darkMode ? "#F1F5F9" : "#64748B"
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                    }
-                }
-
-                Label {
-                    text: "Mörkt"
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: root.darkMode
-                        ? root.textColor
-                        : root.secondaryTextColor
-                    font.pixelSize: 14
-                    font.bold: root.darkMode
-                }
-            }
-
-            Label {
-                text: "Back-up"
-                color: root.textColor
-                font.pixelSize: 16
-                font.bold: true
-            }
-
-            Button {
-                id: exportKnowledgeButton
-                text: "Exportera databas"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true
-
-                contentItem: Text {
-                    text: exportKnowledgeButton.text
-                    color: root.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                background: Rectangle {
-                    radius: 8
-                    color: exportKnowledgeButton.down ? root.pressedColor
-                        : exportKnowledgeButton.hovered ? root.hoverColor
-                        : root.surfaceColor
-                    border.color: root.accentColor
-                    border.width: 1
-                }
-
-                // Open the file picker for saving a JSON backup.
-                onClicked: {
-                    exportStatus.text = ""
-                    exportFileDialog.open()
-                }
-            }
-
-            // Display the export result from Python.
-            Label {
-                id: exportStatus
-                width: parent.width
-                text: ""
-                color: root.textColor
-                wrapMode: Text.WordWrap
-            }
-        }
-
-        // Footer with close button.
-        footer: Item {
-            implicitHeight: 64
-
-            Button {
-                id: closeSettingsButton
-                text: "Stäng"
-                width: 100
-                height: 40
-                hoverEnabled: true
-
-                anchors.right: parent.right
-                anchors.rightMargin: 16
-                anchors.verticalCenter: parent.verticalCenter
-
-                // Center the button text.
-                contentItem: Text {
-                    text: closeSettingsButton.text
-                    color: root.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                // Change background color when hovered or pressed.
-                background: Rectangle {
-                    radius: 8
-                    color: closeSettingsButton.down ? root.pressedColor
-                        : closeSettingsButton.hovered ? root.hoverColor
-                        : root.surfaceColor
-                    border.color: root.accentColor
-                    border.width: 1
-                }
-
-                // Close the settings dialog.
-                onClicked: settingsDialog.close()
-            }
+        onExportRequested: {
+            exportFileDialog.open()
         }
     }
 
@@ -2700,7 +2511,7 @@ Rectangle {
 
         // Show whether the export succeeded or failed.
         function onExportResult(message) {
-            exportStatus.text = message
+            settingsDialog.setExportStatus(message)
         }
     }
 }
