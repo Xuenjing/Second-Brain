@@ -1,0 +1,118 @@
+import QtQuick
+import QtQuick.Controls
+
+Row {
+    id: chatInput
+
+    property bool isThinking: false
+
+    property color textColor
+    property color secondaryTextColor
+    property color surfaceColor
+    property color borderColor
+    property color accentColor
+    property color hoverColor
+    property color pressedColor
+
+    signal questionSubmitted(string question)
+    signal cancelRequested()
+
+    spacing: 12
+
+    TextField {
+        id: inputField
+
+        width: parent.width - sendButton.width -
+            (chatInput.isThinking
+                ? cancelButton.width + 2 * parent.spacing
+                : parent.spacing)
+
+        placeholderText: "Skriv din fråga här"
+
+        color: chatInput.textColor
+        placeholderTextColor: chatInput.secondaryTextColor
+        font.pixelSize: 14
+        padding: 12
+        height: 44
+
+        background: Rectangle {
+            color: chatInput.surfaceColor
+            radius: 8
+            border.color: inputField.activeFocus
+                ? chatInput.accentColor
+                : chatInput.borderColor
+            border.width: 1
+        }
+    }
+
+    Button {
+        id: cancelButton
+
+        text: "Avbryt"
+        width: 100
+        height: 44
+
+        visible: chatInput.isThinking
+        hoverEnabled: true
+
+        contentItem: Text {
+            text: cancelButton.text
+            color: "#FFFFFF"
+            font.pixelSize: 14
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        background: Rectangle {
+            radius: 8
+            color: cancelButton.down
+                ? "#991B1B"
+                : cancelButton.hovered
+                    ? "#EF4444"
+                    : "#DC2626"
+        }
+
+        onClicked: {
+            chatInput.cancelRequested()
+        }
+    }
+
+    Button {
+        id: sendButton
+
+        text: "Skicka"
+        width: 100
+        height: 44
+        hoverEnabled: true
+
+        enabled: !chatInput.isThinking
+
+        contentItem: Text {
+            text: sendButton.text
+            color: "#FFFFFF"
+            font.pixelSize: 14
+            font.bold: true
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        background: Rectangle {
+            radius: 8
+            color: sendButton.down
+                ? "#1D4ED8"
+                : sendButton.hovered
+                    ? "#3B82F6"
+                    : "#2563EB"
+        }
+
+        onClicked: {
+            const question = inputField.text.trim()
+
+            if (question.length > 0) {
+                chatInput.questionSubmitted(question)
+                inputField.clear()
+            }
+        }
+    }
+
+}
