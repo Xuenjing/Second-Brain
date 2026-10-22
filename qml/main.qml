@@ -81,262 +81,42 @@ ApplicationWindow {
         }
 
         // Place the knowledge buttons next to each other.
-        Row {
-            spacing: 12
+        MainToolbar {
+            width: parent.width
 
-            Button {
-                id: addKnowledgeButton
-                text: "Lägg till kunskap"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true
+            textColor: root.textColor
+            accentColor: root.accentColor
+            surfaceColor: root.surfaceColor
+            borderColor: root.borderColor
+            hoverColor: root.hoverColor
+            pressedColor: root.pressedColor
 
-                // Center the button text.
-                contentItem: Text {
-                    text: addKnowledgeButton.text
-                    color: root.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                // Change background color when hovered or pressed.
-                background: Rectangle {
-                    radius: 8
-                    color: addKnowledgeButton.down ? root.pressedColor
-                        : addKnowledgeButton.hovered ? root.hoverColor
-                        : root.surfaceColor
-                    border.color: root.accentColor
-                    border.width: 1
-                }
-
-                // Open the dialog for adding knowledge.
-                onClicked: knowledgeDialog.open()
+            onAddKnowledgeRequested: {
+                knowledgeDialog.open()
             }
 
-            Button {
-                id: viewKnowledgeButton
-                text: "Visa kunskapsposter"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true
-
-                // Center the button text.
-                contentItem: Text {
-                    text: viewKnowledgeButton.text
-                    color: root.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                // Change background color when hovered or pressed.
-                background: Rectangle {
-                    radius: 8
-                    color: viewKnowledgeButton.down ? root.pressedColor
-                        : viewKnowledgeButton.hovered ? root.hoverColor
-                        : root.surfaceColor
-                    border.color: root.accentColor
-                    border.width: 1
-                }
-
-                // Open the dialog and load saved knowledge.
-                onClicked: {
-                    knowledgeViewDialog.open()
-                    knowledgeViewDialog.requestRefresh()
-                }
+            onViewKnowledgeRequested: {
+                knowledgeViewDialog.open()
+                knowledgeViewDialog.requestRefresh()
             }
 
-            // Adds a dropdown menu for selection of LLM
-            ComboBox {
-                id: modelSelector
-
-                width: 305
-                height: 40
-
-                model: [
-                    "Qwen3 0.6B — Snabb",
-                    "Qwen3 1.7B — Rekommenderas",
-                    "Qwen3 4B — Långsam"
-                ]
-
-                currentIndex: 1
-
-                // Show an arrow using the current theme color.
-                indicator: Text {
-                    x: modelSelector.width - width - 12
-                    width: 16
-                    height: modelSelector.height
-                    text: "\u25BE"
-                    color: root.textColor
-                    font.pixelSize: 18
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                contentItem: Text {
-                    text: modelSelector.displayText
-                    color: root.textColor
-                    font.pixelSize: 14
-
-                    leftPadding: 12
-                    rightPadding: 32
-
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
-                }
-
-                background: Rectangle {
-                    color: root.surfaceColor
-                    radius: 8
-                    border.color: modelSelector.activeFocus
-                        ? root.accentColor
-                        : root.borderColor
-                    border.width: 1
-                }
-
-                // Dictates how every row in dropdown should act
-                delegate: ItemDelegate {
-                    width: ListView.view.width
-                    height: 40
-                    hoverEnabled: true
-
-                    contentItem: Text {
-                        text: modelData
-                        color: root.textColor
-                        font.pixelSize: 14
-                        verticalAlignment: Text.AlignVCenter
-                        leftPadding: 12
-                    }
-
-                    // Highlight rows when navigating or hovering.
-                    background: Rectangle {
-                        radius: 6
-                        color: parent.highlighted ? root.pressedColor
-                            : parent.hovered ? root.hoverColor
-                            : root.surfaceColor
-                    }
-                }
-
-                // The popup when the dropdown is clicked
-                popup: Popup {
-                    y: modelSelector.height + 4
-                    width: modelSelector.width
-                    padding: 1
-
-                    contentItem: ListView {
-                        implicitHeight: contentHeight
-                        clip: true
-
-                        model: modelSelector.popup.visible
-                            ? modelSelector.delegateModel
-                            : null
-
-                        currentIndex: modelSelector.highlightedIndex
-                    }
-
-                    background: Rectangle {
-                        color: root.surfaceColor
-                        radius: 8
-                        border.color: root.borderColor
-                        border.width: 1
-                    }
-                }
-            }
-
-            // Add a load model button next to the dropdown menu.
-            Button {
-                id: loadModelButton
-                text: "Ladda modell"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true                
-
-                // Center the button text.
-                contentItem: Text {
-                    text: loadModelButton.text
-                    color: root.accentColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                // Change background color when hovered or pressed.
-                background: Rectangle {
-                    radius: 8
-                    color: loadModelButton.down ? root.pressedColor
-                        : loadModelButton.hovered ? root.hoverColor
-                        : root.surfaceColor
-                    border.width: 1
-                }
-
-                // Load the model when clicked.
-                onClicked: {
-
-                }
+            onLoadModelRequested: function(modelIndex) {
+                // Model loading will be connected later.
             }
         }
 
 
         // Conversation title.
         // Keep the chat heading and thinking indicator on the same line.
-        Item {
+        ThinkingIndicator {
             width: parent.width
             height: 32
 
-            // Show an animated indicator while processing a question.
-            Row {
-                x: 16
-                anchors.leftMargin: 16
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 8
-                visible: root.isThinking
+            isThinking: root.isThinking
 
-                // Show a rotating blue ring while processing.
-                Item {
-                    width: 24
-                    height: 24
-
-                    Rectangle {
-                        id: thinkingRing
-                        anchors.centerIn: parent
-                        width: 20
-                        height: 20
-                        radius: 10
-                        color: "transparent"
-                        border.color: root.accentColor
-                        border.width: 2
-
-                        Rectangle {
-                            width: 6
-                            height: 6
-                            radius: 3
-                            color: root.windowColor
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            y: -2
-                        }
-
-                        RotationAnimator on rotation {
-                            from: 0
-                            to: 360
-                            duration: 1000
-                            loops: Animation.Infinite
-                            running: root.isThinking
-                        }
-                    }
-                }
-
-                Label {
-                    text: "Tänker…"
-                    color: root.textColor
-                    font.pixelSize: 14
-                    font.bold: true
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-            }
+            textColor: root.textColor
+            accentColor: root.accentColor
+            windowColor: root.windowColor
         }
 
         // Show a welcome message or the conversation.
