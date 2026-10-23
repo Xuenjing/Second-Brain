@@ -18,10 +18,90 @@ Dialog {
     property color dangerHoverColor
     property color dangerPressedColor
 
+    // Reusable document icon within this dialog.
+    component DocumentIcon: Item {
+        id: documentIcon
+
+        property string label: ""
+        property color iconColor
+        property color labelColor
+
+        implicitWidth: 24
+        implicitHeight: 26
+
+        Item {
+            anchors.centerIn: parent
+            width: 24
+            height: 26
+
+            Canvas {
+                anchors.fill: parent
+
+                property color iconColor: documentIcon.iconColor
+
+                // Redraw when the theme or filter changes.
+                onIconColorChanged: requestPaint()
+
+                onPaint: {
+                    const ctx = getContext("2d")
+                    ctx.clearRect(0, 0, width, height)
+                    ctx.strokeStyle = iconColor
+                    ctx.lineWidth = 1.8
+                    ctx.lineJoin = "round"
+                    ctx.lineCap = "round"
+
+                    // Document outline.
+                    ctx.beginPath()
+                    ctx.moveTo(6, 1)
+                    ctx.lineTo(16, 1)
+                    ctx.lineTo(23, 8)
+                    ctx.lineTo(23, 25)
+                    ctx.lineTo(6, 25)
+                    ctx.closePath()
+                    ctx.stroke()
+
+                    // Folded corner.
+                    ctx.beginPath()
+                    ctx.moveTo(16, 1)
+                    ctx.lineTo(16, 8)
+                    ctx.lineTo(23, 8)
+                    ctx.stroke()
+
+                    // Text lines.
+                    ctx.beginPath()
+                    ctx.moveTo(10, 18)
+                    ctx.lineTo(19, 18)
+                    ctx.moveTo(10, 21)
+                    ctx.lineTo(19, 21)
+                    ctx.stroke()
+                }
+            }
+
+            // File type label.
+            Rectangle {
+                x: 0
+                y: 8
+                width: 20
+                height: 10
+                radius: 2
+                color: documentIcon.iconColor
+
+                Text {
+                    anchors.centerIn: parent
+                    text: documentIcon.label
+                    font.pixelSize: 7
+                    font.bold: true
+                    color: documentIcon.labelColor
+                }
+            }
+        }
+    }
+
     property bool txtFilterActive: true
     property bool docxFilterActive: true
     property bool pdfFilterActive: true
     property bool manualFilterActive: true
+    property bool mailFilterActive: true
 
     property string sortOrder: "desc"
 
@@ -31,7 +111,8 @@ Dialog {
         bool txtFilterActive,
         bool docxFilterActive,
         bool pdfFilterActive,
-        bool manualFilterActive
+        bool manualFilterActive,
+        bool mailFilterActive
     )
 
     
@@ -45,7 +126,8 @@ Dialog {
             txtFilterActive,
             docxFilterActive,
             pdfFilterActive,
-            manualFilterActive
+            manualFilterActive,
+            mailFilterActive
         )
     }
 
@@ -177,12 +259,12 @@ Dialog {
                     height: 40
                     hoverEnabled: true
 
-                    contentItem: Text {
-                        text: filterTxtButton.text
-                        color: knowledgeViewDialog.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    contentItem: DocumentIcon {
+                        label: filterTxtButton.text
+                        iconColor: knowledgeViewDialog.txtFilterActive
+                            ? knowledgeViewDialog.accentColor
+                            : knowledgeViewDialog.secondaryTextColor
+                        labelColor: knowledgeViewDialog.surfaceColor
                     }
 
                     background: Rectangle {
@@ -220,12 +302,12 @@ Dialog {
                     height: 40
                     hoverEnabled: true
 
-                    contentItem: Text {
-                        text: filterDocxButton.text
-                        color: knowledgeViewDialog.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    contentItem: DocumentIcon {
+                        label: filterDocxButton.text
+                        iconColor: knowledgeViewDialog.docxFilterActive
+                            ? knowledgeViewDialog.accentColor
+                            : knowledgeViewDialog.secondaryTextColor
+                        labelColor: knowledgeViewDialog.surfaceColor
                     }
 
                     background: Rectangle {
@@ -263,12 +345,12 @@ Dialog {
                     height: 40
                     hoverEnabled: true
 
-                    contentItem: Text {
-                        text: filterPdfButton.text
-                        color: knowledgeViewDialog.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    contentItem: DocumentIcon {
+                        label: filterPdfButton.text
+                        iconColor: knowledgeViewDialog.pdfFilterActive
+                            ? knowledgeViewDialog.accentColor
+                            : knowledgeViewDialog.secondaryTextColor
+                        labelColor: knowledgeViewDialog.surfaceColor
                     }
 
                     background: Rectangle {
@@ -299,19 +381,169 @@ Dialog {
                     ToolTip.text: "PDF-filer"
                 }
 
+                // Filter imported emails.
+                Button {
+                    id: filterMailButton
+                    width: 40
+                    height: 40
+                    hoverEnabled: true
+
+                    Accessible.name: "Filtrera mejl"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Mejl (.eml och .msg)"
+
+                    // Draw an envelope icon.
+                    contentItem: Item {
+                        Canvas {
+                            anchors.centerIn: parent
+                            width: 24
+                            height: 20
+
+                            property color iconColor:
+                                knowledgeViewDialog.mailFilterActive
+                                    ? knowledgeViewDialog.accentColor
+                                    : knowledgeViewDialog.secondaryTextColor
+
+                            // Redraw when the theme or filter changes.
+                            onIconColorChanged: requestPaint()
+
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                ctx.clearRect(0, 0, width, height)
+                                ctx.strokeStyle = iconColor
+                                ctx.lineWidth = 2
+                                ctx.lineJoin = "round"
+                                ctx.lineCap = "round"
+
+                                // Envelope outline.
+                                ctx.beginPath()
+                                ctx.moveTo(2, 2)
+                                ctx.lineTo(22, 2)
+                                ctx.lineTo(22, 18)
+                                ctx.lineTo(2, 18)
+                                ctx.closePath()
+                                ctx.stroke()
+
+                                // Lower folds.
+                                ctx.beginPath()
+                                ctx.moveTo(2, 18)
+                                ctx.lineTo(9, 11)
+                                ctx.moveTo(22, 18)
+                                ctx.lineTo(15, 11)
+                                ctx.stroke()
+
+                                // Envelope flap.
+                                ctx.beginPath()
+                                ctx.moveTo(2, 2)
+                                ctx.lineTo(12, 12)
+                                ctx.lineTo(22, 2)
+                                ctx.stroke()
+                            }
+                        }
+                    }
+
+                    // Highlight the button when the filter is active.
+                    background: Rectangle {
+                        radius: 8
+
+                        color: filterMailButton.down
+                            ? knowledgeViewDialog.pressedColor
+                            : (knowledgeViewDialog.mailFilterActive
+                                || filterMailButton.hovered)
+                                ? knowledgeViewDialog.hoverColor
+                                : knowledgeViewDialog.surfaceColor
+
+                        border.color: knowledgeViewDialog.mailFilterActive
+                            ? knowledgeViewDialog.accentColor
+                            : knowledgeViewDialog.borderColor
+
+                        border.width: 1
+                    }
+
+                    // Toggle the email filter and refresh the list.
+                    onClicked: {
+                        knowledgeViewDialog.mailFilterActive =
+                            !knowledgeViewDialog.mailFilterActive
+
+                        knowledgeViewDialog.requestRefresh()
+                    }
+                }
+
                 Button {
                     id: filterManualButton
                     text: "M"
                     width: 40
                     height: 40
                     hoverEnabled: true
+                    Accessible.name: "Filtrera manuella poster"
 
-                    contentItem: Text {
-                        text: filterManualButton.text
-                        color: knowledgeViewDialog.textColor
-                        font.pixelSize: 14
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    // Draw a document with a pencil for manual entries.
+                    contentItem: Item {
+                        Canvas {
+                            anchors.centerIn: parent
+                            width: 26
+                            height: 26
+
+                            property color iconColor:
+                                knowledgeViewDialog.manualFilterActive
+                                    ? knowledgeViewDialog.accentColor
+                                    : knowledgeViewDialog.secondaryTextColor
+
+                            // Redraw when the theme or filter changes.
+                            onIconColorChanged: requestPaint()
+
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                ctx.clearRect(0, 0, width, height)
+                                ctx.strokeStyle = iconColor
+                                ctx.lineWidth = 1.8
+                                ctx.lineJoin = "round"
+                                ctx.lineCap = "round"
+
+                                // Document outline.
+                                ctx.beginPath()
+                                ctx.moveTo(12, 24)
+                                ctx.lineTo(3, 24)
+                                ctx.lineTo(3, 2)
+                                ctx.lineTo(14, 2)
+                                ctx.lineTo(20, 8)
+                                ctx.lineTo(20, 12)
+                                ctx.stroke()
+
+                                // Folded corner.
+                                ctx.beginPath()
+                                ctx.moveTo(14, 2)
+                                ctx.lineTo(14, 8)
+                                ctx.lineTo(20, 8)
+                                ctx.stroke()
+
+                                // Text lines.
+                                ctx.beginPath()
+                                ctx.moveTo(7, 12)
+                                ctx.lineTo(14, 12)
+                                ctx.moveTo(7, 16)
+                                ctx.lineTo(12, 16)
+                                ctx.stroke()
+
+                                // Pencil body and pointed tip.
+                                ctx.beginPath()
+                                ctx.moveTo(13, 24)
+                                ctx.lineTo(14, 19)
+                                ctx.lineTo(22, 11)
+                                ctx.lineTo(25, 14)
+                                ctx.lineTo(17, 22)
+                                ctx.closePath()
+                                ctx.stroke()
+
+                                // Pencil tip and end.
+                                ctx.beginPath()
+                                ctx.moveTo(14, 19)
+                                ctx.lineTo(17, 22)
+                                ctx.moveTo(20, 13)
+                                ctx.lineTo(23, 16)
+                                ctx.stroke()
+                            }
+                        }
                     }
 
                     background: Rectangle {

@@ -393,14 +393,16 @@ class Backend(QObject):
             )
 
 
-    @Slot(str, str, bool, bool, bool, bool)
-    def load_filtered_knowledge(self,
+    @Slot(str, str, bool, bool, bool, bool, bool)
+    def load_filtered_knowledge(
+        self,
         search: str, 
         sort_order: str, 
         txt_active: bool, 
         docx_active: bool, 
         pdf_active: bool, 
-        manual_active: bool
+        manual_active: bool,
+        mail_active: bool
     ) -> None:
         """Load and filter knowledge for display in QML.
         
@@ -411,6 +413,7 @@ class Backend(QObject):
             docx_active. Whether DOCX entries should be included or not.
             pdf_active: Whether PDF entries should be included or not.
             manual_active: whether manual entries should be included or not.
+            mail_active: Whether EML and MSG entries should be included.
         """
         search = search.strip()
 
@@ -435,6 +438,8 @@ class Backend(QObject):
             elif pdf_active and source.endswith(".pdf"):
                 filtered_knowledge.append(item)
             elif manual_active and source == "manual":
+                filtered_knowledge.append(item)
+            elif mail_active and source.endswith((".eml", ".msg")):
                 filtered_knowledge.append(item)
 
         knowledge_data = self._format_knowledge_for_qml(filtered_knowledge)

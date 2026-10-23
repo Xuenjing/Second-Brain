@@ -279,7 +279,8 @@ ApplicationWindow {
             txtFilterActive,
             docxFilterActive,
             pdfFilterActive,
-            manualFilterActive
+            manualFilterActive,
+            mailFilterActive
         ) {
             backend.load_filtered_knowledge(
                 searchText,
@@ -287,7 +288,8 @@ ApplicationWindow {
                 txtFilterActive,
                 docxFilterActive,
                 pdfFilterActive,
-                manualFilterActive
+                manualFilterActive,
+                mailFilterActive
             )
         }
 
