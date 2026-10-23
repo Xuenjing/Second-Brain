@@ -415,7 +415,7 @@ ApplicationWindow {
         id: mailFileDialog
 
         title: "Välj ett mejl"
-        nameFilters: ["Mejlfiler (*.eml)"]
+        nameFilters: ["Mejlfiler (*.eml *.msg)"]
         fileMode: FileDialog.OpenFile
 
         onAccepted: {

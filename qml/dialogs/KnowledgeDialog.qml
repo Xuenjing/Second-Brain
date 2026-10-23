@@ -487,9 +487,9 @@ Dialog {
                 height: 40
                 hoverEnabled: true
 
-                Accessible.name: "Importera mejl (kommer senare)"
+                Accessible.name: "Importera mejl"
                 ToolTip.visible: hovered
-                ToolTip.text: "Importera mejl – kommer senare"
+                ToolTip.text: "Importera mejl (.eml eller .msg)"
 
                 contentItem: Item {
                     Canvas {
