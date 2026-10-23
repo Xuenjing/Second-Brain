@@ -60,7 +60,8 @@ class Thinker(QThread):
 
             if not results:
                 self.answerReady.emit(
-                    "Det finns inte tillräcklig information i kunskapsbasen."
+                    "Det finns inte tillräcklig information i kunskapsbasen.",
+                    []
                 )
                 return
 
