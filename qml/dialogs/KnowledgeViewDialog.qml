@@ -63,13 +63,67 @@ Dialog {
         border.width: 1
     }
 
-    header: Label {
-        text: knowledgeViewDialog.title
-        color: knowledgeViewDialog.textColor
-        font.pixelSize: 18
-        font.bold: true
-        padding: 16
-    }
+    header: Item {
+        implicitHeight: 56
+     
+    
+        Label {
+            text: knowledgeViewDialog.title
+            color: knowledgeViewDialog.textColor
+            font.pixelSize: 18
+            font.bold: true
+            padding: 16
+        }
+
+        Button {
+            id: closeKnowledgeButton
+
+            width: 28
+            height: 28
+            padding: 0
+            hoverEnabled: true
+
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            Accessible.name: "Stäng"
+            ToolTip.visible: hovered
+            ToolTip.text: "Stäng"
+
+            contentItem: Item {
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: 45
+                    color: knowledgeViewDialog.secondaryTextColor
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: -45
+                    color: knowledgeViewDialog.secondaryTextColor
+                }
+            }
+
+            background: Rectangle {
+                radius: 6
+
+                color: closeKnowledgeButton.down
+                    ? knowledgeViewDialog.pressedColor
+                    : closeKnowledgeButton.hovered
+                        ? knowledgeViewDialog.hoverColor
+                        : "transparent"
+            }
+
+            onClicked: knowledgeViewDialog.close()
+        }
+    }            
 
     contentItem: Item {
         TextField {
@@ -635,40 +689,6 @@ Dialog {
     footer: Item {
         implicitHeight: 64
 
-        Button {
-            id: closeKnowledgeViewButton
-            text: "Stäng"
-            width: 90
-            height: 40
-            hoverEnabled: true
-
-            anchors.right: parent.right
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-
-            contentItem: Text {
-                text: closeKnowledgeViewButton.text
-                color: knowledgeViewDialog.textColor
-                font.pixelSize: 14
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            background: Rectangle {
-                radius: 8
-
-                color: closeKnowledgeViewButton.down
-                    ? knowledgeViewDialog.pressedColor
-                    : closeKnowledgeViewButton.hovered
-                        ? knowledgeViewDialog.hoverColor
-                        : knowledgeViewDialog.surfaceColor
-
-                border.color: knowledgeViewDialog.borderColor
-                border.width: 1
-            }
-
-            onClicked: knowledgeViewDialog.close()
-        }
     }
 
 }
