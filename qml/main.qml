@@ -363,6 +363,8 @@ ApplicationWindow {
         textColor: root.textColor
         secondaryTextColor: root.secondaryTextColor
         assistantBubbleColor: root.assistantBubbleColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
 
         onKnowledgeEntryRequested: function(id) {
             backend.open_knowledge_entry(id)

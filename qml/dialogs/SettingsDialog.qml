@@ -35,13 +35,69 @@ Dialog {
         border.width: 1
     }
 
-    header: Label {
-        text: settingsDialog.title
-        color: settingsDialog.textColor
-        font.pixelSize: 18
-        font.bold: true
-        padding: 16
+    header: Item {
+        implicitHeight: 56
+
+        Label {
+                text: settingsDialog.title
+                color: settingsDialog.textColor
+                font.pixelSize: 18
+                font.bold: true
+                padding: 16
+        }
+
+        Button {
+            id: closeKnowledgeButton
+
+            width: 28
+            height: 28
+            padding: 0
+            hoverEnabled: true
+
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            Accessible.name: "Stäng"
+            ToolTip.visible: hovered
+            ToolTip.text: "Stäng"
+
+            contentItem: Item {
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: 45
+                    color: settingsDialog.secondaryTextColor
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: -45
+                    color: settingsDialog.secondaryTextColor
+                }
+            }
+
+            background: Rectangle {
+                radius: 6
+
+                color: closeKnowledgeButton.down
+                    ? settingsDialog.pressedColor
+                    : closeKnowledgeButton.hovered
+                        ? settingsDialog.hoverColor
+                        : "transparent"
+            }
+
+            onClicked: settingsDialog.close()
+        }        
+                    
     }
+    
+    
 
     contentItem: Column {
         spacing: 12
@@ -57,40 +113,6 @@ Dialog {
     footer: Item {
         implicitHeight: 64
 
-        Button {
-            id: closeSettingsButton
-            text: "Stäng"
-            width: 100
-            height: 40
-            hoverEnabled: true
-
-            anchors.right: parent.right
-            anchors.rightMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-
-            contentItem: Text {
-                text: closeSettingsButton.text
-                color: settingsDialog.textColor
-                font.pixelSize: 14
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            background: Rectangle {
-                radius: 8
-
-                color: closeSettingsButton.down
-                    ? settingsDialog.pressedColor
-                    : closeSettingsButton.hovered
-                        ? settingsDialog.hoverColor
-                        : settingsDialog.surfaceColor
-
-                border.color: settingsDialog.accentColor
-                border.width: 1
-            }
-
-            onClicked: settingsDialog.close()
-        }
     }        
 
         Row {
