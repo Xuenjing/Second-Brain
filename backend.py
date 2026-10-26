@@ -102,6 +102,27 @@ ANSWER:
                 "Svaret kunde inte skapas. Försök igen."
             )
 
+class ModelLoader(QThread):
+    """Load a language model without blocking the interface."""
+
+    modelLoaded = Signal(object)
+    modelLoadFailed = Signal(str)
+
+    def __init__(self, model_name: str) -> None:
+        super().__init__()
+        self.model_name = model_name
+
+    def run(self) -> None:
+        try:
+            llm = LocalLLMProvider(self.model_name)
+            self.modelLoaded.emit(llm)
+        except Exception as error:
+            print(f"Model loading failed: {error}")
+            self.modelLoadFailed.emit(
+                "Modellen kunde inte laddas."
+            )
+
+        
 class Backend(QObject):
     """Handle communication between QML and application."""
 
@@ -111,6 +132,9 @@ class Backend(QObject):
 
         # Keep a reference to the background thread.
         self.thinker: Thinker | None = None
+
+        # Keep a reference to the model-loading thread.
+        self.model_loader: ModelLoader | None = None
 
         initialize_database()
 
@@ -132,6 +156,12 @@ class Backend(QObject):
     # Send True when processing starts and False when it finishes.
     thinkingChanged = Signal(bool)
 
+    # Send True when changing a LLM.
+    modelLoadingChanged = Signal(bool)
+
+    # Send a message while the LLM is loading.
+    modelLoadStatus = Signal(str)    
+
     # Send an error message to QML.
     replyFailed = Signal(str)
 
@@ -150,6 +180,81 @@ class Backend(QObject):
 
     # Backup the database to a JSON file.
     exportResult = Signal(str)
+
+    @Slot(int)
+    def load_model(self, model_index: str) -> None:
+        """Load the language model selected from the interface.
+        
+            Args:
+                model_index: Name of the model that will be loaded.
+        """
+
+        models = {
+            0: "Qwen/Qwen3-0.6B",
+            1: "Qwen/Qwen3-1.7B",
+            2: "Qwen/Qwen3-4B-Instruct-2507"
+        }
+
+        model_name = models.get(model_index)
+
+        if model_name is None:
+            print(f"Invalid model index: {model_index}")
+            return
+
+        if model_name == self.llm.model_name:
+            print("Model is already loaded")
+            return
+
+        if self.model_loader is not None:
+            print("A model is already being loaded.")
+            return
+
+        self.model_loader = ModelLoader(model_name)
+
+        self.model_loader.modelLoaded.connect(
+            self.handle_model_loaded
+        )
+
+        self.model_loader.modelLoadFailed.connect(
+            self.handle_model_load_error
+        )
+
+        self.model_loader.finished.connect(
+            self.finish_model_loading
+        )
+
+        print(F"Requested model: {model_name}")
+
+        self.modelLoadingChanged.emit(True)
+        self.modelLoadStatus.emit(f"Laddar modell: {model_name}")
+
+        self.model_loader.start()
+
+
+    @Slot(object)
+    def handle_model_loaded(self, llm: LocalLLMProvider) -> None:
+        """Replace the current language model after successful loading."""
+
+        self.llm = llm
+        self.modelLoadStatus.emit(f"Modellen har laddats: {self.llm.model_name}")
+        print(f"Model loaded {self.llm.model_name}")
+
+    @Slot(str)
+    def handle_model_load_error(self, message: str) -> None:
+        """Handle errors that occur while loading a language model."""
+
+        self.modelLoadStatus.emit(message)
+        print(message)
+
+    @Slot()
+    def finish_model_loading(self) -> None:
+        """Clean up after model loading has finished."""
+
+        self.model_loader.deleteLater()
+        self.model_loader = None
+
+        self.modelLoadingChanged.emit(False)
+
 
     @Slot(str)
     def receive_text(self, text: str) -> None:
