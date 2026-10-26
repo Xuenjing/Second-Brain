@@ -14,6 +14,7 @@ Dialog {
     property color hoverColor
     property color pressedColor
     property color dangerColor
+    property color assistantBubbleColor
 
     signal deleteRequested(int id)
 
@@ -45,30 +46,58 @@ Dialog {
         padding: 16
     }
 
-    contentItem: Column {
-        spacing: 12
-
+    contentItem: Item {
         Label {
-            width: parent.width
+            id: deleteQuestion
+
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+
             text: "Vill du ta bort den här kunskapsposten?"
             color: deleteKnowledgeDialog.textColor
             wrapMode: Text.WordWrap
         }
 
-        Label {
-            width: parent.width
-            text: deleteKnowledgeDialog.postText
-            textFormat: Text.PlainText
-            maximumLineCount: 4
-            elide: Text.ElideRight
-            wrapMode: Text.WordWrap
-            color: deleteKnowledgeDialog.secondaryTextColor
+        ScrollView {
+            anchors.top: deleteQuestion.bottom
+            anchors.topMargin: 12
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+
+            anchors.bottom: deleteKnowledgeStatus.top
+            anchors.bottomMargin: 12
+
+            contentWidth: availableWidth
+            clip: true
+
+            TextArea {
+                id: deleteKnowledgePreview
+
+                text: deleteKnowledgeDialog.postText
+                readOnly: true
+
+                wrapMode: TextArea.Wrap
+                textFormat: TextEdit.PlainText
+
+                color: deleteKnowledgeDialog.textColor
+                padding: 12
+
+                background: Rectangle {
+                    color: deleteKnowledgeDialog.assistantBubbleColor
+                    radius: 8
+                }
+            }
         }
 
         Label {
             id: deleteKnowledgeStatus
 
-            width: parent.width
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+
             text: ""
             color: deleteKnowledgeDialog.dangerColor
             wrapMode: Text.WordWrap

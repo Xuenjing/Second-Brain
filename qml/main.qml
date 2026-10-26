@@ -226,6 +226,7 @@ ApplicationWindow {
         hoverColor: root.hoverColor
         pressedColor: root.pressedColor
         windowColor: root.windowColor
+        assistantBubbleColor: root.assistantBubbleColor
 
         onSaveRequested: function(text) {
             backend.add_manual_knowledge(text)
@@ -267,6 +268,7 @@ ApplicationWindow {
         hoverColor: root.hoverColor
         pressedColor: root.pressedColor
         windowColor: root.windowColor
+        assistantBubbleColor: root.assistantBubbleColor
 
         dangerColor: root.dangerColor
         dangerBorderColor: root.dangerBorderColor
@@ -321,6 +323,7 @@ ApplicationWindow {
         windowColor: root.windowColor
         hoverColor: root.hoverColor
         pressedColor: root.pressedColor
+        assistantBubbleColor: root.assistantBubbleColor
 
         onSaveRequested: function(id, text) {
             backend.edit_saved_knowledge(id, text)
@@ -344,6 +347,7 @@ ApplicationWindow {
         hoverColor: root.hoverColor
         pressedColor: root.pressedColor
         dangerColor: root.dangerColor
+        assistantBubbleColor: root.assistantBubbleColor
 
         onDeleteRequested: function(id) {
             backend.delete_saved_knowledge(id)

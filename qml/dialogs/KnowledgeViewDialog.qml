@@ -12,6 +12,7 @@ Dialog {
     property color hoverColor
     property color pressedColor
     property color windowColor
+    property color assistantBubbleColor
 
     property color dangerColor
     property color dangerBorderColor
@@ -224,7 +225,7 @@ Dialog {
             padding: 12
 
             background: Rectangle {
-                color: knowledgeViewDialog.windowColor
+                color: knowledgeViewDialog.assistantBubbleColor
                 radius: 8
 
                 border.color: knowledgeSearchField.activeFocus
@@ -698,7 +699,7 @@ Dialog {
                     postActions.height
                 ) + 24
 
-                color: knowledgeViewDialog.windowColor
+                color: knowledgeViewDialog.assistantBubbleColor
                 radius: 8
 
                 Column {
