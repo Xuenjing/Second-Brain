@@ -12,6 +12,7 @@ Dialog {
     property color hoverColor
     property color pressedColor
     property color windowColor
+    property color assistantBubbleColor
 
     signal saveRequested(string text)
     signal txtImportRequested()
@@ -131,7 +132,7 @@ Dialog {
                 padding: 12
 
                 background: Rectangle {
-                    color: knowledgeDialog.windowColor
+                    color: knowledgeDialog.assistantBubbleColor
                     radius: 8
 
                     border.color: knowledgeInput.activeFocus

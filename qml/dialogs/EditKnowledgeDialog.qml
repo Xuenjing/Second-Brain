@@ -13,6 +13,7 @@ Dialog {
     property color windowColor
     property color hoverColor
     property color pressedColor
+    property color assistantBubbleColor
 
     signal saveRequested(int id, string text)
 
@@ -67,7 +68,7 @@ Dialog {
                 padding: 12
 
                 background: Rectangle {
-                    color: editKnowledgeDialog.windowColor
+                    color: editKnowledgeDialog.assistantBubbleColor
                     radius: 8
                 }
             }
