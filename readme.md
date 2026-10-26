@@ -14,6 +14,7 @@ The current prototype supports:
 - Import of `.txt` files
 - Import of `.docx` documents
 - Import of `.pdf` documents
+- Import of .eml Email files
 - Paragraph-based document chunking
 - Basic table-aware chunking for DOCX and PDF documents
 - Local knowledge storage using SQLite
@@ -40,6 +41,11 @@ The current prototype supports:
 - Automated unit tests
 - GitHub Actions for continuous test execution
 - Benchmark and experiment scripts for retrieval, embeddings and language models
+- JSON export of the knowledge database
+- Source references / traceability for generated answers
+- Opening a referenced knowledge entry from an answer source
+- TXT-import tests
+- PDF-import tests
 
 ---
 
@@ -50,6 +56,8 @@ Second Brain is divided into several main components.
 ### User interface
 
 The user interface is built with QML and Qt Quick.
+
+The QML interface is divided into reusable components and dialogs, while main.qml primarily coordinates application state, backend communication and the main layout.
 
 QML communicates with the Python backend through PySide6 signals and slots.
 
@@ -66,6 +74,8 @@ The interface currently contains functionality for:
 - Editing knowledge
 - Deleting knowledge
 - Selecting between planned/local model options in the interface
+- Viewing the sources used for generated answers
+- Opening referenced knowledge entries
 
 ---
 
@@ -82,11 +92,13 @@ Its responsibilities currently include:
 - Returning generated answers to QML
 - Handling background LLM generation
 - Adding knowledge manually
-- Importing TXT, DOCX and PDF documents
+- Importing TXT, DOCX, PDF and EML files
 - Searching, filtering and sorting stored knowledge
 - Editing stored knowledge
 - Deleting stored knowledge
 - Formatting database entries for display in QML
+- Exporting the knowledge database to JSON
+- Providing source metadata together with generated answers
 
 Document parsing and importing are separated from the main backend where appropriate to keep individual components smaller and easier to test.
 
@@ -151,6 +163,14 @@ Scanned or image-only PDFs are not currently processed using OCR.
 
 PDF parsing remains heuristic because PDF files do not contain document structure in the same way as DOCX files.
 
+### EML
+
+Saved email files can be imported into the knowledge base.
+
+Email parsing and database importing are separated into dedicated
+parser and importer modules, following the same general structure
+used for the other supported document formats.
+
 ---
 
 ## Embeddings and retrieval
@@ -179,11 +199,13 @@ It showed improved ranking for several difficult retrieval queries while maintai
 
 ---
 
-## Language model
+## Language model 
 
 The current local language model is:
 
 `Qwen/Qwen3-1.7B`
+
+Which remains the current default while answer quality, grounding and latency continue to be evaluated.
 
 The model was selected after benchmarking:
 
@@ -233,6 +255,8 @@ QML interface
 
 The language model is instructed to answer using the retrieved context and avoid inventing information that is not available in the supplied knowledge.
 
+Retrieval results used as context are also returned to the interface as answer sources. Users can inspect these sources and open the corresponding stored knowledge entry.
+
 ---
 
 ## Knowledge view
@@ -259,19 +283,28 @@ Knowledge-view state is refreshed through a shared QML-to-backend flow so that s
 The project currently contains components such as:
 
 ```text
-Second-Brain---LIA-PROJECT/
+Second Brain/
 │
 ├── main.py
 ├── backend.py
 ├── database.py
-├── retrieval.py
+├── exporter.py
 ├── performance.py
+├── retrieval.py
+├── requirements.txt
+├── README.md
+├── .gitignore
 │
 ├── imports/
+│   ├── __init__.py
+│   ├── text_parser.py
+│   ├── text_importer.py
 │   ├── document_parser.py
 │   ├── document_importer.py
 │   ├── pdf_parser.py
-│   └── pdf_importer.py
+│   ├── pdf_importer.py
+│   ├── mail_parser.py
+│   └── mail_importer.py
 │
 ├── llm/
 │   ├── __init__.py
@@ -279,20 +312,39 @@ Second-Brain---LIA-PROJECT/
 │   └── external_provider.py
 │
 ├── qml/
-│   └── main.qml
+│   ├── main.qml
+│   │
+│   ├── components/
+│   │   ├── ChatInput.qml
+│   │   ├── ChatMessage.qml
+│   │   ├── ChatView.qml
+│   │   ├── Header.qml
+│   │   ├── MainToolbar.qml
+│   │   └── ThinkingIndicator.qml
+│   │
+│   └── dialogs/
+│       ├── DeleteKnowledgeDialog.qml
+│       ├── EditKnowledgeDialog.qml
+│       ├── KnowledgeDialog.qml
+│       ├── KnowledgeViewDialog.qml
+│       ├── SettingsDialog.qml
+│       └── SourceDialog.qml
 │
 ├── tests/
+│   ├── __init__.py
 │   ├── database_test.py
 │   ├── retrieval_tests.py
-│   └── docx_tests.py
+│   ├── txt_tests.py
+│   ├── docx_tests.py
+│   ├── pdf_tests.py
+│   ├── exporter_tests.py
+│   └── test_mail.eml
 │
 ├── experiments/
 │   └── ...
 │
-├── assets/
-│   └── ...
-│
-└── README.md
+└── assets/
+    └── ...
 ```
 
 The exact structure is still evolving as the project grows.
@@ -323,23 +375,11 @@ Retrieval tests use mocked dependencies where appropriate and cover functionalit
 - Similarity threshold filtering
 - Top-k limiting
 
-### DOCX tests
+### Document import tests
 
-DOCX tests cover functionality such as:
-
-- Paragraph extraction
-- Table extraction
-- Mixed paragraphs and tables
-- Ignoring empty paragraphs
-- Missing files
-- Invalid file extensions
-- Invalid DOCX files
-- Import orchestration using mocked dependencies
-- Embedding creation
-- Source handling
-- Counting only successfully added entries
-
-PDF unit tests are planned but not yet implemented.
+Automated tests currently cover TXT, DOCX and PDF parsing and import
+logic, including invalid files, empty content, source handling,
+chunk creation and mocked database/embedding dependencies.
 
 ---
 
@@ -347,7 +387,7 @@ PDF unit tests are planned but not yet implemented.
 
 GitHub Actions is used to execute automated tests.
 
-The current test workflow runs against the development branch and includes core database, retrieval and DOCX tests.
+Current coverage includes database, retrieval, TXT, DOCX, PDF and export-related tests.
 
 This helps detect regressions before changes are merged further into the project.
 
@@ -387,7 +427,7 @@ Unexpected answers may originate from several different parts of the RAG pipelin
 - Prompt construction
 - Language-model capability
 
-Future evaluation should therefore measure retrieval quality separately from language-model answer quality rather than assuming that poor answers are caused by the model alone.
+Current evaluation therefore measures retrieval quality separately from language-model answer quality rather than assuming that poor answers are caused by the model alone.
 
 ---
 
@@ -398,7 +438,6 @@ Current ideas and areas under consideration include:
 ### Knowledge and documents
 
 - Drag-and-drop document import
-- Email import
 - Opening original source files directly from knowledge entries
 - Pagination for large knowledge bases
 - Improved PDF parsing
@@ -410,12 +449,10 @@ Current ideas and areas under consideration include:
 - Conversation history
 - Multiple conversation tabs or sessions
 - Persistent conversational context
-- Linking generated answers back to specific knowledge entries
 - Opening the original source from an answer reference
 
 ### Configuration
 
-- Application settings
 - Persistent configuration
 - Different operating modes
 - Interface language selection
@@ -424,7 +461,6 @@ Current ideas and areas under consideration include:
 
 ### Data management
 
-- Exporting the knowledge database
 - JSON backup and restore
 - Development/test data for UI work without loading the normal database
 
@@ -440,7 +476,6 @@ Current ideas and areas under consideration include:
 
 - Background document embedding/import
 - Additional unit tests
-- PDF tests
 - GUI testing
 - Larger retrieval-quality benchmarks
 - GPU inference
@@ -519,7 +554,6 @@ The current development focus is shifting toward:
 - User-interface improvements
 - Configuration
 - Data management
-- Source traceability
 - Additional AI integration
 - Performance and scalability
 
