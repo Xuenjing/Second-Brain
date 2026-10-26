@@ -49,6 +49,10 @@ ApplicationWindow {
     // Track whether a question is being processed.
     property bool isThinking: false
 
+    // Track state of model loading.
+    property bool modelLoading: false
+    property string modelLoadStatus: ""
+
     // Store questions and answers displayed in the chat.
     ListModel {
         id: chatModel
@@ -91,6 +95,8 @@ ApplicationWindow {
             hoverColor: root.hoverColor
             pressedColor: root.pressedColor
 
+            modelLoading: root.modelLoading
+
             onAddKnowledgeRequested: {
                 knowledgeDialog.open()
             }
@@ -100,9 +106,16 @@ ApplicationWindow {
                 knowledgeViewDialog.requestRefresh()
             }
 
-            onLoadModelRequested: function(modelIndex) {
-                // Model loading will be connected later.
+            onModelLoadConfirmationRequested: function(modelIndex, modelName) {
+                modelLoadDialog.modelIndex = modelIndex
+                modelLoadDialog.modelName = modelName
+                modelLoadDialog.open()
             }
+
+            
+            // onLoadModelRequested: function(modelIndex) {
+            //     backend.load_model(modelIndex)
+            // }
         }
 
 
@@ -447,6 +460,24 @@ ApplicationWindow {
         }
     }
 
+    // Choose to load model or cancel.
+    ModelLoadDialog {
+        id: modelLoadDialog
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        accentColor: root.accentColor
+        assistantBubbleColor: root.assistantBubbleColor
+
+        onLoadConfirmed: function(modelIndex) {
+            backend.load_model(modelIndex)
+        }
+    }
+
     // Listen for signals from the Python backend.
     Connections {
         target: backend
@@ -513,6 +544,16 @@ ApplicationWindow {
         // Show whether the export succeeded or failed.
         function onExportResult(message) {
             settingsDialog.setExportStatus(message)
+        }
+
+        // Track whether a model is being loaded.
+        function onModelLoadingChanged(loading) {
+            root.modelLoading = loading
+        }
+
+        // Status for models being loaded
+        function onModelLoadStatus(message) {
+            root.modelLoadStatus = message
         }
     }
 }
