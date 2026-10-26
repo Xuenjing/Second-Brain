@@ -29,7 +29,7 @@ class LocalLLMProvider:
         self.generation_config = deepcopy(self.generator.model.generation_config)
 
         # Limit response length.
-        self.generation_config.max_new_tokens = 100
+        self.generation_config.max_new_tokens = 200
         
         # Deterministic answers
         self.generation_config.do_sample = False
