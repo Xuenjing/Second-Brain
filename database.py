@@ -111,6 +111,30 @@ def get_all_knowledge(sort_order: str = "desc") -> list[dict]:
 
     return knowledge
 
+def get_knowledge_by_id(knowledge_id: int) -> dict | None:
+    """Return a knowledge entry by database ID.
+    
+        Args:
+            knowledge_id: Database ID of an entry post.
+
+        Returns:
+            A dictionary of the knowledge entry if it exists, otherwise None.
+    """
+
+    connection = sqlite3.connect(DATABASE_PATH)
+    connection.row_factory = sqlite3.Row
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT * FROM knowledge WHERE id = ?",
+        (knowledge_id,)
+    )
+
+    row = cursor.fetchone()
+    connection.close()
+
+    return dict(row) if row else None
+
 
 # NOT CURRENTLY IN USE: FLAGGED FOR REMOVAL ???
 # ONLY FOR TESTING PURPOSES

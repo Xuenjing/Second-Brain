@@ -20,6 +20,7 @@ from retrieval import (
 from llm.local_provider import LocalLLMProvider
 from database import (
     get_all_knowledge,
+    get_knowledge_by_id,
     add_knowledge, 
     search_knowledge, 
     edit_knowledge, 
@@ -28,13 +29,16 @@ from database import (
 )
 from imports.document_importer import import_docx_to_database
 from imports.pdf_importer import import_pdf_to_database
+from imports.text_importer import import_txt_to_database
+from imports.mail_importer import import_mail_to_database
+from exporter import export_knowledge_to_json
 
 
 
 class Thinker(QThread):
     """Process a question without blocking the interface."""
 
-    answerReady = Signal(str)
+    answerReady = Signal(str, list)
     answerFailed = Signal(str)
 
     def __init__(self, llm: LocalLLMProvider, question: str) -> None:
@@ -56,7 +60,8 @@ class Thinker(QThread):
 
             if not results:
                 self.answerReady.emit(
-                    "Det finns inte tillräcklig information i kunskapsbasen."
+                    "Det finns inte tillräcklig information i kunskapsbasen.",
+                    []
                 )
                 return
 
@@ -68,8 +73,15 @@ class Thinker(QThread):
 Use only the information in the context below to answer the question.
 
 Rules:
-- Answer only using information from the context.
-- If the answer is not available in the context, say so clearly.
+- Pay close attention to negation such as "not", "no", "does not", "inte", "inget" and "har inte".
+- If the context explicitly states that something is not true, do not answer that it is true.
+- Base the answer on the complete relevant statement, not only on matching words.
+- Identify the statement in the context that refers to the same person or entity as the question.
+- Answer strictly according to that statement.
+- Do not infer information about one person or entity from information about another.
+- The context may contain information that is related to the topic but does not answer the question.
+- If the context does not explicitly contain the information needed to answer the question, respond that there is not enough information in the knowledge base.
+- Answer in the same language as the question.
 - Do not make up information.
 
 CONTEXT:
@@ -82,7 +94,7 @@ ANSWER:
 """
 
             answer = self.llm.generate(prompt)
-            self.answerReady.emit(answer)
+            self.answerReady.emit(answer, results)
 
         except Exception as error:
             print(f"Answer generation failed: {error}")
@@ -115,7 +127,7 @@ class Backend(QObject):
         # self.llm = LocalLLMProvider("Qwen/Qwen3-4B-Instruct-2507")
 
     # Signal from Python to QML with the text to display.
-    replyReady = Signal(str)
+    replyReady = Signal(str, list)
 
     # Send True when processing starts and False when it finishes.
     thinkingChanged = Signal(bool)
@@ -132,6 +144,12 @@ class Backend(QObject):
 
     # Send the deletion result to QML.
     knowledgeDeleteResult = Signal(bool, str)
+
+    # Send the id of the clicked post to QML
+    knowledgeEntryOpened = Signal(int, str, str, str)
+
+    # Backup the database to a JSON file.
+    exportResult = Signal(str)
 
     @Slot(str)
     def receive_text(self, text: str) -> None:
@@ -157,14 +175,14 @@ class Backend(QObject):
         self.thinkingChanged.emit(True)
         self.thinker.start()
 
-    @Slot(str)
-    def handle_answer(self, answer: str) -> None:
+    @Slot(str, list)
+    def handle_answer(self, answer: str, sources: list) -> None:
         """Send the answer to QML.
         
         Args:
             answer: generated answer to display in QML interface.
         """
-        self.replyReady.emit(answer)
+        self.replyReady.emit(answer, sources)
 
     @Slot(str)
     def handle_error(self, message: str) -> None:
@@ -269,54 +287,24 @@ class Backend(QObject):
 
     @Slot(str)
     def add_txt_knowledge(self, file_path: str) -> None:
-        """
-        Import knowledge from a UTF-8 text file.
+        """Import knowledge from a UTF-8 text file.
 
-        The file is split into chunks based on paragraphs.
-        Each chunk is embedded and stored separately in the database.
-
-        Args:
-            file_path: File URL received from the QML.
+            Args:
+                file_path: File URL received from the QML.
         """
 
         # convert to local windows file path
         local_path = QUrl(file_path).toLocalFile() 
-        path = Path(local_path)
 
-        # safeguards
-        if path.suffix.lower() != ".txt":
-            self.knowledgeSaveResult.emit("Only .txt files are supported.")
-            return
-        if not path.exists():
-            self.knowledgeSaveResult.emit("The selected file does not exist.")
-            return
         try:
-            text = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            self.knowledgeSaveResult.emit("The file could not be read as UTF-8.")
+            added_count = import_txt_to_database(local_path)
+        except FileNotFoundError:
+            self.knowledgeSaveResult.emit("The selected file does not exist")
             return
-        except OSError:
-            self.knowledgeSaveResult.emit("The file could not be read.")
-            return
-        if not text.strip():
-            self.knowledgeSaveResult.emit("The file is empty.")
+        except ValueError as error:
+            self.knowledgeSaveResult.emit(str(error))
             return
         
-        # sort the text into chunks if text can be split into paragraphs
-        chunks = [
-            chunk.strip()
-            for chunk in text.split("\n\n") 
-            if chunk.strip()
-        ]
-
-        added_count = 0
-
-        for chunk in chunks:
-            embedding = create_embedding(chunk)
-            added = add_knowledge(chunk, embedding, source=path.name)
-            if added:
-                added_count += 1
-
         if added_count == 0:
             self.knowledgeSaveResult.emit("No new knowledge was added.")
         else:
@@ -368,15 +356,53 @@ class Backend(QObject):
         else:
             self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from pdf file.")
 
+    @Slot(str)
+    def add_mail_knowledge(self, file_path: str) -> None:
+        """Import knowledge from an EML file.
 
-    @Slot(str, str, bool, bool, bool, bool)
-    def load_filtered_knowledge(self,
+        Args:
+            file_path: File URL received from QML.
+
+        Returns:
+            None.
+        """
+        # Convert the file URL to a local file path.
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            added_count = import_mail_to_database(local_path)
+        except FileNotFoundError:
+            self.knowledgeSaveResult.emit(
+                "The selected file does not exist."
+            )
+            return
+        except ValueError as error:
+            self.knowledgeSaveResult.emit(str(error))
+            return
+        except OSError:
+            self.knowledgeSaveResult.emit(
+                "The file could not be read."
+            )
+            return
+
+        if added_count == 0:
+            self.knowledgeSaveResult.emit("No new knowledge was added.")
+        else:
+            self.knowledgeSaveResult.emit(
+                f"Imported {added_count} knowledge entries from EML file."
+            )
+
+
+    @Slot(str, str, bool, bool, bool, bool, bool)
+    def load_filtered_knowledge(
+        self,
         search: str, 
         sort_order: str, 
         txt_active: bool, 
         docx_active: bool, 
         pdf_active: bool, 
-        manual_active: bool
+        manual_active: bool,
+        mail_active: bool
     ) -> None:
         """Load and filter knowledge for display in QML.
         
@@ -387,6 +413,7 @@ class Backend(QObject):
             docx_active. Whether DOCX entries should be included or not.
             pdf_active: Whether PDF entries should be included or not.
             manual_active: whether manual entries should be included or not.
+            mail_active: Whether EML and MSG entries should be included.
         """
         search = search.strip()
 
@@ -411,6 +438,8 @@ class Backend(QObject):
             elif pdf_active and source.endswith(".pdf"):
                 filtered_knowledge.append(item)
             elif manual_active and source == "manual":
+                filtered_knowledge.append(item)
+            elif mail_active and source.endswith((".eml", ".msg")):
                 filtered_knowledge.append(item)
 
         knowledge_data = self._format_knowledge_for_qml(filtered_knowledge)
@@ -442,3 +471,46 @@ class Backend(QObject):
             })
 
         return knowledge_data
+    
+
+    @Slot(int)
+    def open_knowledge_entry(self, knowledge_id: int) -> None:
+        """Send a selected knowledge entry to QML.
+        
+            Args:
+                knowledge_id: Database ID of the knowledge entry.
+        """
+
+        item = get_knowledge_by_id(knowledge_id)
+
+        created_at = datetime.fromisoformat(item["created_at"]).strftime("%Y-%m-%d %H:%M")
+
+        self.knowledgeEntryOpened.emit(
+            item["id"],
+            item["text"],
+            item["source"],
+            created_at
+        )
+        return
+
+
+    @Slot(str)
+    def export_knowledge(self, file_path: str) -> None:
+        """Export all knowledge entries to a JSON file.
+        
+            Args:
+                file_path: Destination file URL received from QML.
+        """
+
+        # Translate working file path between QML and Python.
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            exported_count = export_knowledge_to_json(local_path)
+        except OSError:
+            self.exportResult.emit("The knowledge could not be exported.")
+            return
+
+        self.exportResult.emit(
+            f"Exported {exported_count} knowledge entries."
+        )
