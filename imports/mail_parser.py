@@ -1,4 +1,4 @@
-"""Extract text from saved email files."""
+"""Extract the subject and plain text from an EML or MSG file."""
 
 from email import policy
 from email.parser import BytesParser

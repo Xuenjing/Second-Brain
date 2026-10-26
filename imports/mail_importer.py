@@ -8,10 +8,10 @@ from retrieval import create_embedding
 
 
 def import_mail_to_database(file_path: str) -> int:
-    """Import an EML file to database.
+    """Import an EML or MSG file into the database.
     
     Args:
-        file_path: Path to the EML file.
+        file_path: Path to the EML or MSG file.
 
     Returns:
         The number of chunks added to the database.
