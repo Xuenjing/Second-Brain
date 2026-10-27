@@ -16,13 +16,14 @@ Dialog {
 
     signal themeToggleRequested()
     signal exportRequested()
+    signal importRequested()
 
-    function setExportStatus(message) {
-        exportStatus.text = message
+    function setBackupStatus(message) {
+        backupStatus.text = message
     }
 
-    function clearExportStatus() {
-        exportStatus.text = ""
+    function clearBackupStatus() {
+        backupStatus.text = ""
     }
 
     title: "Inställningar"
@@ -258,13 +259,48 @@ Dialog {
                 }
 
                 onClicked: {
-                    settingsDialog.clearExportStatus()
+                    settingsDialog.clearBackupStatus()
                     settingsDialog.exportRequested()
                 }
             }
 
+            Button {
+                id: importKnowledgeButton
+                text: "Importera databas"
+                height: 40
+                leftPadding: 16
+                rightPadding: 16
+                hoverEnabled: true
+
+                contentItem: Text {
+                    text: importKnowledgeButton.text
+                    color: settingsDialog.textColor
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+
+                    color: importKnowledgeButton.down
+                        ? settingsDialog.pressedColor
+                        : importKnowledgeButton.hovered
+                            ? settingsDialog.hoverColor
+                            : settingsDialog.surfaceColor
+
+                    border.color: settingsDialog.accentColor
+                    border.width: 1
+                }
+
+                onClicked: {
+                    settingsDialog.clearBackupStatus()
+                    settingsDialog.importRequested()
+                }
+            }
+
             Label {
-                id: exportStatus
+                id: backupStatus
                 width: parent.width
                 text: ""
                 color: settingsDialog.textColor

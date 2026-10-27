@@ -222,6 +222,12 @@ ApplicationWindow {
         onExportRequested: {
             exportFileDialog.open()
         }
+
+        onImportRequested: {
+            importBackupFileDialog.open()
+        }
+
+
     }
 
     // Dialog for adding knowledge manually or importing files.
@@ -455,10 +461,22 @@ ApplicationWindow {
 
         // Send the destination file URL to Python.
         onAccepted: {
-            settingsDialog.setExportStatus("Exporterar…")
+            settingsDialog.setBackupStatus("Exporterar…")
             backend.export_knowledge(selectedFile.toString())
         }
     }
+
+    // Choose where to import JSON file from.
+    FileDialog {
+        id: importBackupFileDialog
+
+        title: "Importera backup"
+        nameFilters: ["JSON-filer (*.json)"]
+
+        onAccepted: {
+            backend.import_knowledge(selectedFile.toString())
+        }
+    }    
 
     // Choose to load model or cancel.
     ModelLoadDialog {
@@ -543,8 +561,13 @@ ApplicationWindow {
 
         // Show whether the export succeeded or failed.
         function onExportResult(message) {
-            settingsDialog.setExportStatus(message)
+            settingsDialog.setBackupStatus(message)
         }
+
+        // Show error messages on faulty imports.
+        function onImportResult(message) {
+            settingsDialog.setBackupStatus(message)
+        }        
 
         // Track whether a model is being loaded.
         function onModelLoadingChanged(loading) {

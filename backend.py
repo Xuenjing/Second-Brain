@@ -32,6 +32,7 @@ from imports.pdf_importer import import_pdf_to_database
 from imports.text_importer import import_txt_to_database
 from imports.mail_importer import import_mail_to_database
 from exporter import export_knowledge_to_json
+from json_importer import import_knowledge_from_json_file
 
 
 
@@ -180,6 +181,9 @@ class Backend(QObject):
 
     # Backup the database to a JSON file.
     exportResult = Signal(str)
+
+    # Import JSON file from backup.
+    importResult = Signal(str)
 
     @Slot(int)
     def load_model(self, model_index: str) -> None:
@@ -618,4 +622,29 @@ class Backend(QObject):
 
         self.exportResult.emit(
             f"Exported {exported_count} knowledge entries."
+        )
+
+
+    @Slot(str)
+    def import_knowledge(self, file_path: str) -> None:
+        """Import all knowledge entries from a JSON backup file.
+        
+            Args:
+                file_path: Destination file URL received from QML.
+        """
+
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            imported_count, skipped_count = import_knowledge_from_json_file(
+                local_path
+            )
+
+        except (FileNotFoundError, ValueError) as error:
+            self.importResult.emit(str(error))
+            return
+
+        self.importResult.emit(
+            f"Importerade {imported_count} poster. "
+            f"Hoppade över {skipped_count} poster."
         )
