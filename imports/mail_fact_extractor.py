@@ -68,8 +68,13 @@ Copy the original wording and retain necessary context.
 
     response = llm.generate(
         prompt,
-        system_prompt=MAIL_SYSTEM_PROMPT
+        system_prompt=MAIL_SYSTEM_PROMPT,
+        max_new_tokens=400
     )
+
+    # Print the raw model output while debugging.
+    print("Raw email analysis output:")
+    print(repr(response))
 
     try:
         facts = json.loads(response)
