@@ -41,7 +41,7 @@ class LocalLLMProvider:
 
 
     @measure_time
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, system_prompt: str | None = None) -> str:
         """Generate an answer based on provided prompt using the local language model.
 
         System messages defines behaviours of the assistant.
@@ -51,18 +51,24 @@ class LocalLLMProvider:
 
         Args:
             prompt: Prompt to send to the language model.
+            system_prompt: Optional system instructions for the task.
 
         Returns:
             Generated assistant response.
         """
         
+        # Use the default chat instructions unless custom ones are provided.
+        if system_prompt is None:
+            system_prompt = (
+                "Always answer in the same language as the user's QUESTION. "
+                "Use the language of the QUESTION, not the language used "
+                "in the instructions or context."
+            )
+
         messages = [
             {
                 "role": "system",
-                "content": (
-                    "Always answer in the same language as the user's QUESTION. "
-                    "Use the language of the QUESTION, not the language used in the instructions or context."
-                    )
+                "content": system_prompt
             },
             {
                 "role": "user",
