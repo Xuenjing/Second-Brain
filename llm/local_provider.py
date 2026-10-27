@@ -41,7 +41,7 @@ class LocalLLMProvider:
 
 
     @measure_time
-    def generate(self, prompt: str, system_prompt: str | None = None) -> str:
+    def generate(self, prompt: str, system_prompt: str | None = None, max_new_tokens: int | None = None) -> str:
         """Generate an answer based on provided prompt using the local language model.
 
         System messages defines behaviours of the assistant.
@@ -52,6 +52,7 @@ class LocalLLMProvider:
         Args:
             prompt: Prompt to send to the language model.
             system_prompt: Optional system instructions for the task.
+            max_new_tokens: Optional output token limit for this call.
 
         Returns:
             Generated assistant response.
@@ -87,10 +88,16 @@ class LocalLLMProvider:
             enable_thinking=False
         )
 
+        # Apply task-specific settings without changing the chat defaults.
+        generation_config = deepcopy(self.generation_config)
+
+        if max_new_tokens is not None:
+            generation_config.max_new_tokens = max_new_tokens
+
         # Generate text using configuration settings.
         result = self.generator(
             formatted_prompt,
-            generation_config=self.generation_config,
+            generation_config=generation_config,
             clean_up_tokenization_spaces=False
         )
 

@@ -11,6 +11,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
+import QtQuick.Layouts
 
 import "components"
 import "dialogs"
@@ -48,6 +49,13 @@ ApplicationWindow {
 
     // Track whether a question is being processed.
     property bool isThinking: false
+
+    // Track email analysis and retain suggestions for review.
+    property bool isMailAnalyzing: false
+    property bool mailReviewPending: false
+    property string mailReviewText: ""
+    property var mailReviewFacts: []
+    property string mailReviewSource: ""
 
     // Track state of model loading.
     property bool modelLoading: false
@@ -118,6 +126,38 @@ ApplicationWindow {
             // }
         }
 
+        // Show email-analysis status and reopen pending suggestions.
+        Button {
+            id: openMailReviewButton
+
+            visible: root.isMailAnalyzing || root.mailReviewPending
+            enabled: !root.isMailAnalyzing
+            height: 40
+            hoverEnabled: true
+
+            text: root.isMailAnalyzing
+                ? "Analyserar mejl…"
+                : "Mejlanalysen är klar – Granska förslag"
+
+            contentItem: Text {
+                text: openMailReviewButton.text
+                color: root.textColor
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                radius: 8
+                color: openMailReviewButton.down
+                    ? root.pressedColor
+                    : openMailReviewButton.hovered
+                        ? root.hoverColor
+                        : root.surfaceColor
+                border.color: root.accentColor
+            }
+
+            onClicked: mailReviewDialog.open()
+        }
 
         // Conversation title.
         // Keep the chat heading and thinking indicator on the same line.
@@ -435,6 +475,603 @@ ApplicationWindow {
         }
     }
 
+    // Review suggested facts alongside the original email.
+    Dialog {
+        id: mailReviewDialog
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        width: Math.min(900, root.width - 48)
+        height: Math.min(600, root.height - 48)
+        modal: true
+        property string statusMessage: ""
+
+        // Keep edits when the dialog is closed and reopened.
+        ListModel {
+            id: mailFactsModel
+        }
+
+        function loadSuggestions(facts) {
+            mailFactsModel.clear()
+
+            for (let i = 0; i < facts.length; i++) {
+                mailFactsModel.append({
+                    factText: facts[i],
+                    keepFact: true
+                })
+            }
+        }
+
+        background: Rectangle {
+            color: root.surfaceColor
+            radius: 12
+            border.color: root.borderColor
+        }
+
+        header: Item {
+            implicitHeight: 56
+
+            Label {
+                anchors.left: parent.left
+                anchors.leftMargin: 16
+                anchors.right: closeMailReviewButton.left
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+
+                text: "Granska fakta: " + root.mailReviewSource
+                color: root.textColor
+                font.pixelSize: 18
+                font.bold: true
+                elide: Text.ElideRight
+            }
+
+            Button {
+                id: closeMailReviewButton
+
+                width: 28
+                height: 28
+                padding: 0
+                hoverEnabled: true
+
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+
+                Accessible.name: "Stäng granskningen"
+                ToolTip.visible: hovered
+                ToolTip.text: "Stäng och behåll förslagen"
+
+                contentItem: Text {
+                    text: "×"
+                    color: root.secondaryTextColor
+                    font.pixelSize: 24
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 6
+                    color: closeMailReviewButton.down
+                        ? root.pressedColor
+                        : closeMailReviewButton.hovered
+                            ? root.hoverColor
+                            : "transparent"
+                }
+
+                onClicked: mailReviewDialog.close()
+            }
+        }
+
+        footer: Column {
+            spacing: 8
+            padding: 12
+
+            Label {
+                width: parent.width - 24
+                text: mailReviewDialog.statusMessage
+                visible: text.length > 0
+                color: root.textColor
+                wrapMode: Text.WordWrap
+            }
+
+            Row {
+                spacing: 12
+
+                Repeater {
+                    model: ["Kasta förslagen", "Spara valda fakta"]
+
+                    delegate: Button {
+                        id: reviewActionButton
+
+                        required property int index
+                        required property string modelData
+
+                        text: modelData
+                        height: 40
+                        leftPadding: 16
+                        rightPadding: 16
+                        hoverEnabled: true
+
+                        contentItem: Text {
+                            text: reviewActionButton.text
+                            color: root.textColor
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+                            color: reviewActionButton.down
+                                ? root.pressedColor
+                                : reviewActionButton.hovered
+                                    ? root.hoverColor
+                                    : root.surfaceColor
+                            border.color: root.accentColor
+                        }
+
+                        onClicked: {
+                            if (index === 0) {
+                                backend.discard_mail_review()
+                                return
+                            }
+
+                            const selectedFacts = []
+
+                            for (let i = 0; i < mailFactsModel.count; i++) {
+                                const fact = mailFactsModel.get(i)
+
+                                if (fact.keepFact) {
+                                    if (!fact.factText.trim()) {
+                                        mailReviewDialog.statusMessage =
+                                            "Valda faktauppgifter får inte vara tomma."
+                                        return
+                                    }
+
+                                    selectedFacts.push(fact.factText.trim())
+                                }
+                            }
+
+                            if (selectedFacts.length === 0) {
+                                mailReviewDialog.statusMessage =
+                                    "Välj minst en faktauppgift att spara."
+                                return
+                            }
+
+                            mailReviewDialog.statusMessage = ""
+                            backend.save_reviewed_mail_facts(selectedFacts)
+                        }
+                    }
+                }
+            }
+        }
+
+        contentItem: RowLayout {
+            spacing: 16
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredWidth: 1
+
+                Label {
+                    text: "Originalmejl"
+                    color: root.textColor
+                    font.bold: true
+                }
+
+                ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+
+                    TextArea {
+                        text: root.mailReviewText
+                        readOnly: true
+                        selectByMouse: true
+                        textFormat: TextEdit.PlainText
+                        wrapMode: TextEdit.Wrap
+                        color: root.textColor
+
+                        background: Rectangle {
+                            color: root.assistantBubbleColor
+                            radius: 8
+                        }
+                    }
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredWidth: 1
+
+                Label {
+                    text: "Välj och redigera fakta"
+                    color: root.textColor
+                    font.bold: true
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    text: "Kontrollera förslagen mot originalet. "
+                        + "AI:n kan missa eller misstolka information."
+                    color: root.secondaryTextColor
+                    wrapMode: Text.WordWrap
+                }
+
+                ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    contentWidth: availableWidth
+                    clip: true
+
+                    Column {
+                        width: parent.width
+                        spacing: 12
+
+                        Label {
+                            width: parent.width
+                            visible: mailFactsModel.count === 0
+                            text: "AI:n föreslog inga faktauppgifter."
+                            color: root.secondaryTextColor
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Repeater {
+                            model: mailFactsModel
+
+                            delegate: Column {
+                                id: factItem
+
+                                required property int index
+                                required property string factText
+                                required property bool keepFact
+
+                                width: parent.width
+                                spacing: 4
+
+                                CheckBox {
+                                    text: "Ta med förslag "
+                                        + (factItem.index + 1)
+                                    checked: factItem.keepFact
+                                    palette.windowText: root.textColor
+
+                                    onToggled: {
+                                        mailFactsModel.setProperty(
+                                            factItem.index,
+                                            "keepFact",
+                                            checked
+                                        )
+                                    }
+                                }
+
+                                TextArea {
+                                    width: parent.width
+                                    text: factItem.factText
+                                    textFormat: TextEdit.PlainText
+                                    wrapMode: TextEdit.Wrap
+                                    selectByMouse: true
+                                    color: root.textColor
+                                    opacity: factItem.keepFact ? 1.0 : 0.5
+
+                                    onTextChanged: {
+                                        if (activeFocus) {
+                                            mailFactsModel.setProperty(
+                                                factItem.index,
+                                                "factText",
+                                                text
+                                            )
+                                        }
+                                    }
+
+                                    background: Rectangle {
+                                        color: root.assistantBubbleColor
+                                        radius: 8
+                                        border.color: parent.activeFocus
+                                            ? root.accentColor
+                                            : root.borderColor
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Preview an email before choosing how to import it.
+    Dialog {
+        id: mailPreviewDialog
+
+        property string emailText: ""
+        property string sourceName: ""
+        property string statusMessage: ""
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        width: Math.min(800, root.width - 48)
+        height: Math.min(550, root.height - 48)
+
+        modal: true
+        title: "Förhandsgranska mejl"
+
+        footer: Item {
+            implicitHeight: 90
+
+            Label {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: 12
+
+                text: mailPreviewDialog.statusMessage
+                color: root.textColor
+                wrapMode: Text.WordWrap
+            }
+
+            Button {
+                id: saveWholeMailButton
+
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: 12
+
+                text: "Spara hela mejlet"
+                height: 40
+                leftPadding: 16
+                rightPadding: 16
+                hoverEnabled: true
+
+                contentItem: Text {
+                    text: saveWholeMailButton.text
+                    color: root.textColor
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+                    color: saveWholeMailButton.down
+                        ? root.pressedColor
+                        : saveWholeMailButton.hovered
+                            ? root.hoverColor
+                            : root.surfaceColor
+                    border.color: root.accentColor
+                }
+
+                onClicked: {
+                    mailPreviewDialog.statusMessage = ""
+                    backend.save_previewed_mail()
+                }
+            }
+
+            // Show a rotating indicator during email analysis.
+            Item {
+                anchors.left: parent.left
+                anchors.bottom: parent.bottom
+                anchors.margins: 16
+
+                width: 32
+                height: 32
+                visible: root.isMailAnalyzing
+
+                Item {
+                    id: mailSpinner
+                    anchors.fill: parent
+
+                    Repeater {
+                        model: 8
+
+                        Rectangle {
+                            required property int index
+
+                            width: 4
+                            height: 4
+                            radius: 2
+
+                            x: 14 + 11 * Math.cos(index * Math.PI / 4)
+                            y: 14 + 11 * Math.sin(index * Math.PI / 4)
+
+                            color: root.accentColor
+                            opacity: (index + 1) / 8
+                        }
+                    }
+
+                    RotationAnimator on rotation {
+                        from: 0
+                        to: 360
+                        duration: 1000
+                        loops: Animation.Infinite
+                        running: root.isMailAnalyzing
+                    }
+                }
+            }
+
+            Button {
+                id: reviewMailButton
+
+                anchors.left: parent.left
+                anchors.bottom: parent.bottom
+                anchors.margins: 12
+
+                text: "Granska förslag"
+                height: 40
+                leftPadding: 16
+                rightPadding: 16
+                hoverEnabled: true
+
+                visible: root.mailReviewPending && !root.isMailAnalyzing
+
+                contentItem: Text {
+                    text: reviewMailButton.text
+                    color: root.textColor
+                    font.bold: true
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+                    color: reviewMailButton.down
+                        ? root.pressedColor
+                        : reviewMailButton.hovered
+                            ? root.hoverColor
+                            : root.assistantBubbleColor
+                    border.color: root.accentColor
+                    border.width: 1
+                }
+
+                onClicked: {
+                    mailPreviewDialog.close()
+                    mailReviewDialog.open()
+                }
+            }
+
+            Button {
+                id: analyzeMailButton
+
+                anchors.right: saveWholeMailButton.left
+                anchors.rightMargin: 12
+                anchors.verticalCenter: saveWholeMailButton.verticalCenter
+
+                text: root.isMailAnalyzing
+                    ? "Analyserar…"
+                    : "Föreslå fakta med AI"
+
+                height: 40
+                leftPadding: 16
+                rightPadding: 16
+                hoverEnabled: true
+
+                enabled: !root.isMailAnalyzing
+                    && !root.isThinking
+                    && !root.modelLoading
+                    && !root.mailReviewPending
+
+                opacity: enabled ? 1.0 : 0.5
+
+                contentItem: Text {
+                    text: analyzeMailButton.text
+                    color: root.textColor
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+                    color: analyzeMailButton.down
+                        ? root.pressedColor
+                        : analyzeMailButton.hovered
+                            ? root.hoverColor
+                            : root.surfaceColor
+                    border.color: root.accentColor
+                }
+
+                onClicked: {
+                    mailPreviewDialog.statusMessage = ""
+                    backend.analyze_previewed_mail()
+                }
+            }
+        }
+
+        background: Rectangle {
+            color: root.surfaceColor
+            radius: 12
+            border.color: root.borderColor
+        }
+
+        header: Item {
+            implicitHeight: 56
+
+            Label {
+                anchors.left: parent.left
+                anchors.leftMargin: 16
+                anchors.right: closeMailPreviewButton.left
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+
+                text: "Förhandsgranska: " + mailPreviewDialog.sourceName
+                color: root.textColor
+                font.pixelSize: 18
+                font.bold: true
+                elide: Text.ElideRight
+            }
+
+            Button {
+                id: closeMailPreviewButton
+
+                width: 28
+                height: 28
+                padding: 0
+                hoverEnabled: true
+
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+
+                Accessible.name: "Stäng förhandsgranskningen"
+                ToolTip.visible: hovered
+                ToolTip.text: "Stäng"
+
+                contentItem: Item {
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 14
+                        height: 2
+                        radius: 1
+                        rotation: 45
+                        color: root.secondaryTextColor
+                    }
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 14
+                        height: 2
+                        radius: 1
+                        rotation: -45
+                        color: root.secondaryTextColor
+                    }
+                }
+
+                background: Rectangle {
+                    radius: 6
+                    color: closeMailPreviewButton.down
+                        ? root.pressedColor
+                        : closeMailPreviewButton.hovered
+                            ? root.hoverColor
+                            : "transparent"
+                }
+
+                // Close the preview without saving the email.
+                onClicked: mailPreviewDialog.close()
+            }
+        }
+
+        contentItem: ScrollView {
+            clip: true
+
+            TextArea {
+                text: mailPreviewDialog.emailText
+                readOnly: true
+                selectByMouse: true
+                textFormat: TextEdit.PlainText
+                wrapMode: TextEdit.Wrap
+
+                color: root.textColor
+                selectedTextColor: root.surfaceColor
+                selectionColor: root.accentColor
+
+                background: Rectangle {
+                    color: root.assistantBubbleColor
+                    radius: 8
+                }
+            }
+        }
+    }
+
     // File picker for importing a mail file.
     FileDialog {
         id: mailFileDialog
@@ -445,7 +1082,7 @@ ApplicationWindow {
 
         onAccepted: {
             knowledgeDialog.clearSaveStatus()
-            backend.add_mail_knowledge(selectedFile.toString())
+            backend.preview_mail(selectedFile.toString())
         }
     }    
 
@@ -514,6 +1151,14 @@ ApplicationWindow {
         // Show the result of saving or importing knowledge.
         function onKnowledgeSaveResult(message) {
             knowledgeDialog.setSaveStatus(message)
+
+            if (mailPreviewDialog.visible) {
+                mailPreviewDialog.statusMessage = message
+            }
+
+            if (mailReviewDialog.visible) {
+                mailReviewDialog.statusMessage = message
+            }
         }
 
         // Update the list with the received posts.
@@ -577,6 +1222,49 @@ ApplicationWindow {
         // Status for models being loaded
         function onModelLoadStatus(message) {
             root.modelLoadStatus = message
+        }
+
+        // Show the selected email without saving it.
+        function onMailPreviewReady(emailText, sourceName) {
+            mailPreviewDialog.emailText = emailText
+            mailPreviewDialog.sourceName = sourceName
+            mailPreviewDialog.statusMessage = ""
+            mailPreviewDialog.open()
+        }
+
+        // Show whether email analysis is running.
+        function onMailAnalysisChanged(analyzing) {
+            root.isMailAnalyzing = analyzing
+        }
+
+        // Keep suggestions until the user reviews them.
+        function onMailReviewReady(emailText, facts, source) {
+            root.mailReviewText = emailText
+            root.mailReviewFacts = facts
+            root.mailReviewSource = source
+            root.mailReviewPending = true
+            
+
+            mailPreviewDialog.statusMessage =
+                "Analysen är klar. " + facts.length + " förslag att granska."
+
+            mailReviewDialog.loadSuggestions(facts)
+        }
+
+        // Clear suggestions after saving or discarding them.
+        function onMailReviewFinished() {
+            mailReviewDialog.close()
+            mailFactsModel.clear()
+            mailReviewDialog.statusMessage = ""
+
+            root.mailReviewPending = false
+            root.mailReviewText = ""
+            root.mailReviewFacts = []
+            root.mailReviewSource = ""
+
+            if (knowledgeViewDialog.visible) {
+                knowledgeViewDialog.requestRefresh()
+            }
         }
     }
 }
