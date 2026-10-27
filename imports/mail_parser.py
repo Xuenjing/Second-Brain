@@ -8,7 +8,7 @@ import extract_msg
 
 
 def extract_mail_chunks(file_path: str) -> list[str]:
-    """Extract the subject and plain text from an EML file.
+    """Extract the subject and plain text from an EML or MSG file.
 
     Args:
         file_path: File path to the EML or MSG file.
