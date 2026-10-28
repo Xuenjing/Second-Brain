@@ -15,6 +15,9 @@ Dialog {
     property color pressedColor
     property color dangerColor
     property color assistantBubbleColor
+    property color dangerBorderColor
+    property color dangerHoverColor
+    property color dangerPressedColor
 
     signal deleteRequested(int id)
 
@@ -38,12 +41,70 @@ Dialog {
         border.width: 1
     }
 
-    header: Label {
-        text: deleteKnowledgeDialog.title
-        color: deleteKnowledgeDialog.textColor
-        font.pixelSize: 18
-        font.bold: true
-        padding: 16
+    header: Item {
+        implicitHeight: 56
+
+        Label {
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.right: closeDeleteButton.left
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            text: deleteKnowledgeDialog.title
+            color: deleteKnowledgeDialog.textColor
+            font.pixelSize: 18
+            font.bold: true
+            elide: Text.ElideRight
+        }
+
+        Button {
+            id: closeDeleteButton
+
+            width: 28
+            height: 28
+            padding: 0
+            hoverEnabled: true
+
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            Accessible.name: "Avbryt borttagning"
+            ToolTip.visible: hovered
+            ToolTip.text: "Avbryt borttagning"
+
+            contentItem: Item {
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: 45
+                    color: deleteKnowledgeDialog.secondaryTextColor
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: -45
+                    color: deleteKnowledgeDialog.secondaryTextColor
+                }
+            }
+
+            background: Rectangle {
+                radius: 6
+                color: closeDeleteButton.down
+                    ? deleteKnowledgeDialog.pressedColor
+                    : closeDeleteButton.hovered
+                        ? deleteKnowledgeDialog.hoverColor
+                        : "transparent"
+            }
+
+            onClicked: deleteKnowledgeDialog.close()
+        }
     }
 
     contentItem: Item {
@@ -107,75 +168,93 @@ Dialog {
     footer: Item {
         implicitHeight: 64
 
-        Row {
+        Button {
+            id: confirmDeleteButton
+
             anchors.right: parent.right
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 12
 
-            Button {
-                id: confirmDeleteButton
-                text: "Ta bort"
-                width: 100
-                height: 40
-                hoverEnabled: true
+            width: 40
+            height: 40
+            padding: 0
+            hoverEnabled: true
 
-                contentItem: Text {
-                    text: confirmDeleteButton.text
-                    color: "#FFFFFF"
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
+            Accessible.name: "Bekräfta borttagning av kunskapsposten"
+            ToolTip.visible: hovered
+            ToolTip.text: "Ta bort kunskapsposten"
 
-                background: Rectangle {
-                    radius: 8
+            // Draw a trash-can icon.
+            contentItem: Item {
+                Item {
+                    anchors.centerIn: parent
+                    width: 20
+                    height: 24
 
-                    color: confirmDeleteButton.down
-                        ? "#991B1B"
-                        : confirmDeleteButton.hovered
-                            ? "#EF4444"
-                            : "#DC2626"
-                }
+                    Rectangle {
+                        x: 7
+                        y: 1
+                        width: 6
+                        height: 5
+                        radius: 1
+                        color: "transparent"
+                        border.color: deleteKnowledgeDialog.dangerColor
+                        border.width: 2
+                    }
 
-                onClicked: {
-                    deleteKnowledgeStatus.text = ""
+                    Rectangle {
+                        x: 2
+                        y: 5
+                        width: 16
+                        height: 2
+                        radius: 1
+                        color: deleteKnowledgeDialog.dangerColor
+                    }
 
-                    deleteKnowledgeDialog.deleteRequested(
-                        deleteKnowledgeDialog.knowledgeId
-                    )
+                    Rectangle {
+                        x: 4
+                        y: 9
+                        width: 12
+                        height: 14
+                        radius: 2
+                        color: deleteKnowledgeDialog.dangerColor
+
+                        Repeater {
+                            model: 3
+
+                            Rectangle {
+                                required property int index
+
+                                x: 3 + index * 3
+                                y: 3
+                                width: 1
+                                height: 8
+                                radius: 0.5
+                                color: deleteKnowledgeDialog.surfaceColor
+                            }
+                        }
+                    }
                 }
             }
 
-            Button {
-                id: cancelDeleteButton
-                text: "Avbryt"
-                width: 100
-                height: 40
-                hoverEnabled: true
+            background: Rectangle {
+                radius: 8
+                color: confirmDeleteButton.down
+                    ? deleteKnowledgeDialog.dangerPressedColor
+                    : confirmDeleteButton.hovered
+                        ? deleteKnowledgeDialog.dangerHoverColor
+                        : deleteKnowledgeDialog.surfaceColor
 
-                contentItem: Text {
-                    text: cancelDeleteButton.text
-                    color: deleteKnowledgeDialog.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
+                border.color: deleteKnowledgeDialog.dangerBorderColor
+                border.width: 1
+            }
 
-                background: Rectangle {
-                    radius: 8
+            onClicked: {
+                deleteKnowledgeStatus.text = ""
 
-                    color: cancelDeleteButton.down
-                        ? deleteKnowledgeDialog.pressedColor
-                        : cancelDeleteButton.hovered
-                            ? deleteKnowledgeDialog.hoverColor
-                            : deleteKnowledgeDialog.surfaceColor
-
-                    border.color: deleteKnowledgeDialog.borderColor
-                    border.width: 1
-                }
-
-                onClicked: deleteKnowledgeDialog.close()
+                deleteKnowledgeDialog.deleteRequested(
+                    deleteKnowledgeDialog.knowledgeId
+                )
             }
         }
     }        

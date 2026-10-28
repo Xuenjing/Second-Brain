@@ -383,6 +383,7 @@ ApplicationWindow {
         hoverColor: root.hoverColor
         pressedColor: root.pressedColor
         assistantBubbleColor: root.assistantBubbleColor
+        accentColor: root.accentColor
 
         onSaveRequested: function(id, text) {
             backend.edit_saved_knowledge(id, text)
@@ -407,6 +408,9 @@ ApplicationWindow {
         pressedColor: root.pressedColor
         dangerColor: root.dangerColor
         assistantBubbleColor: root.assistantBubbleColor
+        dangerBorderColor: root.dangerBorderColor
+        dangerHoverColor: root.dangerHoverColor
+        dangerPressedColor: root.dangerPressedColor
 
         onDeleteRequested: function(id) {
             backend.delete_saved_knowledge(id)
