@@ -578,69 +578,189 @@ ApplicationWindow {
             Row {
                 spacing: 12
 
-                Repeater {
-                    model: ["Kasta förslagen", "Spara valda fakta"]
+                Button {
+                    id: discardMailFactsButton
 
-                    delegate: Button {
-                        id: reviewActionButton
+                    width: 40
+                    height: 40
+                    padding: 0
+                    hoverEnabled: true
 
-                        required property int index
-                        required property string modelData
+                    Accessible.name: "Kasta förslagen"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Kasta förslagen"
 
-                        text: modelData
-                        height: 40
-                        leftPadding: 16
-                        rightPadding: 16
-                        hoverEnabled: true
+                    // Draw a trash-can icon.
+                    contentItem: Item {
+                        Item {
+                            anchors.centerIn: parent
+                            width: 20
+                            height: 24
 
-                        contentItem: Text {
-                            text: reviewActionButton.text
-                            color: root.textColor
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        background: Rectangle {
-                            radius: 8
-                            color: reviewActionButton.down
-                                ? root.pressedColor
-                                : reviewActionButton.hovered
-                                    ? root.hoverColor
-                                    : root.surfaceColor
-                            border.color: root.accentColor
-                        }
-
-                        onClicked: {
-                            if (index === 0) {
-                                backend.discard_mail_review()
-                                return
+                            Rectangle {
+                                x: 7
+                                y: 1
+                                width: 6
+                                height: 5
+                                radius: 1
+                                color: "transparent"
+                                border.color: root.dangerColor
+                                border.width: 2
                             }
 
-                            const selectedFacts = []
+                            Rectangle {
+                                x: 2
+                                y: 5
+                                width: 16
+                                height: 2
+                                radius: 1
+                                color: root.dangerColor
+                            }
 
-                            for (let i = 0; i < mailFactsModel.count; i++) {
-                                const fact = mailFactsModel.get(i)
+                            Rectangle {
+                                x: 4
+                                y: 9
+                                width: 12
+                                height: 14
+                                radius: 2
+                                color: root.dangerColor
 
-                                if (fact.keepFact) {
-                                    if (!fact.factText.trim()) {
-                                        mailReviewDialog.statusMessage =
-                                            "Valda faktauppgifter får inte vara tomma."
-                                        return
+                                Repeater {
+                                    model: 3
+
+                                    Rectangle {
+                                        required property int index
+
+                                        x: 3 + index * 3
+                                        y: 3
+                                        width: 1
+                                        height: 8
+                                        radius: 0.5
+                                        color: root.surfaceColor
                                     }
+                                }
+                            }
+                        }
+                    }
 
-                                    selectedFacts.push(fact.factText.trim())
+                    background: Rectangle {
+                        radius: 8
+                        color: discardMailFactsButton.down
+                            ? root.dangerPressedColor
+                            : discardMailFactsButton.hovered
+                                ? root.dangerHoverColor
+                                : root.surfaceColor
+                        border.color: root.dangerBorderColor
+                        border.width: 1
+                    }
+
+                    onClicked: backend.discard_mail_review()
+                }
+
+                Button {
+                    id: saveMailFactsButton
+
+                    width: 40
+                    height: 40
+                    padding: 0
+                    hoverEnabled: true
+
+                    enabled: mailFactsModel.count > 0
+                    opacity: enabled ? 1.0 : 0.5
+
+                    Accessible.name: "Spara valda fakta"
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Spara valda fakta"
+
+                    // Draw a floppy-disk icon.
+                    contentItem: Item {
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 22
+                            height: 22
+                            radius: 2
+                            color: root.accentColor
+
+                            Rectangle {
+                                x: 5
+                                y: 2
+                                width: 12
+                                height: 7
+                                radius: 1
+                                color: root.surfaceColor
+
+                                Rectangle {
+                                    x: 8
+                                    y: 1
+                                    width: 2
+                                    height: 5
+                                    color: root.accentColor
                                 }
                             }
 
-                            if (selectedFacts.length === 0) {
-                                mailReviewDialog.statusMessage =
-                                    "Välj minst en faktauppgift att spara."
-                                return
-                            }
+                            Rectangle {
+                                x: 4
+                                y: 13
+                                width: 14
+                                height: 7
+                                radius: 1
+                                color: root.surfaceColor
 
-                            mailReviewDialog.statusMessage = ""
-                            backend.save_reviewed_mail_facts(selectedFacts)
+                                Rectangle {
+                                    x: 3
+                                    y: 2
+                                    width: 8
+                                    height: 1
+                                    color: root.accentColor
+                                }
+
+                                Rectangle {
+                                    x: 3
+                                    y: 4
+                                    width: 8
+                                    height: 1
+                                    color: root.accentColor
+                                }
+                            }
                         }
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+                        color: saveMailFactsButton.down
+                            ? root.pressedColor
+                            : saveMailFactsButton.hovered
+                                ? root.hoverColor
+                                : root.surfaceColor
+                        border.color: root.accentColor
+                        border.width: 1
+                    }
+
+                    onClicked: {
+                        const selectedFacts = []
+
+                        for (let i = 0; i < mailFactsModel.count; i++) {
+                            const fact = mailFactsModel.get(i)
+
+                            if (fact.keepFact) {
+                                if (!fact.factText.trim()) {
+                                    mailReviewDialog.statusMessage =
+                                        "Valda faktauppgifter får inte vara tomma."
+                                    return
+                                }
+
+                                selectedFacts.push(fact.factText.trim())
+                            }
+                        }
+
+                        if (selectedFacts.length === 0) {
+                            mailReviewDialog.statusMessage =
+                                "Välj minst en faktauppgift att spara."
+                            return
+                        }
+
+                        mailReviewDialog.statusMessage = ""
+                        backend.save_reviewed_mail_facts(selectedFacts)
                     }
                 }
             }
@@ -815,6 +935,11 @@ ApplicationWindow {
             Button {
                 id: saveWholeMailButton
 
+                width: 40
+                height: 40
+                padding: 0
+                hoverEnabled: true
+
                 enabled: !root.isMailAnalyzing
                 opacity: enabled ? 1.0 : 0.5
 
@@ -822,17 +947,63 @@ ApplicationWindow {
                 anchors.bottom: parent.bottom
                 anchors.margins: 12
 
-                text: "Spara hela mejlet"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true
+                Accessible.name: "Spara hela mejlet"
+                ToolTip.visible: hovered
+                ToolTip.text: "Spara hela mejlet"
 
-                contentItem: Text {
-                    text: saveWholeMailButton.text
-                    color: root.textColor
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                // Draw the same floppy-disk icon.
+                contentItem: Item {
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 22
+                        height: 22
+                        radius: 2
+                        color: root.accentColor
+
+                        // Upper label area with a visible outer border.
+                        Rectangle {
+                            x: 5
+                            y: 2
+                            width: 12
+                            height: 7
+                            radius: 1
+                            color: root.surfaceColor
+
+                            Rectangle {
+                                x: 8
+                                y: 1
+                                width: 2
+                                height: 5
+                                color: root.accentColor
+                            }
+                        }
+
+                        // Lower label area.
+                        Rectangle {
+                            x: 4
+                            y: 13
+                            width: 14
+                            height: 7
+                            radius: 1
+                            color: root.surfaceColor
+
+                            Rectangle {
+                                x: 3
+                                y: 2
+                                width: 8
+                                height: 1
+                                color: root.accentColor
+                            }
+
+                            Rectangle {
+                                x: 3
+                                y: 4
+                                width: 8
+                                height: 1
+                                color: root.accentColor
+                            }
+                        }
+                    }
                 }
 
                 background: Rectangle {
@@ -843,6 +1014,7 @@ ApplicationWindow {
                             ? root.hoverColor
                             : root.surfaceColor
                     border.color: root.accentColor
+                    border.width: 1
                 }
 
                 onClicked: {
@@ -940,13 +1112,9 @@ ApplicationWindow {
                 anchors.rightMargin: 12
                 anchors.verticalCenter: saveWholeMailButton.verticalCenter
 
-                text: root.isMailAnalyzing
-                    ? "Analyserar…"
-                    : "Föreslå fakta med AI"
-
+                width: 40
                 height: 40
-                leftPadding: 16
-                rightPadding: 16
+                padding: 0
                 hoverEnabled: true
 
                 enabled: !root.isMailAnalyzing
@@ -956,11 +1124,19 @@ ApplicationWindow {
 
                 opacity: enabled ? 1.0 : 0.5
 
-                contentItem: Text {
-                    text: analyzeMailButton.text
-                    color: root.textColor
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                Accessible.name: "Föreslå fakta med AI"
+                ToolTip.visible: hovered
+                ToolTip.text: "Föreslå fakta med AI"
+
+                contentItem: Item {
+                    Image {
+                        anchors.centerIn: parent
+                        width: 28
+                        height: 28
+                        source: "../assets/logo4.png"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
                 }
 
                 background: Rectangle {
@@ -971,6 +1147,7 @@ ApplicationWindow {
                             ? root.hoverColor
                             : root.surfaceColor
                     border.color: root.accentColor
+                    border.width: 1
                 }
 
                 onClicked: {
