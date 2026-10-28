@@ -572,20 +572,24 @@ class Backend(QObject):
             self.mail_source
         )
 
-    @Slot()
-    def save_previewed_mail(self) -> None:
-        """Save the previewed email to the knowledge database."""
-        if not self.mail_text.strip():
+    @Slot(str)
+    def save_previewed_mail(self, email_text: str) -> None:
+        """Save the email text reviewed and edited by the user.
+
+        Args:
+            email_text: Current email text received from QML.
+        """
+        if not email_text.strip():
             self.knowledgeSaveResult.emit(
                 "Det finns inget mejl att spara."
             )
             return
 
         try:
-            embedding = create_embedding(self.mail_text)
+            embedding = create_embedding(email_text)
 
             added = add_knowledge(
-                self.mail_text,
+                email_text,
                 embedding,
                 source=self.mail_source
             )
@@ -602,10 +606,15 @@ class Backend(QObject):
             self.knowledgeSaveResult.emit(
                 "Mejlet finns redan i kunskapsbasen."
             )
-    @Slot()
-    def analyze_previewed_mail(self) -> None:
-        """Start background analysis of the previewed email."""
-        if not self.mail_text.strip():
+
+    @Slot(str)
+    def analyze_previewed_mail(self, email_text: str) -> None:
+        """Analyze the email text reviewed and edited by the user.
+
+        Args:
+            email_text: Current email text received from QML.
+        """
+        if not email_text.strip():
             self.knowledgeSaveResult.emit(
                 "Det finns inget mejl att analysera."
             )
@@ -629,7 +638,7 @@ class Backend(QObject):
 
         self.mail_worker = MailFactWorker(
             self.llm,
-            self.mail_text,
+            email_text,
             self.mail_source
         )
 

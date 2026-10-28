@@ -815,6 +815,9 @@ ApplicationWindow {
             Button {
                 id: saveWholeMailButton
 
+                enabled: !root.isMailAnalyzing
+                opacity: enabled ? 1.0 : 0.5
+
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 anchors.margins: 12
@@ -844,7 +847,7 @@ ApplicationWindow {
 
                 onClicked: {
                     mailPreviewDialog.statusMessage = ""
-                    backend.save_previewed_mail()
+                    backend.save_previewed_mail(mailPreviewInput.text)
                 }
             }
 
@@ -972,7 +975,7 @@ ApplicationWindow {
 
                 onClicked: {
                     mailPreviewDialog.statusMessage = ""
-                    backend.analyze_previewed_mail()
+                    backend.analyze_previewed_mail(mailPreviewInput.text)
                 }
             }
         }
@@ -1054,8 +1057,16 @@ ApplicationWindow {
             clip: true
 
             TextArea {
+                id: mailPreviewInput
+
                 text: mailPreviewDialog.emailText
-                readOnly: true
+
+                // Prevent editing while this email is being analyzed.
+                readOnly: root.isMailAnalyzing
+
+                // Retain edits when the preview is closed and reopened.
+                onTextChanged: mailPreviewDialog.emailText = text
+
                 selectByMouse: true
                 textFormat: TextEdit.PlainText
                 wrapMode: TextEdit.Wrap
