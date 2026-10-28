@@ -18,6 +18,13 @@ Rectangle {
 
     signal sourcesRequested(var sources)
 
+    function scrollToBottom() {
+        Qt.callLater(function() {
+            chatList.forceLayout()
+            chatList.positionViewAtEnd()
+        })
+    }
+
     radius: 10
     border.width: 1
     border.color: chatView.borderColor
@@ -71,6 +78,7 @@ Rectangle {
             required property string message
             required property var sources
             required property int sourceCount
+            required property bool isPending
 
             width: ListView.view.width
             height: chatMessage.height
@@ -84,6 +92,8 @@ Rectangle {
                 message: messageDelegate.message
                 sources: messageDelegate.sources
                 sourceCount: messageDelegate.sourceCount
+
+                isPending: messageDelegate.isPending
 
                 textColor: chatView.textColor
                 secondaryTextColor: chatView.secondaryTextColor
