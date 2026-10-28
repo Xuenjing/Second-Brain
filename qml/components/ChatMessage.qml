@@ -17,6 +17,7 @@ Item {
     property color hoverColor
     property color pressedColor
     property color secondaryTextColor
+    property bool isPending: false
 
     property bool isUser: sender === "user"
 
@@ -88,15 +89,19 @@ Item {
 
     Rectangle {
         id: messageBubble
+        radius: 10
 
         width: Math.min(
-            messageText.implicitWidth + 28,
+            chatMessage.isPending
+                ? thinkingRow.implicitWidth + 28
+                : messageText.implicitWidth + 28,
             chatMessage.width * 0.8,
             chatMessage.width - avatar.width - 12
         )
 
-        height: messageText.height + 24
-        radius: 10
+        height: chatMessage.isPending
+            ? thinkingRow.implicitHeight + 24
+            : messageText.height + 24
 
         x: chatMessage.isUser
             ? avatar.x - width - 12
@@ -113,11 +118,64 @@ Item {
             y: 12
             width: parent.width - 28
 
+            visible: !chatMessage.isPending
             text: chatMessage.message
             textFormat: Text.PlainText
             wrapMode: Text.Wrap
             font.pixelSize: 14
             color: chatMessage.textColor
+        }
+
+        // Show an animated indicator while waiting for the answer.
+        Row {
+            id: thinkingRow
+
+            x: 14
+            y: 12
+            spacing: 8
+            visible: chatMessage.isPending
+
+            Item {
+                width: 20
+                height: 20
+
+                Item {
+                    anchors.fill: parent
+
+                    Repeater {
+                        model: 8
+
+                        Rectangle {
+                            required property int index
+
+                            width: 3
+                            height: 3
+                            radius: 1.5
+
+                            x: 8.5 + 7 * Math.cos(index * Math.PI / 4)
+                            y: 8.5 + 7 * Math.sin(index * Math.PI / 4)
+
+                            color: chatMessage.accentColor
+                            opacity: (index + 1) / 8
+                        }
+                    }
+
+                    RotationAnimator on rotation {
+                        from: 0
+                        to: 360
+                        duration: 1000
+                        loops: Animation.Infinite
+                        running: chatMessage.isPending
+                    }
+                }
+            }
+
+            Text {
+                text: "Tänker…"
+                color: chatMessage.textColor
+                font.pixelSize: 14
+                anchors.verticalCenter: parent.verticalCenter
+            }
         }
 
         Button {

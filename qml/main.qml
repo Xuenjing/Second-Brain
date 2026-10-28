@@ -50,6 +50,38 @@ ApplicationWindow {
     // Track whether a question is being processed.
     property bool isThinking: false
 
+    // Track the assistant bubble waiting for a reply.
+    property int pendingReplyIndex: -1
+
+    function finishPendingReply(message, sources) {
+        if (pendingReplyIndex < 0
+                || pendingReplyIndex >= chatModel.count) {
+            return
+        }
+
+        const replyIndex = pendingReplyIndex
+        const replySources = sources || []
+
+        // Update the existing nested source model.
+        const sourceModel = chatModel.get(replyIndex).sources
+        sourceModel.clear()
+
+        for (let i = 0; i < replySources.length; i++) {
+            sourceModel.append(replySources[i])
+        }
+
+        chatModel.setProperty(replyIndex, "message", message)
+        chatModel.setProperty(
+            replyIndex,
+            "sourceCount",
+            replySources.length
+        )
+        chatModel.setProperty(replyIndex, "isPending", false)
+
+        pendingReplyIndex = -1
+        chatPanel.scrollToBottom()
+    }
+
     // Track email analysis and retain suggestions for review.
     property bool isMailAnalyzing: false
     property bool mailReviewPending: false
@@ -159,19 +191,6 @@ ApplicationWindow {
             onClicked: mailReviewDialog.open()
         }
 
-        // Conversation title.
-        // Keep the chat heading and thinking indicator on the same line.
-        ThinkingIndicator {
-            width: parent.width
-            height: 32
-
-            isThinking: root.isThinking
-
-            textColor: root.textColor
-            accentColor: root.accentColor
-            windowColor: root.windowColor
-        }
-
         // Show a welcome message or the conversation.
         ChatView {
             id: chatPanel
@@ -218,11 +237,27 @@ ApplicationWindow {
             pressedColor: root.pressedColor
 
             onQuestionSubmitted: function(question) {
+                // Allow only one unanswered question at a time.
+                if (root.isThinking || root.pendingReplyIndex !== -1) {
+                    return
+                }
+
                 chatModel.append({
                     sender: "user",
                     message: question,
                     sources: [],
-                    sourceCount: 0
+                    sourceCount: 0,
+                    isPending: false
+                })
+
+                root.pendingReplyIndex = chatModel.count
+
+                chatModel.append({
+                    sender: "assistant",
+                    message: "Tänker…",
+                    sources: [],
+                    sourceCount: 0,
+                    isPending: true
                 })
 
                 backend.receive_text(question)
@@ -1329,15 +1364,9 @@ ApplicationWindow {
     Connections {
         target: backend
 
-        // Add the answer to the chat.
+        // Replace the waiting bubble with the answer.
         function onReplyReady(reply, sources) {
-            
-            chatModel.append({
-                sender: "assistant",
-                message: reply,
-                sources: sources,
-                sourceCount: sources.length
-            })
+            root.finishPendingReply(reply, sources || [])
         }
 
         // Show the result of saving or importing knowledge.
@@ -1382,12 +1411,9 @@ ApplicationWindow {
             root.isThinking = thinking
         }
 
-        // Display an error message in the chat.
+        // Replace the waiting bubble with an error message.
         function onReplyFailed(message) {
-            chatModel.append({
-                sender: "assistant",
-                message: "Fel: " + message
-            })
+            root.finishPendingReply("Fel: " + message, [])
         }
 
         // Open knowledgeview for clicked entry
