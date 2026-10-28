@@ -129,7 +129,7 @@ class TestImporter(unittest.TestCase):
         """A missing knowledge entry is imported."""
 
         mock_create_embedding.return_value = [0.1, 0.2, 0.3]
-        mock_add_knowledge.returnv_vaule = [True]
+        mock_add_knowledge.returnv_vaule = True
 
         with TemporaryDirectory() as temp_dir:
             file_path = Path(temp_dir) / "missing_entry.json"
