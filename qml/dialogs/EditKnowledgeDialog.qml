@@ -14,6 +14,7 @@ Dialog {
     property color hoverColor
     property color pressedColor
     property color assistantBubbleColor
+    property color accentColor
 
     signal saveRequested(int id, string text)
 
@@ -37,12 +38,70 @@ Dialog {
         border.width: 1
     }
 
-    header: Label {
-        text: editKnowledgeDialog.title
-        color: editKnowledgeDialog.textColor
-        font.pixelSize: 18
-        font.bold: true
-        padding: 16
+    header: Item {
+        implicitHeight: 56
+
+        Label {
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.right: closeEditButton.left
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            text: editKnowledgeDialog.title
+            color: editKnowledgeDialog.textColor
+            font.pixelSize: 18
+            font.bold: true
+            elide: Text.ElideRight
+        }
+
+        Button {
+            id: closeEditButton
+
+            width: 28
+            height: 28
+            padding: 0
+            hoverEnabled: true
+
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            Accessible.name: "Stäng utan att spara"
+            ToolTip.visible: hovered
+            ToolTip.text: "Stäng utan att spara"
+
+            contentItem: Item {
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: 45
+                    color: editKnowledgeDialog.secondaryTextColor
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 2
+                    radius: 1
+                    rotation: -45
+                    color: editKnowledgeDialog.secondaryTextColor
+                }
+            }
+
+            background: Rectangle {
+                radius: 6
+                color: closeEditButton.down
+                    ? editKnowledgeDialog.pressedColor
+                    : closeEditButton.hovered
+                        ? editKnowledgeDialog.hoverColor
+                        : "transparent"
+            }
+
+            onClicked: editKnowledgeDialog.close()
+        }
     }
 
     contentItem: Item {
@@ -90,77 +149,94 @@ Dialog {
     footer: Item {
         implicitHeight: 64
 
-        Row {
+        Button {
+            id: saveEditButton
+
             anchors.right: parent.right
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 12
 
-            Button {
-                id: saveEditButton
-                text: "Spara"
-                width: 100
-                height: 40
-                hoverEnabled: true
+            width: 40
+            height: 40
+            padding: 0
+            hoverEnabled: true
 
-                contentItem: Text {
-                    text: saveEditButton.text
-                    color: "#FFFFFF"
-                    font.pixelSize: 14
-                    font.bold: true
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
+            Accessible.name: "Spara ändringar"
+            ToolTip.visible: hovered
+            ToolTip.text: "Spara ändringar"
 
-                background: Rectangle {
-                    radius: 8
+            // Draw a floppy-disk icon.
+            contentItem: Item {
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 22
+                    height: 22
+                    radius: 2
+                    color: editKnowledgeDialog.accentColor
 
-                    color: saveEditButton.down
-                        ? "#1D4ED8"
-                        : saveEditButton.hovered
-                            ? "#3B82F6"
-                            : "#2563EB"
-                }
+                    Rectangle {
+                        x: 5
+                        y: 2
+                        width: 12
+                        height: 7
+                        radius: 1
+                        color: editKnowledgeDialog.surfaceColor
 
-                onClicked: {
-                    editKnowledgeStatus.text = ""
+                        Rectangle {
+                            x: 8
+                            y: 1
+                            width: 2
+                            height: 5
+                            color: editKnowledgeDialog.accentColor
+                        }
+                    }
 
-                    editKnowledgeDialog.saveRequested(
-                        editKnowledgeDialog.knowledgeId,
-                        editKnowledgeInput.text
-                    )
+                    Rectangle {
+                        x: 4
+                        y: 13
+                        width: 14
+                        height: 7
+                        radius: 1
+                        color: editKnowledgeDialog.surfaceColor
+
+                        Rectangle {
+                            x: 3
+                            y: 2
+                            width: 8
+                            height: 1
+                            color: editKnowledgeDialog.accentColor
+                        }
+
+                        Rectangle {
+                            x: 3
+                            y: 4
+                            width: 8
+                            height: 1
+                            color: editKnowledgeDialog.accentColor
+                        }
+                    }
                 }
             }
 
-            Button {
-                id: cancelEditButton
-                text: "Avbryt"
-                width: 100
-                height: 40
-                hoverEnabled: true
+            background: Rectangle {
+                radius: 8
+                color: saveEditButton.down
+                    ? editKnowledgeDialog.pressedColor
+                    : saveEditButton.hovered
+                        ? editKnowledgeDialog.hoverColor
+                        : editKnowledgeDialog.surfaceColor
 
-                contentItem: Text {
-                    text: cancelEditButton.text
-                    color: editKnowledgeDialog.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
+                border.color: editKnowledgeDialog.accentColor
+                border.width: 1
+            }
 
-                background: Rectangle {
-                    radius: 8
+            onClicked: {
+                editKnowledgeStatus.text = ""
 
-                    color: cancelEditButton.down
-                        ? editKnowledgeDialog.pressedColor
-                        : cancelEditButton.hovered
-                            ? editKnowledgeDialog.hoverColor
-                            : editKnowledgeDialog.surfaceColor
-
-                    border.color: editKnowledgeDialog.borderColor
-                    border.width: 1
-                }
-
-                onClicked: editKnowledgeDialog.close()
+                editKnowledgeDialog.saveRequested(
+                    editKnowledgeDialog.knowledgeId,
+                    editKnowledgeInput.text
+                )
             }
         }
     }    
