@@ -22,10 +22,7 @@ Row {
     TextField {
         id: inputField
 
-        width: parent.width - sendButton.width -
-            (chatInput.isThinking
-                ? cancelButton.width + 2 * parent.spacing
-                : parent.spacing)
+        width: chatInput.width - sendButton.width - chatInput.spacing
 
         placeholderText: "Skriv din fråga här"
 
@@ -52,7 +49,7 @@ Row {
         width: 100
         height: 44
 
-        visible: chatInput.isThinking
+        visible: false
         hoverEnabled: true
 
         contentItem: Text {

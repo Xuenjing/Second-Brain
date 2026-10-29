@@ -91,6 +91,17 @@ Item {
         }
     }
 
+    // Measure the text independently of the bubble width.
+    Text {
+        id: messageSize
+
+        visible: false
+        text: chatMessage.message
+        textFormat: Text.PlainText
+        font: messageText.font
+        wrapMode: Text.NoWrap
+    }
+
     Rectangle {
         id: messageBubble
         radius: 10
@@ -98,7 +109,7 @@ Item {
         width: Math.min(
             chatMessage.isPending
                 ? thinkingRow.implicitWidth + 28
-                : messageText.implicitWidth + 28,
+                : messageSize.implicitWidth + 28,
             chatMessage.width * 0.8,
             chatMessage.width - avatar.width - 12
                 - (chatMessage.canReviewMail ? 40 : 0)
