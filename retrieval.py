@@ -18,7 +18,7 @@ def get_embedding_model() -> Any:
         from sentence_transformers import SentenceTransformer
 
         _embedding_model = SentenceTransformer(
-            "paraphrase-multilingual-MiniLM-L12-v2"
+            "intfloat/multilingual-e5-small"
         )
 
     return _embedding_model
@@ -43,7 +43,7 @@ def retrieve_knowledge(query: str) -> list[dict]:
     top_k = 5
 
     # Minimum score required for a result.
-    similarity_threshold = 0.45
+    similarity_threshold = 0.82
 
     knowledge = get_all_knowledge()
 
@@ -52,7 +52,7 @@ def retrieve_knowledge(query: str) -> list[dict]:
     
     from sentence_transformers import util
 
-    query_embedding = get_embedding_model().encode(query)
+    query_embedding = create_query_embedding(query)
     results = []
     for item in knowledge:
 
@@ -88,8 +88,10 @@ def retrieve_knowledge(query: str) -> list[dict]:
 
 
 def create_embedding(text: str) -> np.ndarray:
-    """Create an embedding vector for a text string.
-    
+    """Create an embedding vector for stored knowledge.
+
+    Text is prefixed by "passage:" by the E5 model.
+
     Args:
         text: Text to embed.
     
@@ -97,7 +99,21 @@ def create_embedding(text: str) -> np.ndarray:
         A NumPy array containing the generated embedding.
     """
 
-    return get_embedding_model().encode(text)
+    return get_embedding_model().encode(f"passage: {text}")
+
+
+def create_query_embedding(query: str) -> np.ndarray:
+    """Create an embedding for a search query.
+    
+    The query is prefixed with "query by the E5 model.
+
+    Args:
+        query: Search query to embed.
+    
+    Returns:
+        A NumPy array containing the generated query embedding.
+    """
+    return get_embedding_model().encode(f"query: {query}")
 
 
 def filter_and_rank_results(
