@@ -17,6 +17,7 @@ Rectangle {
     property color pressedColor
 
     signal sourcesRequested(var sources)
+    signal mailReviewRequested()
 
     function scrollToBottom() {
         Qt.callLater(function() {
@@ -79,6 +80,7 @@ Rectangle {
             required property var sources
             required property int sourceCount
             required property bool isPending
+            required property bool canReviewMail
 
             width: ListView.view.width
             height: chatMessage.height
@@ -94,6 +96,10 @@ Rectangle {
                 sourceCount: messageDelegate.sourceCount
 
                 isPending: messageDelegate.isPending
+
+                canReviewMail: messageDelegate.canReviewMail
+
+                onMailReviewRequested: chatView.mailReviewRequested()
 
                 textColor: chatView.textColor
                 secondaryTextColor: chatView.secondaryTextColor

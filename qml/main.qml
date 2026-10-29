@@ -89,6 +89,21 @@ ApplicationWindow {
     property var mailReviewFacts: []
     property string mailReviewSource: ""
 
+    // Track the email-analysis bubble separately from chat replies.
+    property int mailAnalysisIndex: -1
+
+    function updateMailAnalysisBubble(message, isPending) {
+        if (mailAnalysisIndex < 0
+                || mailAnalysisIndex >= chatModel.count) {
+            return
+        }
+
+        chatModel.setProperty(mailAnalysisIndex, "message", message)
+        chatModel.setProperty(mailAnalysisIndex, "isPending", isPending)
+
+        chatPanel.scrollToBottom()
+    }
+
     // Track state of model loading.
     property bool modelLoading: false
     property string modelLoadStatus: ""
@@ -158,39 +173,6 @@ ApplicationWindow {
             // }
         }
 
-        // Show email-analysis status and reopen pending suggestions.
-        Button {
-            id: openMailReviewButton
-
-            visible: root.isMailAnalyzing || root.mailReviewPending
-            enabled: !root.isMailAnalyzing
-            height: 40
-            hoverEnabled: true
-
-            text: root.isMailAnalyzing
-                ? "Analyserar mejl…"
-                : "Mejlanalysen är klar – Granska förslag"
-
-            contentItem: Text {
-                text: openMailReviewButton.text
-                color: root.textColor
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            background: Rectangle {
-                radius: 8
-                color: openMailReviewButton.down
-                    ? root.pressedColor
-                    : openMailReviewButton.hovered
-                        ? root.hoverColor
-                        : root.surfaceColor
-                border.color: root.accentColor
-            }
-
-            onClicked: mailReviewDialog.open()
-        }
-
         // Show a welcome message or the conversation.
         ChatView {
             id: chatPanel
@@ -201,6 +183,13 @@ ApplicationWindow {
                 0,
                 parent.height - y - questionRow.height - parent.spacing
             )
+
+            onMailReviewRequested: {
+                if (root.mailReviewPending) {
+                    mailPreviewDialog.close()
+                    mailReviewDialog.open()
+                }
+            }
 
             chatModel: chatModel
 
@@ -247,6 +236,7 @@ ApplicationWindow {
                     message: question,
                     sources: [],
                     sourceCount: 0,
+                    canReviewMail: false,
                     isPending: false
                 })
 
@@ -257,6 +247,7 @@ ApplicationWindow {
                     message: "Tänker…",
                     sources: [],
                     sourceCount: 0,
+                    canReviewMail: false,
                     isPending: true
                 })
 
@@ -1450,9 +1441,32 @@ ApplicationWindow {
             mailPreviewDialog.open()
         }
 
-        // Show whether email analysis is running.
+        // Create and update the email-analysis status bubble.
         function onMailAnalysisChanged(analyzing) {
             root.isMailAnalyzing = analyzing
+
+            if (analyzing) {
+                root.mailAnalysisIndex = chatModel.count
+
+                chatModel.append({
+                    sender: "assistant",
+                    message: "Analyserar mejl…",
+                    sources: [],
+                    sourceCount: 0,
+                    canReviewMail: false,
+                    isPending: true
+                })
+
+                chatPanel.scrollToBottom()
+            } else if (root.mailAnalysisIndex >= 0
+                    && chatModel.get(root.mailAnalysisIndex).isPending) {
+                // Successful analysis updates the bubble in onMailReviewReady.
+                root.updateMailAnalysisBubble(
+                    "Mejlet kunde inte analyseras. Försök igen.",
+                    false
+                )
+                root.mailAnalysisIndex = -1
+            }
         }
 
         // Keep suggestions until the user reviews them.
@@ -1467,10 +1481,38 @@ ApplicationWindow {
                 "Analysen är klar. " + facts.length + " förslag att granska."
 
             mailReviewDialog.loadSuggestions(facts)
+
+            root.updateMailAnalysisBubble(
+                "Analysen av mejlet ”" + source + "” är klar. "
+                    + facts.length + " förslag att granska.",
+                false
+            )
+
+            if (root.mailAnalysisIndex >= 0) {
+                chatModel.setProperty(
+                    root.mailAnalysisIndex,
+                    "canReviewMail",
+                    true
+                )
+            }
         }
 
         // Clear suggestions after saving or discarding them.
         function onMailReviewFinished() {
+            if (root.mailAnalysisIndex >= 0) {
+                chatModel.setProperty(
+                    root.mailAnalysisIndex,
+                    "canReviewMail",
+                    false
+                )
+            }
+
+            root.updateMailAnalysisBubble(
+                "Mejlgranskningen är avslutad.",
+                false
+            )
+            root.mailAnalysisIndex = -1
+
             mailReviewDialog.close()
             mailFactsModel.clear()
             mailReviewDialog.statusMessage = ""

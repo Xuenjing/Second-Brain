@@ -21,6 +21,10 @@ Item {
 
     property bool isUser: sender === "user"
 
+    property bool canReviewMail: false
+
+    signal mailReviewRequested()
+
     // Helper function. 
     function uniqueSources() {
         let seen = {}
@@ -97,8 +101,10 @@ Item {
                 : messageText.implicitWidth + 28,
             chatMessage.width * 0.8,
             chatMessage.width - avatar.width - 12
+                - (chatMessage.canReviewMail ? 40 : 0)
         )
 
+        
         height: chatMessage.isPending
             ? thinkingRow.implicitHeight + 24
             : messageText.height + 24
@@ -171,11 +177,77 @@ Item {
             }
 
             Text {
-                text: "Tänker…"
+                text: chatMessage.message
                 color: chatMessage.textColor
                 font.pixelSize: 14
                 anchors.verticalCenter: parent.verticalCenter
             }
+        }
+
+        Button {
+            id: reviewMailButton
+
+            x: parent.width + 8
+            y: (parent.height - height) / 2
+
+            width: 32
+            height: 32
+            padding: 0
+            hoverEnabled: true
+
+            visible: chatMessage.canReviewMail && !chatMessage.isPending
+
+            Accessible.name: "Granska föreslagna fakta"
+            ToolTip.visible: hovered
+            ToolTip.text: "Granska föreslagna fakta"
+
+            // Draw an eye icon.
+            contentItem: Item {
+                Canvas {
+                    anchors.centerIn: parent
+                    width: 22
+                    height: 18
+
+                    property color iconColor: chatMessage.accentColor
+
+                    onIconColorChanged: requestPaint()
+
+                    onPaint: {
+                        const ctx = getContext("2d")
+                        ctx.clearRect(0, 0, width, height)
+                        ctx.strokeStyle = iconColor
+                        ctx.lineWidth = 1.8
+                        ctx.lineJoin = "round"
+
+                        // Eye outline.
+                        ctx.beginPath()
+                        ctx.moveTo(1, 9)
+                        ctx.quadraticCurveTo(11, -3, 21, 9)
+                        ctx.quadraticCurveTo(11, 21, 1, 9)
+                        ctx.closePath()
+                        ctx.stroke()
+
+                        // Pupil.
+                        ctx.beginPath()
+                        ctx.arc(11, 9, 3, 0, 2 * Math.PI)
+                        ctx.stroke()
+                    }
+                }
+            }
+
+            background: Rectangle {
+                radius: 8
+                color: reviewMailButton.down
+                    ? chatMessage.pressedColor
+                    : reviewMailButton.hovered
+                        ? chatMessage.hoverColor
+                        : chatMessage.surfaceColor
+
+                border.color: chatMessage.accentColor
+                border.width: 1
+            }
+
+            onClicked: chatMessage.mailReviewRequested()
         }
 
         Button {
