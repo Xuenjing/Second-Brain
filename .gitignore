@@ -1,3 +1,4 @@
 knowledge.db
 *.pyc
 .env
+*.eml
