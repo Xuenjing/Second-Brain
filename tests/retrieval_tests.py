@@ -34,12 +34,14 @@ class TestRetrieval(unittest.TestCase):
             {
                 "text": "Medium match",
                 "source": "test",
-                "score": 0.7
+                "score": 0.7,
+                "semantic_score": 0.7
             },
             {
                 "text": "Best match",
                 "source": "test",
-                "score": 0.9
+                "score": 0.9,
+                "semantic_score": 0.9
             }
         ]
 
@@ -58,12 +60,14 @@ class TestRetrieval(unittest.TestCase):
             {
                 "text": "Relevant",
                 "source": "test",
-                "score": 0.8
+                "score": 0.8,
+                "semantic_score": 0.8
             },
             {
                 "text": "Irrelevant",
                 "source": "test",
-                "score": 0.3
+                "score": 0.3,
+                "semantic_score": 0.3
             }
         ]
 
@@ -78,12 +82,12 @@ class TestRetrieval(unittest.TestCase):
         Return top_k (=5) entries
         '''
         results = [
-            {"text": "Post 1", "source": "test", "score": 0.99},
-            {"text": "Post 2", "source": "test", "score": 0.98},
-            {"text": "Post 3", "source": "test", "score": 0.97},
-            {"text": "Post 4", "source": "test", "score": 0.96},
-            {"text": "Post 5", "source": "test", "score": 0.95},
-            {"text": "Post 6", "source": "test", "score": 0.94},
+            {"text": "Post 1", "source": "test", "score": 0.99, "semantic_score": 0.99},
+            {"text": "Post 2", "source": "test", "score": 0.98, "semantic_score": 0.98},
+            {"text": "Post 3", "source": "test", "score": 0.97, "semantic_score": 0.97},
+            {"text": "Post 4", "source": "test", "score": 0.96, "semantic_score": 0.96},
+            {"text": "Post 5", "source": "test", "score": 0.95, "semantic_score": 0.95},
+            {"text": "Post 6", "source": "test", "score": 0.94, "semantic_score": 0.94},
         ]
 
         ranked_results = retrieval.filter_and_rank_results(results, similarity_threshold=0.45, top_k=5)
@@ -91,7 +95,22 @@ class TestRetrieval(unittest.TestCase):
         self.assertEqual(len(ranked_results), 5) # only 5 should be returned if top_k = 5
         
         # lowest-ranked result should not be included because top_k = 5
-        self.assertNotIn("Post 6", [result["text"] for result in ranked_results]) 
+        self.assertNotIn("Post 6", [result["text"] for result in ranked_results])
+
+
+    def test_results_are_filtered_by_semantic_score_but_ranked_by_hybrid_score(self):
+        results = [
+            {"score": 1.05, "semantic_score": 0.85},
+            {"score": 0.9, "semantic_score": 0.9},
+            {"score": 1.10, "semantic_score": 0.4},
+        ] 
+
+        ranked_results = retrieval.filter_and_rank_results(results, similarity_threshold=0.82, top_k=5)
+
+
+        self.assertEqual(len(ranked_results), 2)
+        self.assertEqual(ranked_results[0]["score"], 1.05)
+        self.assertEqual(ranked_results[1]["score"], 0.90)
 
 
 if __name__ == "__main__":
