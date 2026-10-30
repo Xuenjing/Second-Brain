@@ -1,0 +1,54 @@
+1. What configuration filename is documented for Ember Pass?
+   Förväntat: ember_pass.toml
+2. What exception does the fictional module Frost Station raise when its cache capacity is exceeded?
+   Förväntat: BenchmarkLimitError
+3. In what year was the fictional Cobalt Garden Accord signed?
+   Förväntat: 1972
+4. What catalogue identifier is assigned to the fictional object Delta Meadow?
+   Förväntat: AST-1003
+5. How many hectares does the fictional Frost Station Reserve protect?
+   Förväntat: 186 hectares
+6. Who wrote the fictional work Ember Pass?
+   Förväntat: Delta Meadow
+7. What is the stored value for n = 10 in the fictional Delta Engine sequence?
+   Förväntat: 57
+8. What is the benchmark population of Quartz Station?
+   Förväntat: 858,000
+9. What field tag is used for the fictional organism Azure Quarry?
+   Förväntat: BIO-1017
+10. What was the recorded sample label in the fictional Silver Quarry experiment?
+    Förväntat: SCI-1041
+
+Några vanliga frågor:
+- Which major desert covers much of North Africa?
+ → Sahara
+- In what year did the French Revolution begin?
+ → 1789
+- What does HTTPS add to HTTP?
+ → TLS-baserad kryptering och autentisering
+- What does a Python function return if it reaches the end without an explicit return statement?
+ → None
+- Which planet is closest to the Sun?
+ → Mercury
+De är intressanta av en annan anledning: modellen kan redan kunna dem. Där vill vi därför framför allt titta på vilken källa retrieval väljer, inte bara om svaret är korrekt.
+
+Några frågor på svenska trots att dokumentet är engelskt (cross-language semantic retrieval):
+Vilket undantag kastar modulen Frost Station när cachekapaciteten överskrids?
+
+Vilket år signerades det fiktiva Cobalt Garden-avtalet?
+
+Hur många hektar skyddar Frost Station Reserve?
+
+
+Bredare frågor frågor/förfrågningar än de rena facitfrågorna:
+Tell me everything you know about Ember Pass.
+Det kan finnas flera Ember Pass-poster inom olika områden. Då ser vi om retrieval blandar ihop dem.
+
+What is Delta Meadow?
+Namnet förekommer på flera ställen i corpuset, så det blir ett test av ambiguity.
+
+Is the Cobalt Garden Accord a real historical event?
+Testar grounding. Borde kunna säga ungefär att "enligt kunskapsbasen är det ett fiktivt benchmark-event" snarare än att börja behandla det som verklig historia.
+
+What is the population of a place called Frost Station?
+Intressant att se om modellen säger att den saknar information, eller hallucinerar ett värde från någon annan Frost Station-post.
