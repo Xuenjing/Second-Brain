@@ -11,7 +11,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
-import QtQuick.Layouts
 
 import "components"
 import "dialogs"
@@ -166,11 +165,6 @@ ApplicationWindow {
                 modelLoadDialog.modelName = modelName
                 modelLoadDialog.open()
             }
-
-            
-            // onLoadModelRequested: function(modelIndex) {
-            //     backend.load_model(modelIndex)
-            // }
         }
 
         // Show a welcome message or the conversation.
@@ -252,10 +246,6 @@ ApplicationWindow {
                 })
 
                 backend.receive_text(question)
-            }
-
-            onCancelRequested: {
-                // backend.cancel_question()
             }
         }
     }
