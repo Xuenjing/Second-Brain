@@ -13,10 +13,13 @@ Dialog {
     property color accentColor
     property color hoverColor
     property color pressedColor
+    property color successColor: "#22C55E"
+    property color errorColor: "#EF4444"
 
     signal themeToggleRequested()
     signal exportRequested()
     signal importRequested()
+    signal ragSettingsRequested(int topK, real similarityThreshold)
 
     function setBackupStatus(message) {
         backupStatus.text = message
@@ -25,6 +28,17 @@ Dialog {
     function clearBackupStatus() {
         backupStatus.text = ""
     }
+
+    function showRagStatus(success, message) {
+        ragStatus.text = message
+        ragStatus.color = success
+            ? settingsDialog.accentColor
+            : settingsDialog.errorColor
+    }
+
+    onClosed: {
+        ragStatus.text = ""
+    }    
 
     title: "Inställningar"
     modal: true
@@ -100,192 +114,284 @@ Dialog {
     
     
 
-    contentItem: Column {
-        spacing: 12
+        contentItem: ScrollView {
+        clip: true
 
-        Label {
-            text: "Utseende"
-            color: settingsDialog.textColor
-            font.pixelSize: 16
-            font.bold: true
-        }
-    }
+        Column {
+            width: settingsDialog.availableWidth
+            spacing: 16
 
-    footer: Item {
-        implicitHeight: 64
-
-    }        
-
-        Row {
-            spacing: 12
-
+            // Appearance
             Label {
-                text: "Ljust"
-                anchors.verticalCenter: parent.verticalCenter
-                color: settingsDialog.darkMode
-                    ? settingsDialog.secondaryTextColor
-                    : settingsDialog.textColor
-                font.pixelSize: 14
-                font.bold: !settingsDialog.darkMode
-            }
-
-            Button {
-                id: themeToggle
-
-                width: 100
-                height: 36
-                padding: 0
-                hoverEnabled: true
-
-                Accessible.name: "Byt mellan ljust och mörkt läge"
-                ToolTip.visible: hovered
-                ToolTip.text: settingsDialog.darkMode
-                    ? "Byt till ljust läge"
-                    : "Byt till mörkt läge"
-
-                onClicked: settingsDialog.themeToggleRequested()    
-
-                background: Rectangle {
-                    radius: height / 2
-
-                    color: settingsDialog.darkMode
-                        ? "#0B1220"
-                        : "#E2E8F0"
-
-                    border.color: themeToggle.activeFocus
-                        ? settingsDialog.accentColor
-                        : settingsDialog.borderColor
-
-                    border.width: 1
-
-                    Rectangle {
-                        width: 44
-                        height: 28
-                        y: 4
-                        x: settingsDialog.darkMode ? 52 : 4
-                        radius: height / 2
-
-                        color: settingsDialog.darkMode
-                            ? "#334155"
-                            : "#FFFFFF"
-
-                        Behavior on x {
-                            NumberAnimation {
-                                duration: 180
-                                easing.type: Easing.InOutQuad
-                            }
-                        }
-                    }
-                }
-
-                contentItem: Item {
-                    Text {
-                        width: parent.width / 2
-                        height: parent.height
-                        text: "\u263C"
-                        font.pixelSize: 24
-
-                        color: settingsDialog.darkMode
-                            ? "#94A3B8"
-                            : "#0F172A"
-
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    Text {
-                        x: parent.width / 2
-                        width: parent.width / 2
-                        height: parent.height
-                        text: "\u263D"
-                        font.pixelSize: 24
-
-                        color: settingsDialog.darkMode
-                            ? "#F1F5F9"
-                            : "#64748B"
-
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                }
-            }
-
-            Label {
-                text: "Mörkt"
-                anchors.verticalCenter: parent.verticalCenter
-
-                color: settingsDialog.darkMode
-                    ? settingsDialog.textColor
-                    : settingsDialog.secondaryTextColor
-
-                font.pixelSize: 14
-                font.bold: settingsDialog.darkMode
-            }
-        }
-
-            Label {
-                text: "Back-up"
+                text: "Utseende"
                 color: settingsDialog.textColor
                 font.pixelSize: 16
                 font.bold: true
             }
 
-            Button {
-                id: exportKnowledgeButton
-                text: "Exportera databas"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true
+            Row {
+                spacing: 12
 
-                contentItem: Text {
-                    text: exportKnowledgeButton.text
+                Label {
+                    text: "Ljust"
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: settingsDialog.darkMode
+                        ? settingsDialog.secondaryTextColor
+                        : settingsDialog.textColor
+
+                    font.pixelSize: 14
+                    font.bold: !settingsDialog.darkMode
+                }
+
+                Button {
+                    id: themeToggle
+
+                    width: 100
+                    height: 36
+                    padding: 0
+                    hoverEnabled: true
+
+                    Accessible.name: "Byt mellan ljust och mörkt läge"
+
+                    ToolTip.visible: hovered
+                    ToolTip.text: settingsDialog.darkMode
+                        ? "Byt till ljust läge"
+                        : "Byt till mörkt läge"
+
+                    onClicked: settingsDialog.themeToggleRequested()
+
+                    background: Rectangle {
+                        radius: height / 2
+
+                        color: settingsDialog.darkMode
+                            ? "#0B1220"
+                            : "#E2E8F0"
+
+                        border.color: themeToggle.activeFocus
+                            ? settingsDialog.accentColor
+                            : settingsDialog.borderColor
+
+                        border.width: 1
+
+                        Rectangle {
+                            width: 44
+                            height: 28
+                            y: 4
+                            x: settingsDialog.darkMode ? 52 : 4
+                            radius: height / 2
+
+                            color: settingsDialog.darkMode
+                                ? "#334155"
+                                : "#FFFFFF"
+
+                            Behavior on x {
+                                NumberAnimation {
+                                    duration: 180
+                                    easing.type: Easing.InOutQuad
+                                }
+                            }
+                        }
+                    }
+
+                    contentItem: Item {
+                        Text {
+                            width: parent.width / 2
+                            height: parent.height
+                            text: "\u263C"
+                            font.pixelSize: 24
+
+                            color: settingsDialog.darkMode
+                                ? "#94A3B8"
+                                : "#0F172A"
+
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        Text {
+                            x: parent.width / 2
+                            width: parent.width / 2
+                            height: parent.height
+                            text: "\u263D"
+                            font.pixelSize: 24
+
+                            color: settingsDialog.darkMode
+                                ? "#F1F5F9"
+                                : "#64748B"
+
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+                }
+
+                Label {
+                    text: "Mörkt"
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: settingsDialog.darkMode
+                        ? settingsDialog.textColor
+                        : settingsDialog.secondaryTextColor
+
+                    font.pixelSize: 14
+                    font.bold: settingsDialog.darkMode
+                }
+            }
+
+            // RAG
+            Label {
+                text: "RAG-inställningar"
+                color: settingsDialog.textColor
+                font.pixelSize: 16
+                font.bold: true
+                topPadding: 8
+            }
+
+            Grid {
+                columns: 2
+                columnSpacing: 16
+                rowSpacing: 12
+
+                Label {
+                    text: "Antal källor (Top-K)"
                     color: settingsDialog.textColor
                     font.pixelSize: 14
+                }
+
+            SpinBox {
+                id: topKInput
+
+                from: 1
+                to: 20
+                value: 5
+
+                width: 140
+                height: 42
+
+                editable: false
+
+                contentItem: TextInput {
+                    text: topKInput.textFromValue(
+                        topKInput.value,
+                        topKInput.locale
+                    )
+
+                    color: settingsDialog.textColor
+                    font.pixelSize: 15
+
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
+
+                    readOnly: true
+                    selectByMouse: false
                 }
 
                 background: Rectangle {
                     radius: 8
-                    color: exportKnowledgeButton.down
-                        ? settingsDialog.pressedColor
-                        : exportKnowledgeButton.hovered
-                            ? settingsDialog.hoverColor
-                            : settingsDialog.surfaceColor
-
-                    border.color: settingsDialog.accentColor
+                    color: settingsDialog.surfaceColor
+                    border.color: settingsDialog.borderColor
                     border.width: 1
                 }
 
-                onClicked: {
-                    settingsDialog.clearBackupStatus()
-                    settingsDialog.exportRequested()
+                down.indicator: Rectangle {
+                    x: 0
+                    width: 42
+                    height: parent.height
+
+                    radius: 8
+                    color: topKInput.down.pressed
+                        ? settingsDialog.pressedColor
+                        : topKInput.down.hovered
+                            ? settingsDialog.hoverColor
+                            : "transparent"
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "−"
+                        color: settingsDialog.textColor
+                        font.pixelSize: 24
+                    }
+                }
+
+                up.indicator: Rectangle {
+                    x: parent.width - width
+                    width: 42
+                    height: parent.height
+
+                    radius: 8
+                    color: topKInput.up.pressed
+                        ? settingsDialog.pressedColor
+                        : topKInput.up.hovered
+                            ? settingsDialog.hoverColor
+                            : "transparent"
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "+"
+                        color: settingsDialog.textColor
+                        font.pixelSize: 22
+                    }
+                }
+            }
+
+                Label {
+                    text: "Likhetströskel (Threshold)"
+                    color: settingsDialog.textColor
+                    font.pixelSize: 14
+                }
+
+                TextField {
+                    id: thresholdInput
+
+                    width: 120
+                    text: "0.82"
+                    color: settingsDialog.textColor
+
+                    validator: DoubleValidator {
+                        bottom: 0.0
+                        top: 1.0
+                        decimals: 2
+                    }
+
+                    background: Rectangle {
+                        radius: 6
+                        color: settingsDialog.surfaceColor
+
+                        border.color: thresholdInput.activeFocus
+                            ? settingsDialog.accentColor
+                            : settingsDialog.borderColor
+
+                        border.width: 1
+                    }
                 }
             }
 
             Button {
-                id: importKnowledgeButton
-                text: "Importera databas"
+                id: saveRagSettingsButton
+
+                text: "Spara RAG-inställningar"
                 height: 40
                 leftPadding: 16
                 rightPadding: 16
                 hoverEnabled: true
 
                 contentItem: Text {
-                    text: importKnowledgeButton.text
+                    text: saveRagSettingsButton.text
                     color: settingsDialog.textColor
                     font.pixelSize: 14
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
 
+                
+
                 background: Rectangle {
                     radius: 8
 
-                    color: importKnowledgeButton.down
+                    color: saveRagSettingsButton.down
                         ? settingsDialog.pressedColor
-                        : importKnowledgeButton.hovered
+                        : saveRagSettingsButton.hovered
                             ? settingsDialog.hoverColor
                             : settingsDialog.surfaceColor
 
@@ -294,18 +400,128 @@ Dialog {
                 }
 
                 onClicked: {
-                    settingsDialog.clearBackupStatus()
-                    settingsDialog.importRequested()
+                    settingsDialog.ragSettingsRequested(
+                        topKInput.value,
+                        parseFloat(thresholdInput.text)
+                    )
+                }
+            }
+
+            // Backup
+            Label {
+                text: "Back-up"
+                color: settingsDialog.textColor
+                font.pixelSize: 16
+                font.bold: true
+                topPadding: 8
+            }
+
+            Row {
+                spacing: 12
+
+                Button {
+                    id: exportKnowledgeButton
+
+                    text: "Exportera databas"
+                    height: 40
+                    leftPadding: 16
+                    rightPadding: 16
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: exportKnowledgeButton.text
+                        color: settingsDialog.textColor
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+
+                        color: exportKnowledgeButton.down
+                            ? settingsDialog.pressedColor
+                            : exportKnowledgeButton.hovered
+                                ? settingsDialog.hoverColor
+                                : settingsDialog.surfaceColor
+
+                        border.color: settingsDialog.accentColor
+                        border.width: 1
+                    }
+
+                    onClicked: {
+                        settingsDialog.clearBackupStatus()
+                        settingsDialog.exportRequested()
+                    }
+                }
+
+                Button {
+                    id: importKnowledgeButton
+
+                    text: "Importera databas"
+                    height: 40
+                    leftPadding: 16
+                    rightPadding: 16
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: importKnowledgeButton.text
+                        color: settingsDialog.textColor
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+
+                        color: importKnowledgeButton.down
+                            ? settingsDialog.pressedColor
+                            : importKnowledgeButton.hovered
+                                ? settingsDialog.hoverColor
+                                : settingsDialog.surfaceColor
+
+                        border.color: settingsDialog.accentColor
+                        border.width: 1
+                    }
+
+                    onClicked: {
+                        settingsDialog.clearBackupStatus()
+                        settingsDialog.importRequested()
+                    }
                 }
             }
 
             Label {
                 id: backupStatus
+
                 width: parent.width
                 text: ""
                 color: settingsDialog.textColor
                 wrapMode: Text.WordWrap
             }
+        }
+    }
 
-    }    
+    footer: Item {
+        implicitHeight: ragStatus.text ? 52 : 24
 
+        Label {
+            id: ragStatus
+
+            anchors {
+                left: parent.left
+                right: parent.right
+                verticalCenter: parent.verticalCenter
+                leftMargin: 16
+                rightMargin: 16
+            }
+
+            text: ""
+            color: settingsDialog.accentColor
+            font.pixelSize: 13
+            wrapMode: Text.WordWrap
+        }
+    }
+
+}
