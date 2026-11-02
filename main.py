@@ -35,8 +35,22 @@ print(
 # Use a style that supports custom QML controls.
 QQuickStyle.setStyle("Basic")
 
+# Give the application its own Windows taskbar identity.
+if sys.platform == "win32":
+    import ctypes
+
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+        "SecondBrain.Desktop"
+    )
+
 # Start Qt application and create the engine that loads QML.
 app = QApplication(sys.argv)
+
+# Load the shared application icon.
+icon_path = Path(__file__).resolve().parent / "assets" / "logo4.png"
+icon = QIcon(str(icon_path))
+app.setWindowIcon(icon)
+
 engine = QQmlApplicationEngine()
 
 backend_start = time.perf_counter()
@@ -58,8 +72,9 @@ print(f"QML load: {qml_end - qml_start:.3f} seconds")
 if not engine.rootObjects():
     sys.exit(1)
 
-# Get the main window that QML created.
+# Get the main window that QML created and set its icon.
 window = engine.rootObjects()[0]
+window.setIcon(icon)
 
 # Let the process continue even when the main window is closed.
 app.setQuitOnLastWindowClosed(False)
@@ -74,9 +89,7 @@ def show_window() -> None:
     window.raise_()
     window.requestActivate()
 
-# Load the application logo for the system tray.
-icon_path = Path(__file__).resolve().parent / "assets" / "logo4.png"
-icon = QIcon(str(icon_path))
+# Use the application icon for the system tray.
 tray_icon = QSystemTrayIcon(icon, app)
 tray_icon.setToolTip("Second Brain")
 
