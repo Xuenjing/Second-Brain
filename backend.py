@@ -31,7 +31,10 @@ from imports.document_importer import import_docx_to_database
 from imports.pdf_importer import import_pdf_to_database
 from imports.text_importer import import_txt_to_database
 from imports.mail_importer import import_mail_to_database
+from imports.mail_parser import extract_mail_chunks
+from imports.mail_fact_extractor import extract_mail_facts
 from exporter import export_knowledge_to_json
+from json_importer import import_knowledge_from_json_file
 
 
 
@@ -102,6 +105,69 @@ ANSWER:
                 "Svaret kunde inte skapas. Försök igen."
             )
 
+class ModelLoader(QThread):
+    """Load a language model without blocking the interface."""
+
+    modelLoaded = Signal(object)
+    modelLoadFailed = Signal(str)
+
+    def __init__(self, model_name: str) -> None:
+        super().__init__()
+        self.model_name = model_name
+
+    def run(self) -> None:
+        try:
+            llm = LocalLLMProvider(self.model_name)
+            self.modelLoaded.emit(llm)
+        except Exception as error:
+            print(f"Model loading failed: {error}")
+            self.modelLoadFailed.emit(
+                "Modellen kunde inte laddas."
+            )
+
+class MailFactWorker(QThread):
+    """Suggest email facts without blocking the interface."""
+
+    reviewReady = Signal(str, list, str)
+    extractionFailed = Signal(str)
+
+    def __init__(
+        self,
+        llm: LocalLLMProvider,
+        email_text: str,
+        source: str
+    ) -> None:
+        """Initialize the email-analysis thread.
+
+        Args:
+            llm: Loaded language-model provider.
+            email_text: Previewed email text to analyze.
+            source: Original email filename.
+        """
+        super().__init__()
+        self.llm = llm
+        self.email_text = email_text
+        self.source = source
+
+    def run(self) -> None:
+        """Suggest facts and send them for manual review."""
+        try:
+            facts = extract_mail_facts(
+                self.email_text,
+                self.llm
+            )
+
+            self.reviewReady.emit(
+                self.email_text,
+                facts,
+                self.source
+            )
+        except Exception as error:
+            print(f"Email fact extraction failed: {error}")
+            self.extractionFailed.emit(
+                "Mejlet kunde inte analyseras. Försök igen."
+            )
+        
 class Backend(QObject):
     """Handle communication between QML and application."""
 
@@ -111,6 +177,22 @@ class Backend(QObject):
 
         # Keep a reference to the background thread.
         self.thinker: Thinker | None = None
+
+        # Keep a reference to the model-loading thread.
+        self.model_loader: ModelLoader | None = None
+
+        # Keep the previewed email until the user chooses an action.
+        self.mail_text: str = ""
+        self.mail_source: str = ""
+
+        # Keep a reference to the email-analysis thread.
+        self.mail_worker: MailFactWorker | None = None
+
+        # Keep the analysis result until the user reviews it.
+        self.mail_review_text: str = ""
+        self.mail_review_facts: list[str] = []
+        self.mail_review_source: str = ""
+        self.mail_review_pending: bool = False
 
         initialize_database()
 
@@ -132,11 +214,29 @@ class Backend(QObject):
     # Send True when processing starts and False when it finishes.
     thinkingChanged = Signal(bool)
 
+    # Send True when changing a LLM.
+    modelLoadingChanged = Signal(bool)
+
+    # Send a message while the LLM is loading.
+    modelLoadStatus = Signal(str)    
+
     # Send an error message to QML.
     replyFailed = Signal(str)
 
     knowledgeLoaded = Signal(list)
     knowledgeSaveResult = Signal(str)
+
+    # Send the email text and filename to QML for preview.
+    mailPreviewReady = Signal(str, str)
+
+    # Notify QML when email analysis starts or finishes.
+    mailAnalysisChanged = Signal(bool)
+
+    # Notify QML when suggestions are available for review.
+    mailReviewReady = Signal(str, list, str)
+
+    # Notify QML when the review has been saved or discarded.
+    mailReviewFinished = Signal()
 
     # Send the edit result to QML.
     # Bool is used to check whether saving succeeded.
@@ -151,6 +251,89 @@ class Backend(QObject):
     # Backup the database to a JSON file.
     exportResult = Signal(str)
 
+    # Import JSON file from backup.
+    importResult = Signal(str)
+
+    @Slot(int)
+    def load_model(self, model_index: str) -> None:
+        """Load the language model selected from the interface.
+        
+            Args:
+                model_index: Name of the model that will be loaded.
+        """
+        if self.thinker is not None or self.mail_worker is not None:
+            self.modelLoadStatus.emit(
+                "Vänta tills det pågående arbetet är klart."
+            )
+            return
+
+        models = {
+            0: "Qwen/Qwen3-0.6B",
+            1: "Qwen/Qwen3-1.7B",
+            2: "Qwen/Qwen3-4B-Instruct-2507"
+        }
+
+        model_name = models.get(model_index)
+
+        if model_name is None:
+            print(f"Invalid model index: {model_index}")
+            return
+
+        if model_name == self.llm.model_name:
+            print("Model is already loaded")
+            return
+
+        if self.model_loader is not None:
+            print("A model is already being loaded.")
+            return
+
+        self.model_loader = ModelLoader(model_name)
+
+        self.model_loader.modelLoaded.connect(
+            self.handle_model_loaded
+        )
+
+        self.model_loader.modelLoadFailed.connect(
+            self.handle_model_load_error
+        )
+
+        self.model_loader.finished.connect(
+            self.finish_model_loading
+        )
+
+        print(F"Requested model: {model_name}")
+
+        self.modelLoadingChanged.emit(True)
+        self.modelLoadStatus.emit(f"Laddar modell: {model_name}")
+
+        self.model_loader.start()
+
+
+    @Slot(object)
+    def handle_model_loaded(self, llm: LocalLLMProvider) -> None:
+        """Replace the current language model after successful loading."""
+
+        self.llm = llm
+        self.modelLoadStatus.emit(f"Modellen har laddats: {self.llm.model_name}")
+        print(f"Model loaded {self.llm.model_name}")
+
+    @Slot(str)
+    def handle_model_load_error(self, message: str) -> None:
+        """Handle errors that occur while loading a language model."""
+
+        self.modelLoadStatus.emit(message)
+        print(message)
+
+    @Slot()
+    def finish_model_loading(self) -> None:
+        """Clean up after model loading has finished."""
+
+        self.model_loader.deleteLater()
+        self.model_loader = None
+
+        self.modelLoadingChanged.emit(False)
+
+
     @Slot(str)
     def receive_text(self, text: str) -> None:
         """Start processing a question in the background.
@@ -162,6 +345,12 @@ class Backend(QObject):
 
         # Ignore empty questions or requests while already processing.
         if not text or self.thinker is not None:
+            return
+
+        if self.mail_worker is not None or self.model_loader is not None:
+            self.replyFailed.emit(
+                "Modellen är upptagen. Vänta tills arbetet är klart."
+            )
             return
 
         self.thinker = Thinker(self.llm, text)
@@ -357,6 +546,236 @@ class Backend(QObject):
             self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from pdf file.")
 
     @Slot(str)
+    def preview_mail(self, file_path: str) -> None:
+        """Read an email for preview without saving it.
+
+        Args:
+            file_path: File URL received from QML.
+        """
+        # Clear any previously previewed email.
+        self.mail_text = ""
+        self.mail_source = ""
+
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            chunks = extract_mail_chunks(local_path)
+        except (FileNotFoundError, ValueError, OSError) as error:
+            self.knowledgeSaveResult.emit(str(error))
+            return
+
+        self.mail_text = "\n\n".join(chunks)
+        self.mail_source = Path(local_path).name
+
+        self.mailPreviewReady.emit(
+            self.mail_text,
+            self.mail_source
+        )
+
+    @Slot(str)
+    def save_previewed_mail(self, email_text: str) -> None:
+        """Save the email text reviewed and edited by the user.
+
+        Args:
+            email_text: Current email text received from QML.
+        """
+        if not email_text.strip():
+            self.knowledgeSaveResult.emit(
+                "Det finns inget mejl att spara."
+            )
+            return
+
+        try:
+            embedding = create_embedding(email_text)
+
+            added = add_knowledge(
+                email_text,
+                embedding,
+                source=self.mail_source
+            )
+        except Exception as error:
+            print(f"Saving email failed: {error}")
+            self.knowledgeSaveResult.emit(
+                "Mejlet kunde inte sparas. Försök igen."
+            )
+            return
+
+        if added:
+            self.knowledgeSaveResult.emit("Mejlet har sparats.")
+        else:
+            self.knowledgeSaveResult.emit(
+                "Mejlet finns redan i kunskapsbasen."
+            )
+
+    @Slot(str)
+    def analyze_previewed_mail(self, email_text: str) -> None:
+        """Analyze the email text reviewed and edited by the user.
+
+        Args:
+            email_text: Current email text received from QML.
+        """
+        if not email_text.strip():
+            self.knowledgeSaveResult.emit(
+                "Det finns inget mejl att analysera."
+            )
+            return
+
+        if (
+            self.thinker is not None
+            or self.model_loader is not None
+            or self.mail_worker is not None
+        ):
+            self.knowledgeSaveResult.emit(
+                "Vänta tills det pågående arbetet är klart."
+            )
+            return
+
+        if self.mail_review_pending:
+            self.knowledgeSaveResult.emit(
+                "Granska eller kasta de tidigare förslagen först."
+            )
+            return
+
+        self.mail_worker = MailFactWorker(
+            self.llm,
+            email_text,
+            self.mail_source
+        )
+
+        self.mail_worker.reviewReady.connect(self.handle_mail_review)
+        self.mail_worker.extractionFailed.connect(self.handle_mail_error)
+        self.mail_worker.finished.connect(self.finish_mail_analysis)
+
+        self.knowledgeSaveResult.emit("Analyserar mejlet…")
+        self.mailAnalysisChanged.emit(True)
+        self.mail_worker.start()
+
+    @Slot(str, list, str)
+    def handle_mail_review(
+        self,
+        email_text: str,
+        facts: list[str],
+        source: str
+    ) -> None:
+        """Store email suggestions and notify the interface.
+
+        Args:
+            email_text: Original email text.
+            facts: Suggested factual passages.
+            source: Original email filename.
+        """
+        self.mail_review_text = email_text
+        self.mail_review_facts = facts
+        self.mail_review_source = source
+        self.mail_review_pending = True
+
+        self.knowledgeSaveResult.emit(
+        "Mejlanalysen är klar. Granska förslagen innan du sparar."
+    )
+
+        self.mailReviewReady.emit(email_text, facts, source)
+
+    @Slot()
+    def reopen_mail_review(self) -> None:
+        """Send pending email suggestions to the interface again."""
+        if not self.mail_review_pending:
+            self.knowledgeSaveResult.emit(
+                "Det finns inga mejlförslag att granska."
+            )
+            return
+
+        self.mailReviewReady.emit(
+            self.mail_review_text,
+            self.mail_review_facts,
+            self.mail_review_source
+        )
+
+    @Slot(str)
+    def handle_mail_error(self, message: str) -> None:
+        """Display an email-analysis error.
+
+        Args:
+            message: Error message to display.
+        """
+        self.knowledgeSaveResult.emit(message)
+
+
+    @Slot()
+    def finish_mail_analysis(self) -> None:
+        """Clean up after the email-analysis thread has finished."""
+        if self.mail_worker is not None:
+            self.mail_worker.deleteLater()
+            self.mail_worker = None
+
+        self.mailAnalysisChanged.emit(False)
+
+    @Slot(list)
+    def save_reviewed_mail_facts(self, facts: list[str]) -> None:
+        """Save email facts selected and edited by the user.
+
+        Args:
+            facts: Reviewed factual passages selected for saving.
+        """
+        if not self.mail_review_pending:
+            self.knowledgeSaveResult.emit(
+                "Det finns inga mejlförslag att spara."
+            )
+            return
+
+        if not facts or any(
+            not isinstance(fact, str) or not fact.strip()
+            for fact in facts
+        ):
+            self.knowledgeSaveResult.emit(
+                "Välj minst en faktauppgift. Texten får inte vara tom."
+            )
+            return
+
+        # Remove surrounding whitespace and exact duplicates.
+        reviewed_facts = list(
+            dict.fromkeys(fact.strip() for fact in facts)
+        )
+
+        added_count = 0
+
+        try:
+            for fact in reviewed_facts:
+                embedding = create_embedding(fact)
+
+                if add_knowledge(
+                    fact,
+                    embedding,
+                    source=self.mail_review_source
+                ):
+                    added_count += 1
+
+        except Exception as error:
+            print(f"Saving email facts failed: {error}")
+            self.knowledgeSaveResult.emit(
+                f"Sparandet avbröts. {added_count} nya "
+                "kunskapsposter hann sparas. Försök igen."
+            )
+            return
+
+        self.discard_mail_review()
+
+        self.knowledgeSaveResult.emit(
+            f"Sparade {added_count} nya kunskapsposter. "
+            "Eventuella dubbletter hoppades över."
+        )
+
+
+    @Slot()
+    def discard_mail_review(self) -> None:
+        """Clear the email suggestions without saving them."""
+        self.mail_review_text = ""
+        self.mail_review_facts = []
+        self.mail_review_source = ""
+        self.mail_review_pending = False
+
+        self.mailReviewFinished.emit()
+
+    @Slot(str)
     def add_mail_knowledge(self, file_path: str) -> None:
         """Import knowledge from an EML file.
 
@@ -483,6 +902,13 @@ class Backend(QObject):
 
         item = get_knowledge_by_id(knowledge_id)
 
+        if item is None:
+            print(f"Knowledge entry not found: {knowledge_id}")
+            self.knowledgeSaveResult.emit(
+                "Kunskapsposten kunde inte hittas."
+            )
+            return
+
         created_at = datetime.fromisoformat(item["created_at"]).strftime("%Y-%m-%d %H:%M")
 
         self.knowledgeEntryOpened.emit(
@@ -513,4 +939,29 @@ class Backend(QObject):
 
         self.exportResult.emit(
             f"Exported {exported_count} knowledge entries."
+        )
+
+
+    @Slot(str)
+    def import_knowledge(self, file_path: str) -> None:
+        """Import all knowledge entries from a JSON backup file.
+        
+            Args:
+                file_path: Destination file URL received from QML.
+        """
+
+        local_path = QUrl(file_path).toLocalFile()
+
+        try:
+            imported_count, skipped_count = import_knowledge_from_json_file(
+                local_path
+            )
+
+        except (FileNotFoundError, ValueError) as error:
+            self.importResult.emit(str(error))
+            return
+
+        self.importResult.emit(
+            f"Importerade {imported_count} poster. "
+            f"Hoppade över {skipped_count} poster."
         )

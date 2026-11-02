@@ -17,8 +17,13 @@ Item {
     property color hoverColor
     property color pressedColor
     property color secondaryTextColor
+    property bool isPending: false
 
     property bool isUser: sender === "user"
+
+    property bool canReviewMail: false
+
+    signal mailReviewRequested()
 
     // Helper function. 
     function uniqueSources() {
@@ -86,17 +91,34 @@ Item {
         }
     }
 
+    // Measure the text independently of the bubble width.
+    Text {
+        id: messageSize
+
+        visible: false
+        text: chatMessage.message
+        textFormat: Text.PlainText
+        font: messageText.font
+        wrapMode: Text.NoWrap
+    }
+
     Rectangle {
         id: messageBubble
+        radius: 10
 
         width: Math.min(
-            messageText.implicitWidth + 28,
+            chatMessage.isPending
+                ? thinkingRow.implicitWidth + 28
+                : messageSize.implicitWidth + 28,
             chatMessage.width * 0.8,
             chatMessage.width - avatar.width - 12
+                - (chatMessage.canReviewMail ? 40 : 0)
         )
 
-        height: messageText.height + 24
-        radius: 10
+        
+        height: chatMessage.isPending
+            ? thinkingRow.implicitHeight + 24
+            : messageText.height + 24
 
         x: chatMessage.isUser
             ? avatar.x - width - 12
@@ -113,11 +135,130 @@ Item {
             y: 12
             width: parent.width - 28
 
+            visible: !chatMessage.isPending
             text: chatMessage.message
             textFormat: Text.PlainText
             wrapMode: Text.Wrap
             font.pixelSize: 14
             color: chatMessage.textColor
+        }
+
+        // Show an animated indicator while waiting for the answer.
+        Row {
+            id: thinkingRow
+
+            x: 14
+            y: 12
+            spacing: 8
+            visible: chatMessage.isPending
+
+            Item {
+                width: 20
+                height: 20
+
+                Item {
+                    anchors.fill: parent
+
+                    Repeater {
+                        model: 8
+
+                        Rectangle {
+                            required property int index
+
+                            width: 3
+                            height: 3
+                            radius: 1.5
+
+                            x: 8.5 + 7 * Math.cos(index * Math.PI / 4)
+                            y: 8.5 + 7 * Math.sin(index * Math.PI / 4)
+
+                            color: chatMessage.accentColor
+                            opacity: (index + 1) / 8
+                        }
+                    }
+
+                    RotationAnimator on rotation {
+                        from: 0
+                        to: 360
+                        duration: 1000
+                        loops: Animation.Infinite
+                        running: chatMessage.isPending
+                    }
+                }
+            }
+
+            Text {
+                text: chatMessage.message
+                color: chatMessage.textColor
+                font.pixelSize: 14
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+
+        Button {
+            id: reviewMailButton
+
+            x: parent.width + 8
+            y: (parent.height - height) / 2
+
+            width: 32
+            height: 32
+            padding: 0
+            hoverEnabled: true
+
+            visible: chatMessage.canReviewMail && !chatMessage.isPending
+
+            Accessible.name: "Granska föreslagna fakta"
+            ToolTip.visible: hovered
+            ToolTip.text: "Granska föreslagna fakta"
+
+            // Draw an eye icon.
+            contentItem: Item {
+                Canvas {
+                    anchors.centerIn: parent
+                    width: 22
+                    height: 18
+
+                    property color iconColor: chatMessage.accentColor
+
+                    onIconColorChanged: requestPaint()
+
+                    onPaint: {
+                        const ctx = getContext("2d")
+                        ctx.clearRect(0, 0, width, height)
+                        ctx.strokeStyle = iconColor
+                        ctx.lineWidth = 1.8
+                        ctx.lineJoin = "round"
+
+                        // Eye outline.
+                        ctx.beginPath()
+                        ctx.moveTo(1, 9)
+                        ctx.quadraticCurveTo(11, -3, 21, 9)
+                        ctx.quadraticCurveTo(11, 21, 1, 9)
+                        ctx.closePath()
+                        ctx.stroke()
+
+                        // Pupil.
+                        ctx.beginPath()
+                        ctx.arc(11, 9, 3, 0, 2 * Math.PI)
+                        ctx.stroke()
+                    }
+                }
+            }
+
+            background: Rectangle {
+                radius: 8
+                color: reviewMailButton.down
+                    ? chatMessage.pressedColor
+                    : reviewMailButton.hovered
+                        ? chatMessage.hoverColor
+                        : chatMessage.surfaceColor
+
+                border.color: chatMessage.accentColor
+                border.width: 1
+            }
+
+            onClicked: chatMessage.mailReviewRequested()
         }
 
         Button {

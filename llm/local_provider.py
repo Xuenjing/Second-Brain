@@ -29,7 +29,7 @@ class LocalLLMProvider:
         self.generation_config = deepcopy(self.generator.model.generation_config)
 
         # Limit response length.
-        self.generation_config.max_new_tokens = 100
+        self.generation_config.max_new_tokens = 200
         
         # Deterministic answers
         self.generation_config.do_sample = False
@@ -41,7 +41,7 @@ class LocalLLMProvider:
 
 
     @measure_time
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, system_prompt: str | None = None, max_new_tokens: int | None = None) -> str:
         """Generate an answer based on provided prompt using the local language model.
 
         System messages defines behaviours of the assistant.
@@ -51,18 +51,25 @@ class LocalLLMProvider:
 
         Args:
             prompt: Prompt to send to the language model.
+            system_prompt: Optional system instructions for the task.
+            max_new_tokens: Optional output token limit for this call.
 
         Returns:
             Generated assistant response.
         """
         
+        # Use the default chat instructions unless custom ones are provided.
+        if system_prompt is None:
+            system_prompt = (
+                "Always answer in the same language as the user's QUESTION. "
+                "Use the language of the QUESTION, not the language used "
+                "in the instructions or context."
+            )
+
         messages = [
             {
                 "role": "system",
-                "content": (
-                    "Always answer in the same language as the user's QUESTION. "
-                    "Use the language of the QUESTION, not the language used in the instructions or context."
-                    )
+                "content": system_prompt
             },
             {
                 "role": "user",
@@ -81,10 +88,16 @@ class LocalLLMProvider:
             enable_thinking=False
         )
 
+        # Apply task-specific settings without changing the chat defaults.
+        generation_config = deepcopy(self.generation_config)
+
+        if max_new_tokens is not None:
+            generation_config.max_new_tokens = max_new_tokens
+
         # Generate text using configuration settings.
         result = self.generator(
             formatted_prompt,
-            generation_config=self.generation_config,
+            generation_config=generation_config,
             clean_up_tokenization_spaces=False
         )
 

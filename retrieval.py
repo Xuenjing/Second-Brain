@@ -1,6 +1,7 @@
 from typing import Any
 
 import numpy as np
+import re
 
 from database import get_all_knowledge
 from performance import measure_time
@@ -18,7 +19,7 @@ def get_embedding_model() -> Any:
         from sentence_transformers import SentenceTransformer
 
         _embedding_model = SentenceTransformer(
-            "paraphrase-multilingual-MiniLM-L12-v2"
+            "intfloat/multilingual-e5-small"
         )
 
     return _embedding_model
@@ -29,8 +30,12 @@ def retrieve_knowledge(query: str) -> list[dict]:
     """Retrieve knowledge entries similar to a query.
 
     Query is embedded and compared to knowledge embeddings
-    using cosine similarity. Results below threshold are removed, 
+    using cosine similarity. Results below threshold are removed,
     and the highest ranked results are returned.
+
+    Exact word-number identifiers, such as "Matsal 18" or
+    "Reception 12", receive a ranking bonus when they match
+    between the query and a knowledge entry.
 
     Args:
         query: A query used to search the knowledge database.
@@ -42,31 +47,60 @@ def retrieve_knowledge(query: str) -> list[dict]:
     # Maximum number of posts that can be returned.
     top_k = 5
 
-    # Minimum score required for a result.
-    similarity_threshold = 0.45
+    # Minimum semantic score required for a result.
+    similarity_threshold = 0.82
+
+    # Ranking bonus for matching word-number identifiers.
+    identifier_boost = 0.20
 
     knowledge = get_all_knowledge()
 
     if not knowledge:
         return []
-    
+
     from sentence_transformers import util
 
-    query_embedding = get_embedding_model().encode(query)
+    query_embedding = create_query_embedding(query)
+
+    # Extract identifiers once from the query.
+    query_identifiers = extract_numeric_phrases(query)
+
     results = []
+
     for item in knowledge:
 
-        # Convert the tensor value into a Python float.
-        score = util.cos_sim(
-            query_embedding, 
+        # Pure semantic similarity from E5.
+        semantic_score = util.cos_sim(
+            query_embedding,
             item["embedding"],
-        )[0][0].item() 
+        )[0][0].item()
+
+        # Extract identifiers from the stored knowledge.
+        item_identifiers = extract_numeric_phrases(
+            item["text"]
+        )
+
+        identifier_match = bool(
+            query_identifiers
+            and query_identifiers.intersection(
+                item_identifiers
+            )
+        )
+
+        # Start with the semantic score.
+        hybrid_score = semantic_score
+
+        # Boost ranking if an exact identifier matches.
+        if identifier_match:
+            hybrid_score += identifier_boost
 
         results.append({
             "id": item["id"],
             "text": item["text"],
             "source": item["source"],
-            "score": score,
+            "score": hybrid_score,
+            "semantic_score": semantic_score,
+            "identifier_match": identifier_match,
             "created_at": item["created_at"]
         })
 
@@ -76,10 +110,12 @@ def retrieve_knowledge(query: str) -> list[dict]:
         top_k,
     )
 
-    # Print retrievals in terminal
+    # Print retrievals in terminal.
     for result in ranked_results:
         print(
-            f"Score: {result['score']:.3f} | "
+            f"Semantic score: {result['semantic_score']:.3f} | "
+            f"Hybrid score: {result['score']:.3f} | "
+            f"Identifier match: {result['identifier_match']} | "
             f"Source: {result['source']} | "
             f"Text: {result['text']}"
         )
@@ -88,8 +124,10 @@ def retrieve_knowledge(query: str) -> list[dict]:
 
 
 def create_embedding(text: str) -> np.ndarray:
-    """Create an embedding vector for a text string.
-    
+    """Create an embedding vector for stored knowledge.
+
+    Text is prefixed by "passage:" by the E5 model.
+
     Args:
         text: Text to embed.
     
@@ -97,7 +135,43 @@ def create_embedding(text: str) -> np.ndarray:
         A NumPy array containing the generated embedding.
     """
 
-    return get_embedding_model().encode(text)
+    return get_embedding_model().encode(f"passage: {text}")
+
+
+def create_query_embedding(query: str) -> np.ndarray:
+    """Create an embedding for a search query.
+    
+    The query is prefixed with "query by the E5 model.
+
+    Args:
+        query: Search query to embed.
+    
+    Returns:
+        A NumPy array containing the generated query embedding.
+    """
+    return get_embedding_model().encode(f"query: {query}")
+
+
+def extract_numeric_phrases(text: str) -> set[str]:
+    """Extract word-number identifier phrases from text.
+    
+    Args:
+        text: Text to search for numeric tokens.
+
+    Returns:
+        A set containing the word-number phrase found in the text.
+    """
+
+    text = text.lower()
+    matches = re.findall(
+        r"\b([a-zåäö]+)\s+(?:nummer\s+)?(\d+)\b",
+        text
+    )
+    
+    return {
+        f"{word} {number}"
+        for word, number in matches
+    }
 
 
 def filter_and_rank_results(
@@ -105,23 +179,27 @@ def filter_and_rank_results(
     similarity_threshold: float, 
     top_k: int,
 ) -> list[dict]:
-    """Filter and rank retrieval results by similarity score.
+    """Filter by semantic similarity and rank by hybrid score.
 
     Args:
-        results: Retrieval results containing similarity scores.
-        similarity_threshold: Minimum score required for inclusion.
+        results: Retrieval results containing semantic and hybrid scores.
+        similarity_threshold: Minimum semantic score required for inclusion.
         top_k: The maximum number of results to return.
 
     Returns:
-        Results above the threshold, sorted by descending similarity scores.
+        Results above the threshold, ranked by hybrid score.
     """
 
-    results.sort(key=lambda result: result["score"], reverse=True)
     filtered_results = [
         result
         for result in results
-        if result["score"] >= similarity_threshold
+        if result["semantic_score"] >= similarity_threshold
     ]
+
+    filtered_results.sort(
+        key=lambda result: result["score"],
+        reverse=True
+    )
 
     return filtered_results[:top_k]
 

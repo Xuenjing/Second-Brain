@@ -13,7 +13,13 @@ Row {
 
     signal addKnowledgeRequested()
     signal viewKnowledgeRequested()
-    signal loadModelRequested(int modelIndex)
+    signal modelLoadConfirmationRequested(
+        int modelIndex,
+        string modelName
+    )
+
+    property bool modelLoading: false
+    
 
     spacing: 12
 
@@ -195,8 +201,12 @@ Row {
         rightPadding: 16
         hoverEnabled: true
 
+        enabled: !mainToolbar.modelLoading
+
         contentItem: Text {
-            text: loadModelButton.text
+            text: mainToolbar.modelLoading
+                ? "Laddar..."
+                : "Ladda modell"
             color: mainToolbar.accentColor
             font.pixelSize: 14
             horizontalAlignment: Text.AlignHCenter
@@ -216,8 +226,9 @@ Row {
         }
 
         onClicked: {
-            mainToolbar.loadModelRequested(
-                modelSelector.currentIndex
+            mainToolbar.modelLoadConfirmationRequested(
+                modelSelector.currentIndex,
+                modelSelector.currentText
             )
         }
     }        

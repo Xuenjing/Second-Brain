@@ -1,0 +1,402 @@
+SECOND BRAIN – 10 000-POSTERS SKALBARHETSTEST
+100 kontrollerade testfrågor. Varje fråga har ett facit som finns i exakt en av corpusets benchmarkposter.
+
+001. [GEOGRAFI] Fråga: Hur stor är benchmarkbefolkningen i Astra Delta?
+     Förväntat svar: 65 757
+     Källa: SB10K-00004
+
+002. [GEOGRAFI] Fråga: Hur stor är benchmarkbefolkningen i Ember Bäck?
+     Förväntat svar: 841 819
+     Källa: SB10K-00102
+
+003. [GEOGRAFI] Fråga: Hur stor är benchmarkbefolkningen i Indigo Ridge?
+     Förväntat svar: 830 423
+     Källa: SB10K-00218
+
+004. [GEOGRAFI] Fråga: Hur stor är benchmarkbefolkningen i Nimbus Observatorium?
+     Förväntat svar: 866 541
+     Källa: SB10K-00340
+
+005. [GEOGRAFI] Fråga: Hur stor är benchmarkbefolkningen i Violet Meadow?
+     Förväntat svar: 178 553
+     Källa: SB10K-00488
+
+006. [HISTORIA] Fråga: Vilket år undertecknades Astra Delta-avtalet?
+     Förväntat svar: 1610
+     Källa: SB10K-00504
+
+007. [HISTORIA] Fråga: Vilket år undertecknades Ember Bäck-avtalet?
+     Förväntat svar: 1736
+     Källa: SB10K-00602
+
+008. [HISTORIA] Fråga: Vilket år undertecknades Indigo Ridge-avtalet?
+     Förväntat svar: 1588
+     Källa: SB10K-00718
+
+009. [HISTORIA] Fråga: Vilket år undertecknades Nimbus Observatorium-avtalet?
+     Förväntat svar: 1722
+     Källa: SB10K-00840
+
+010. [HISTORIA] Fråga: Vilket år undertecknades Violet Meadow-avtalet?
+     Förväntat svar: 1958
+     Källa: SB10K-00988
+
+011. [TEKNIK] Fråga: Vilken konfigurationsfil använder Astra Delta?
+     Förväntat svar: astra_delta.toml
+     Källa: SB10K-01004
+
+012. [TEKNIK] Fråga: Vilken konfigurationsfil använder Ember Bäck?
+     Förväntat svar: ember_back.toml
+     Källa: SB10K-01102
+
+013. [TEKNIK] Fråga: Vilken konfigurationsfil använder Indigo Ridge?
+     Förväntat svar: indigo_ridge.toml
+     Källa: SB10K-01218
+
+014. [TEKNIK] Fråga: Vilken konfigurationsfil använder Nimbus Observatorium?
+     Förväntat svar: nimbus_observatorium.toml
+     Källa: SB10K-01340
+
+015. [TEKNIK] Fråga: Vilken konfigurationsfil använder Violet Meadow?
+     Förväntat svar: violet_meadow.toml
+     Källa: SB10K-01488
+
+016. [PROGRAMMERING] Fråga: Vilket undantag kastar programmodulen Astra Delta när cachegränsen överskrids?
+     Förväntat svar: RecordOverflow
+     Källa: SB10K-01504
+
+017. [PROGRAMMERING] Fråga: Vilket undantag kastar programmodulen Ember Bäck när cachegränsen överskrids?
+     Förväntat svar: CapacityExceeded
+     Källa: SB10K-01602
+
+018. [PROGRAMMERING] Fråga: Vilket undantag kastar programmodulen Indigo Ridge när cachegränsen överskrids?
+     Förväntat svar: CacheBoundaryError
+     Källa: SB10K-01718
+
+019. [PROGRAMMERING] Fråga: Vilket undantag kastar programmodulen Nimbus Observatorium när cachegränsen överskrids?
+     Förväntat svar: SyntheticLimitException
+     Källa: SB10K-01840
+
+020. [PROGRAMMERING] Fråga: Vilket undantag kastar programmodulen Violet Meadow när cachegränsen överskrids?
+     Förväntat svar: CacheBoundaryError
+     Källa: SB10K-01988
+
+021. [ASTRONOMI] Fråga: Vilket katalog-ID har det astronomiska objektet Astra Delta?
+     Förväntat svar: AST-1003
+     Källa: SB10K-02004
+
+022. [ASTRONOMI] Fråga: Vilket katalog-ID har det astronomiska objektet Ember Bäck?
+     Förväntat svar: AST-1101
+     Källa: SB10K-02102
+
+023. [ASTRONOMI] Fråga: Vilket katalog-ID har det astronomiska objektet Indigo Ridge?
+     Förväntat svar: AST-1217
+     Källa: SB10K-02218
+
+024. [ASTRONOMI] Fråga: Vilket katalog-ID har det astronomiska objektet Nimbus Observatorium?
+     Förväntat svar: AST-1339
+     Källa: SB10K-02340
+
+025. [ASTRONOMI] Fråga: Vilket katalog-ID har det astronomiska objektet Violet Meadow?
+     Förväntat svar: AST-1487
+     Källa: SB10K-02488
+
+026. [BIOLOGI] Fråga: Vilken fältetikett används för organismen Astra Delta?
+     Förväntat svar: BIO-1003
+     Källa: SB10K-02504
+
+027. [BIOLOGI] Fråga: Vilken fältetikett används för organismen Ember Bäck?
+     Förväntat svar: BIO-1101
+     Källa: SB10K-02602
+
+028. [BIOLOGI] Fråga: Vilken fältetikett används för organismen Indigo Ridge?
+     Förväntat svar: BIO-1217
+     Källa: SB10K-02718
+
+029. [BIOLOGI] Fråga: Vilken fältetikett används för organismen Nimbus Observatorium?
+     Förväntat svar: BIO-1339
+     Källa: SB10K-02840
+
+030. [BIOLOGI] Fråga: Vilken fältetikett används för organismen Violet Meadow?
+     Förväntat svar: BIO-1487
+     Källa: SB10K-02988
+
+031. [FYSIK] Fråga: Vilken benchmarkrespons uppmättes i fysikexperimentet Astra Delta?
+     Förväntat svar: 51.1 enheter
+     Källa: SB10K-03004
+
+032. [FYSIK] Fråga: Vilken benchmarkrespons uppmättes i fysikexperimentet Ember Bäck?
+     Förväntat svar: 58.7 enheter
+     Källa: SB10K-03102
+
+033. [FYSIK] Fråga: Vilken benchmarkrespons uppmättes i fysikexperimentet Indigo Ridge?
+     Förväntat svar: 45.9 enheter
+     Källa: SB10K-03218
+
+034. [FYSIK] Fråga: Vilken benchmarkrespons uppmättes i fysikexperimentet Nimbus Observatorium?
+     Förväntat svar: 26.3 enheter
+     Källa: SB10K-03340
+
+035. [FYSIK] Fråga: Vilken benchmarkrespons uppmättes i fysikexperimentet Violet Meadow?
+     Förväntat svar: 95.9 enheter
+     Källa: SB10K-03488
+
+036. [KEMI] Fråga: Vilket pH hade referensblandningen i Astra Delta?
+     Förväntat svar: 7.6
+     Källa: SB10K-03504
+
+037. [KEMI] Fråga: Vilket pH hade referensblandningen i Ember Bäck?
+     Förväntat svar: 9.2
+     Källa: SB10K-03602
+
+038. [KEMI] Fråga: Vilket pH hade referensblandningen i Indigo Ridge?
+     Förväntat svar: 8.4
+     Källa: SB10K-03718
+
+039. [KEMI] Fråga: Vilket pH hade referensblandningen i Nimbus Observatorium?
+     Förväntat svar: 6.8
+     Källa: SB10K-03840
+
+040. [KEMI] Fråga: Vilket pH hade referensblandningen i Violet Meadow?
+     Förväntat svar: 5.4
+     Källa: SB10K-03988
+
+041. [MEDICIN_HISTORIA] Fråga: Vilket år är den medicinhistoriska fallnotisen Astra Delta daterad?
+     Förväntat svar: 1715
+     Källa: SB10K-04004
+
+042. [MEDICIN_HISTORIA] Fråga: Vilket år är den medicinhistoriska fallnotisen Ember Bäck daterad?
+     Förväntat svar: 1885
+     Källa: SB10K-04102
+
+043. [MEDICIN_HISTORIA] Fråga: Vilket år är den medicinhistoriska fallnotisen Indigo Ridge daterad?
+     Förväntat svar: 1825
+     Källa: SB10K-04218
+
+044. [MEDICIN_HISTORIA] Fråga: Vilket år är den medicinhistoriska fallnotisen Nimbus Observatorium daterad?
+     Förväntat svar: 1795
+     Källa: SB10K-04340
+
+045. [MEDICIN_HISTORIA] Fråga: Vilket år är den medicinhistoriska fallnotisen Violet Meadow daterad?
+     Förväntat svar: 1895
+     Källa: SB10K-04488
+
+046. [LITTERATUR] Fråga: Vem skrev det fiktiva litterära verket Astra Delta?
+     Förväntat svar: Frost Junction
+     Källa: SB10K-04504
+
+047. [LITTERATUR] Fråga: Vem skrev det fiktiva litterära verket Ember Bäck?
+     Förväntat svar: Marble Verk
+     Källa: SB10K-04602
+
+048. [LITTERATUR] Fråga: Vem skrev det fiktiva litterära verket Indigo Ridge?
+     Förväntat svar: Frost Hamn
+     Källa: SB10K-04718
+
+049. [LITTERATUR] Fråga: Vem skrev det fiktiva litterära verket Nimbus Observatorium?
+     Förväntat svar: Violet Lab
+     Källa: SB10K-04840
+
+050. [LITTERATUR] Fråga: Vem skrev det fiktiva litterära verket Violet Meadow?
+     Förväntat svar: Astra Trädgård
+     Källa: SB10K-04988
+
+051. [MUSIK] Fråga: Vem komponerade det fiktiva musikstycket Astra Delta?
+     Förväntat svar: Cinder Torn
+     Källa: SB10K-05004
+
+052. [MUSIK] Fråga: Vem komponerade det fiktiva musikstycket Ember Bäck?
+     Förväntat svar: Garnet Canyon
+     Källa: SB10K-05102
+
+053. [MUSIK] Fråga: Vem komponerade det fiktiva musikstycket Indigo Ridge?
+     Förväntat svar: Silver Delta
+     Källa: SB10K-05218
+
+054. [MUSIK] Fråga: Vem komponerade det fiktiva musikstycket Nimbus Observatorium?
+     Förväntat svar: Kestrel Verk
+     Källa: SB10K-05340
+
+055. [MUSIK] Fråga: Vem komponerade det fiktiva musikstycket Violet Meadow?
+     Förväntat svar: Quartz Port
+     Källa: SB10K-05488
+
+056. [KONST] Fråga: Vilken konstnär skapade det fiktiva verket Astra Delta?
+     Förväntat svar: Ember Quarry
+     Källa: SB10K-05504
+
+057. [KONST] Fråga: Vilken konstnär skapade det fiktiva verket Ember Bäck?
+     Förväntat svar: Quartz Pass
+     Källa: SB10K-05602
+
+058. [KONST] Fråga: Vilken konstnär skapade det fiktiva verket Indigo Ridge?
+     Förväntat svar: Quartz Port
+     Källa: SB10K-05718
+
+059. [KONST] Fråga: Vilken konstnär skapade det fiktiva verket Nimbus Observatorium?
+     Förväntat svar: Violet Junction
+     Källa: SB10K-05840
+
+060. [KONST] Fråga: Vilken konstnär skapade det fiktiva verket Violet Meadow?
+     Förväntat svar: Raven Isle
+     Källa: SB10K-05988
+
+061. [EKONOMI] Fråga: Vilket är det senaste benchmarkvärdet för Astra Delta-indexet?
+     Förväntat svar: 91.3
+     Källa: SB10K-06004
+
+062. [EKONOMI] Fråga: Vilket är det senaste benchmarkvärdet för Ember Bäck-indexet?
+     Förväntat svar: 157.1
+     Källa: SB10K-06102
+
+063. [EKONOMI] Fråga: Vilket är det senaste benchmarkvärdet för Indigo Ridge-indexet?
+     Förväntat svar: 80.7
+     Källa: SB10K-06218
+
+064. [EKONOMI] Fråga: Vilket är det senaste benchmarkvärdet för Nimbus Observatorium-indexet?
+     Förväntat svar: 136.9
+     Källa: SB10K-06340
+
+065. [EKONOMI] Fråga: Vilket är det senaste benchmarkvärdet för Violet Meadow-indexet?
+     Förväntat svar: 107.7
+     Källa: SB10K-06488
+
+066. [MILJO] Fråga: Hur många hektar skyddar naturreservatet Astra Delta?
+     Förväntat svar: 107 hektar
+     Källa: SB10K-06504
+
+067. [MILJO] Fråga: Hur många hektar skyddar naturreservatet Ember Bäck?
+     Förväntat svar: 1969 hektar
+     Källa: SB10K-06602
+
+068. [MILJO] Fråga: Hur många hektar skyddar naturreservatet Indigo Ridge?
+     Förväntat svar: 273 hektar
+     Källa: SB10K-06718
+
+069. [MILJO] Fråga: Hur många hektar skyddar naturreservatet Nimbus Observatorium?
+     Förväntat svar: 641 hektar
+     Källa: SB10K-06840
+
+070. [MILJO] Fråga: Hur många hektar skyddar naturreservatet Violet Meadow?
+     Förväntat svar: 1503 hektar
+     Källa: SB10K-06988
+
+071. [MATEMATIK] Fråga: Vilket är det lagrade referensvärdet för n = 10 i talföljden Astra Delta?
+     Förväntat svar: 60
+     Källa: SB10K-07004
+
+072. [MATEMATIK] Fråga: Vilket är det lagrade referensvärdet för n = 10 i talföljden Ember Bäck?
+     Förväntat svar: 89
+     Källa: SB10K-07102
+
+073. [MATEMATIK] Fråga: Vilket är det lagrade referensvärdet för n = 10 i talföljden Indigo Ridge?
+     Förväntat svar: 36
+     Källa: SB10K-07218
+
+074. [MATEMATIK] Fråga: Vilket är det lagrade referensvärdet för n = 10 i talföljden Nimbus Observatorium?
+     Förväntat svar: 61
+     Källa: SB10K-07340
+
+075. [MATEMATIK] Fråga: Vilket är det lagrade referensvärdet för n = 10 i talföljden Violet Meadow?
+     Förväntat svar: 108
+     Källa: SB10K-07488
+
+076. [ARKITEKTUR] Fråga: Hur många våningar har den fiktiva byggnaden Astra Delta?
+     Förväntat svar: 4
+     Källa: SB10K-07504
+
+077. [ARKITEKTUR] Fråga: Hur många våningar har den fiktiva byggnaden Ember Bäck?
+     Förväntat svar: 18
+     Källa: SB10K-07602
+
+078. [ARKITEKTUR] Fråga: Hur många våningar har den fiktiva byggnaden Indigo Ridge?
+     Förväntat svar: 8
+     Källa: SB10K-07718
+
+079. [ARKITEKTUR] Fråga: Hur många våningar har den fiktiva byggnaden Nimbus Observatorium?
+     Förväntat svar: 4
+     Källa: SB10K-07840
+
+080. [ARKITEKTUR] Fråga: Hur många våningar har den fiktiva byggnaden Violet Meadow?
+     Förväntat svar: 26
+     Källa: SB10K-07988
+
+081. [TRANSPORT] Fråga: Hur lång är transportlinjen Astra Delta?
+     Förväntat svar: 81 kilometer
+     Källa: SB10K-08004
+
+082. [TRANSPORT] Fråga: Hur lång är transportlinjen Ember Bäck?
+     Förväntat svar: 375 kilometer
+     Källa: SB10K-08102
+
+083. [TRANSPORT] Fråga: Hur lång är transportlinjen Indigo Ridge?
+     Förväntat svar: 103 kilometer
+     Källa: SB10K-08218
+
+084. [TRANSPORT] Fråga: Hur lång är transportlinjen Nimbus Observatorium?
+     Förväntat svar: 949 kilometer
+     Källa: SB10K-08340
+
+085. [TRANSPORT] Fråga: Hur lång är transportlinjen Violet Meadow?
+     Förväntat svar: 433 kilometer
+     Källa: SB10K-08488
+
+086. [JORDBRUK] Fråga: Vilken gröda odlas på försöksgården Astra Delta?
+     Förväntat svar: potatis
+     Källa: SB10K-08504
+
+087. [JORDBRUK] Fråga: Vilken gröda odlas på försöksgården Ember Bäck?
+     Förväntat svar: råg
+     Källa: SB10K-08602
+
+088. [JORDBRUK] Fråga: Vilken gröda odlas på försöksgården Indigo Ridge?
+     Förväntat svar: linser
+     Källa: SB10K-08718
+
+089. [JORDBRUK] Fråga: Vilken gröda odlas på försöksgården Nimbus Observatorium?
+     Förväntat svar: raps
+     Källa: SB10K-08840
+
+090. [JORDBRUK] Fråga: Vilken gröda odlas på försöksgården Violet Meadow?
+     Förväntat svar: linser
+     Källa: SB10K-08988
+
+091. [SPRÅK] Fråga: Vad heter ordet för 'sol' på det fiktiva språket Astra Delta?
+     Förväntat svar: mire3
+     Källa: SB10K-09004
+
+092. [SPRÅK] Fråga: Vad heter ordet för 'skog' på det fiktiva språket Ember Bäck?
+     Förväntat svar: sorin3
+     Källa: SB10K-09102
+
+093. [SPRÅK] Fråga: Vad heter ordet för 'vind' på det fiktiva språket Indigo Ridge?
+     Förväntat svar: kava0
+     Källa: SB10K-09218
+
+094. [SPRÅK] Fråga: Vad heter ordet för 'vatten' på det fiktiva språket Nimbus Observatorium?
+     Förväntat svar: nara3
+     Källa: SB10K-09340
+
+095. [SPRÅK] Fråga: Vad heter ordet för 'vind' på det fiktiva språket Violet Meadow?
+     Förväntat svar: kava4
+     Källa: SB10K-09488
+
+096. [SAMHÄLLE] Fråga: Hur många ordinarie möten per år håller organisationen Astra Delta?
+     Förväntat svar: 5
+     Källa: SB10K-09504
+
+097. [SAMHÄLLE] Fråga: Hur många ordinarie möten per år håller organisationen Ember Bäck?
+     Förväntat svar: 4
+     Källa: SB10K-09602
+
+098. [SAMHÄLLE] Fråga: Hur många ordinarie möten per år håller organisationen Indigo Ridge?
+     Förväntat svar: 10
+     Källa: SB10K-09718
+
+099. [SAMHÄLLE] Fråga: Hur många ordinarie möten per år håller organisationen Nimbus Observatorium?
+     Förväntat svar: 11
+     Källa: SB10K-09840
+
+100. [SAMHÄLLE] Fråga: Hur många ordinarie möten per år håller organisationen Violet Meadow?
+     Förväntat svar: 5
+     Källa: SB10K-09988

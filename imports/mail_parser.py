@@ -1,14 +1,79 @@
-"""Extract text from saved email files."""
+"""Extract the subject and plain text from an EML or MSG file."""
 
 from email import policy
 from email.parser import BytesParser
 from pathlib import Path
+from html.parser import HTMLParser
 
+import re
 import extract_msg
 
+class MailHTMLParser(HTMLParser):
+    """Extract readable text from an HTML email."""
+
+    BLOCK_TAGS = {
+        "address", "article", "blockquote", "div", "dl",
+        "dt", "dd", "footer", "h1", "h2", "h3", "h4",
+        "h5", "h6", "header", "hr", "li", "ol", "p",
+        "pre", "section", "table", "tr", "ul"
+    }
+
+    IGNORED_TAGS = {"head", "script", "style"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self.ignored_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list) -> None:
+        if tag in self.IGNORED_TAGS:
+            self.ignored_depth += 1
+
+        if self.ignored_depth:
+            return
+
+        if tag == "br" or tag in self.BLOCK_TAGS:
+            self.parts.append("\n")
+        elif tag in {"td", "th"}:
+            self.parts.append(" ")
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in self.IGNORED_TAGS:
+            self.ignored_depth = max(0, self.ignored_depth - 1)
+            return
+
+        if self.ignored_depth:
+            return
+
+        if tag in self.BLOCK_TAGS:
+            self.parts.append("\n")
+        elif tag in {"td", "th"}:
+            self.parts.append(" ")
+
+    def handle_data(self, data: str) -> None:
+        if not self.ignored_depth:
+            # HTML source formatting should not create extra line breaks.
+            self.parts.append(re.sub(r"\s+", " ", data))
+
+
+def html_to_text(html: str) -> str:
+    """Convert HTML to plain text while retaining paragraph breaks."""
+    parser = MailHTMLParser()
+    parser.feed(html)
+    parser.close()
+
+    text = "".join(parser.parts)
+
+    # Normalize spaces within lines and limit consecutive line breaks.
+    lines = [
+        re.sub(r"[^\S\n]+", " ", line).strip()
+        for line in text.split("\n")
+    ]
+
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
 
 def extract_mail_chunks(file_path: str) -> list[str]:
-    """Extract the subject and plain text from an EML file.
+    """Extract the subject and plain text from an EML or MSG file.
 
     Args:
         file_path: File path to the EML or MSG file.
@@ -49,7 +114,10 @@ def extract_mail_chunks(file_path: str) -> list[str]:
 
 
 def read_eml(path: Path) -> tuple[str, str]:
-    """Read the subject and plain text from an EML file.
+    """Read the subject and body from an EML file.
+
+    Prefer plain text and convert HTML when plain text is unavailable.
+    Attachments are ignored.
 
     Args:
         path: Path to the EML file.
@@ -59,7 +127,7 @@ def read_eml(path: Path) -> tuple[str, str]:
 
     Raises:
         ValueError: If the file cannot be read or decoded,
-            or has no plain text body.
+            or has no supported email body.
     """
     try:
         with path.open("rb") as file:
@@ -67,11 +135,11 @@ def read_eml(path: Path) -> tuple[str, str]:
     except OSError as error:
         raise ValueError("The file could not be read.") from error
 
-    # Get the plain text body and ignore attachments.
-    body = message.get_body(preferencelist=("plain",))
+    # Prefer plain text, fall back to HTML, and ignore attachments.
+    body = message.get_body(preferencelist=("plain", "html"))
 
     if body is None:
-        raise ValueError("No plain text was found in the email.")
+        raise ValueError("No plain text or HTML was found in the email.")
 
     try:
         text = body.get_content()
@@ -79,6 +147,9 @@ def read_eml(path: Path) -> tuple[str, str]:
         raise ValueError(
             "The email text could not be decoded."
         ) from error
+
+    if body.get_content_type() == "text/html":
+        text = html_to_text(text)
 
     subject = str(message.get("Subject", ""))
 

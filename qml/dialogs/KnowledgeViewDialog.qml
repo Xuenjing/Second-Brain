@@ -12,6 +12,7 @@ Dialog {
     property color hoverColor
     property color pressedColor
     property color windowColor
+    property color assistantBubbleColor
 
     property color dangerColor
     property color dangerBorderColor
@@ -224,7 +225,7 @@ Dialog {
             padding: 12
 
             background: Rectangle {
-                color: knowledgeViewDialog.windowColor
+                color: knowledgeViewDialog.assistantBubbleColor
                 radius: 8
 
                 border.color: knowledgeSearchField.activeFocus
@@ -243,7 +244,7 @@ Dialog {
             id: sortButtons
 
             anchors.top: knowledgeSearchField.bottom
-            anchors.topMargin: 6
+            anchors.topMargin: 10
             anchors.right: parent.right
 
             spacing: 30
@@ -675,7 +676,7 @@ Dialog {
             id: knowledgeList
 
             anchors.top: sortButtons.bottom
-            anchors.topMargin: 6
+            anchors.topMargin: 10
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
@@ -684,7 +685,9 @@ Dialog {
             spacing: 12
             model: []
 
-            ScrollBar.vertical: ScrollBar {}
+            ScrollBar.vertical: ScrollBar {
+                width: 15
+            }
 
             delegate: Rectangle {
                 id: postItem
@@ -698,7 +701,7 @@ Dialog {
                     postActions.height
                 ) + 24
 
-                color: knowledgeViewDialog.windowColor
+                color: knowledgeViewDialog.assistantBubbleColor
                 radius: 8
 
                 Column {
@@ -742,14 +745,14 @@ Dialog {
                     spacing: 8
 
                     anchors.right: parent.right
-                    anchors.rightMargin: 12
+                    anchors.rightMargin: 20
                     anchors.verticalCenter: parent.verticalCenter
 
                     Button {
                         id: editPostButton
                         text: "Redigera"
-                        width: 40
-                        height: 40
+                        width: 32
+                        height: 32
                         hoverEnabled: true
 
                         Accessible.name: "Redigera kunskapspost"
@@ -824,8 +827,8 @@ Dialog {
                     Button {
                         id: deletePostButton
                         text: "Ta bort"
-                        width: 40
-                        height: 40
+                        width: 32
+                        height: 32
                         hoverEnabled: true
 
                         Accessible.name: "Ta bort kunskapspost"
@@ -919,7 +922,7 @@ Dialog {
     }
 
     footer: Item {
-        implicitHeight: 64
+        implicitHeight: 16
 
     }
 
