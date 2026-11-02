@@ -21,7 +21,8 @@ The current prototype supports:
 - Storage of source information and creation timestamps
 - Duplicate prevention for stored knowledge
 - Embedding generation for stored knowledge
-- Semantic retrieval using cosine similarity
+- Hybrid retrieval combining semantic similarity with lightweight lexical / identifier matching
+- Top-k retrieval with similarity-threshold filtering
 - Retrieval-Augmented Generation (RAG)
 - Local language-model integration
 - Background LLM generation to avoid blocking the interface
@@ -41,6 +42,7 @@ The current prototype supports:
 - Automated unit tests
 - GitHub Actions for continuous test execution
 - Benchmark and experiment scripts for retrieval, embeddings and language models
+- Scalability testing with knowledge bases containing 1,200 and 10,000 entries
 - JSON export of the knowledge database
 - Source references / traceability for generated answers
 - Opening a referenced knowledge entry from an answer source
@@ -86,7 +88,7 @@ The Python backend handles communication between the user interface and the unde
 Its responsibilities currently include:
 
 - Receiving user questions
-- Coordinating semantic retrieval
+- Coordinating hybrid retrieval
 - Building RAG context
 - Sending context and questions to the language model
 - Returning generated answers to QML
@@ -177,25 +179,27 @@ used for the other supported document formats.
 
 Embeddings are currently generated using:
 
-`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
+`intfloat/multilingual-e5-small`
 
 The user's question is converted into an embedding and compared with stored knowledge using cosine similarity.
+
+Production retrieval uses a hybrid approach where semantic similarity remains the main ranking signal, while lightweight lexical / identifier matching can provide an additional signal when relevant.
 
 Relevant entries are selected using a similarity threshold and top-k retrieval.
 
 The current similarity threshold is:
 
-`0.45`
+`0.82`
 
 This threshold was selected based on earlier retrieval experiments.
 
-Retrieval quality is still under active evaluation as the supported document types and knowledge base grow.
+The current default top-k value is:
 
-An alternative embedding model has also been evaluated:
+`5`
 
-`intfloat/multilingual-e5-small`
+Retrieval quality is evaluated separately from language-model answer quality. Recent tests indicate that retrieval is generally reliable, while several remaining answer errors originate in generation rather than retrieval.
 
-It showed improved ranking for several difficult retrieval queries while maintaining similar runtime performance. However, its similarity-score distribution differs from the current MiniLM model, so additional evaluation would be required before changing the default model.
+
 
 ---
 
@@ -205,7 +209,7 @@ The current local language model is:
 
 `Qwen/Qwen3-1.7B`
 
-Which remains the current default while answer quality, grounding and latency continue to be evaluated.
+Qwen3-1.7B remains the current default because it provides the best overall balance between answer quality and CPU performance among the tested models.
 
 The model was selected after benchmarking:
 
@@ -225,7 +229,9 @@ The language model is accessed through a provider class rather than directly fro
 
 An OpenAI-compatible external-provider prototype has also been tested experimentally.
 
-Answer quality and model selection are still under evaluation.
+Evaluation of the complete RAG pipeline has shown that some remaining answer errors occur even when the correct knowledge entry is present in the retrieved context, indicating generation limitations rather than retrieval failure.
+
+Therefore, answer quality and model selection are still under evaluation.
 
 ---
 
@@ -240,7 +246,7 @@ QML interface
       ↓
 Python backend
       ↓
-Semantic retrieval
+Hybrid retrieval
       ↓
 Relevant knowledge chunks
       ↓
@@ -375,11 +381,15 @@ Retrieval tests use mocked dependencies where appropriate and cover functionalit
 - Similarity threshold filtering
 - Top-k limiting
 
+In addition to unit tests, production-oriented evaluation separates retrieval success from generation success. This makes it possible to distinguish between failures to retrieve relevant knowledge and failures where the language model misuses otherwise correct context.
+
 ### Document import tests
 
 Automated tests currently cover TXT, DOCX and PDF parsing and import
 logic, including invalid files, empty content, source handling,
 chunk creation and mocked database/embedding dependencies.
+
+The application has also been tested with heterogeneous benchmark knowledge bases containing approximately 1,200 and 10,000 entries. These tests included repeated entity names across different domains to evaluate both retrieval accuracy and scalability.
 
 ---
 
@@ -411,6 +421,16 @@ Language-model generation is performed in a background thread so that question p
 
 Document importing and embedding can still involve blocking work and may be moved to background processing in future development.
 
+### Scalability observations
+
+With approximately 1,200 entries, retrieval averaged around 0.34 seconds per query.
+
+With approximately 10,000 entries, retrieval averaged around 2.7 seconds per query in the tested environment.
+
+The increase was roughly proportional to corpus size, suggesting approximately linear scaling for the current retrieval implementation at these test sizes.
+
+At 10,000 entries, retrieval quality remained strong in the tested question set. Most observed incorrect answers were generation errors rather than failures to retrieve relevant knowledge.
+
 ---
 
 ## Current quality evaluation
@@ -429,6 +449,16 @@ Unexpected answers may originate from several different parts of the RAG pipelin
 
 Current evaluation therefore measures retrieval quality separately from language-model answer quality rather than assuming that poor answers are caused by the model alone.
 
+Recent evaluation has shown that retrieval remains reliable even with larger heterogeneous knowledge bases and repeated entity names.
+
+However, observed generation failures include:
+- Selecting an attribute from another highly ranked context entry
+- Mixing information from similarly named entries
+- Producing a value that is not present in the retrieved context
+- Reporting insufficient information even when the context supports a simple conclusion
+
+These results suggest that the retrieval pipeline is relatively mature, while generation reliability remains a more significant limitation of the current local model.
+
 ---
 
 ## Potential future development
@@ -443,6 +473,7 @@ Current ideas and areas under consideration include:
 - Improved PDF parsing
 - OCR support for scanned documents
 - Additional document formats
+- Improved browsing and searching of answer-source knowledge entries
 
 ### Chat and context
 
@@ -453,6 +484,8 @@ Current ideas and areas under consideration include:
 
 ### Configuration
 
+- User-configurable RAG similarity threshold
+- User-configurable top-k retrieval value
 - Persistent configuration
 - Different operating modes
 - Interface language selection
@@ -546,16 +579,18 @@ Second Brain is currently a working end-to-end prototype under active developmen
 
 Core functionality for storing, importing, retrieving and managing knowledge is operational.
 
+The RAG pipeline has now also been evaluated with larger heterogeneous knowledge bases, including a 10,000-entry scalability test.
+
 The current development focus is shifting toward:
 
-- Retrieval and answer quality
-- Testing
-- Document handling
-- User-interface improvements
-- Configuration
+- User-interface and usability improvements
+- User-configurable RAG settings
+- Improved source / knowledge inspection
+- Documentation and user guidance
 - Data management
-- Additional AI integration
-- Performance and scalability
+- Additional application features and integrations
+- Performance improvements where justified by measured bottlenecks
+- Final testing and project reflection
 
 ---
 
