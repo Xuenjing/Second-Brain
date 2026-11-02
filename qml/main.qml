@@ -269,7 +269,7 @@ ApplicationWindow {
         anchors.centerIn: parent
 
         width: Math.min(500, root.width - 48)
-        height: Math.min(400, root.height - 48)
+        height: Math.min(550, root.height - 48)
 
         darkMode: root.darkMode
 
@@ -291,6 +291,10 @@ ApplicationWindow {
 
         onImportRequested: {
             importBackupFileDialog.open()
+        }
+
+        onRagSettingsRequested: function(topK, similarityThreshold) {
+            backend.set_rag_settings(topK, similarityThreshold)
         }
 
 
@@ -1525,6 +1529,11 @@ ApplicationWindow {
             if (knowledgeViewDialog.visible) {
                 knowledgeViewDialog.requestRefresh()
             }
+        }
+
+        // Signal from backend whether rag settings were saved or not
+        function onRagSettingsResult(success, message) {
+            settingsDialog.showRagStatus(success, message)
         }
     }
 }

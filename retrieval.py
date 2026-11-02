@@ -26,7 +26,11 @@ def get_embedding_model() -> Any:
 
 
 @measure_time
-def retrieve_knowledge(query: str) -> list[dict]:
+def retrieve_knowledge(
+    query: str,
+    top_k: int = 5,
+    similarity_threshold: float = 0.82,
+) -> list[dict]:
     """Retrieve knowledge entries similar to a query.
 
     Query is embedded and compared to knowledge embeddings
@@ -39,16 +43,12 @@ def retrieve_knowledge(query: str) -> list[dict]:
 
     Args:
         query: A query used to search the knowledge database.
+        top_k: Maximum number of posts that can be retrieved.
+        similarity_threshold: Minimum semantic score required for a result.
 
     Returns:
         A list of matching knowledge entries with similarity scores.
     """
-
-    # Maximum number of posts that can be returned.
-    top_k = 5
-
-    # Minimum semantic score required for a result.
-    similarity_threshold = 0.82
 
     # Ranking bonus for matching word-number identifiers.
     identifier_boost = 0.20
