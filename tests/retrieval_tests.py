@@ -22,7 +22,14 @@ class TestRetrieval(unittest.TestCase):
         # real function sees that the list is empty
         results = retrieval.retrieve_knowledge("Test question")
         
-        self.assertEqual(results, []) # True if empty list
+        self.assertEqual(
+            results,
+            {
+                "used_sources": [],
+                "additional_sources": [],
+                "less_relevant_sources": [],
+            }
+        )
 
 
     def test_results_are_sorted_by_similarity(self):
@@ -99,6 +106,7 @@ class TestRetrieval(unittest.TestCase):
 
 
     def test_results_are_filtered_by_semantic_score_but_ranked_by_hybrid_score(self):
+        """Verify that results are filtered by semantic score, but ranked by hybrid score."""
         results = [
             {"score": 1.05, "semantic_score": 0.85},
             {"score": 0.9, "semantic_score": 0.9},
@@ -107,10 +115,42 @@ class TestRetrieval(unittest.TestCase):
 
         ranked_results = retrieval.filter_and_rank_results(results, similarity_threshold=0.82, top_k=5)
 
-
         self.assertEqual(len(ranked_results), 2)
         self.assertEqual(ranked_results[0]["score"], 1.05)
         self.assertEqual(ranked_results[1]["score"], 0.90)
+
+
+    def test_split_retrieval_results(self):
+        """ Verify that results are split into three different dictionaries."""
+        results = [
+            {"text": "Best", "score": 0.95, "semantic_score": 0.95},
+            {"text": "Second", "score": 0.90, "semantic_score": 0.90},
+            {"text": "Extra", "score": 0.85, "semantic_score": 0.85},
+            {"text": "Below threshold", "score": 0.70, "semantic_score": 0.70},
+        ]
+
+        ranked_results = retrieval.rank_results(results)
+
+        used_sources, additional_sources, less_relevant_sources = (
+            retrieval.split_retrieval_results(
+                ranked_results,
+                similarity_threshold=0.82,
+                top_k=2,
+            )
+        )
+
+        self.assertEqual(len(used_sources), 2)
+        self.assertEqual(used_sources[0]["text"], "Best")
+        self.assertEqual(used_sources[1]["text"], "Second")
+
+        self.assertEqual(len(additional_sources), 1)
+        self.assertEqual(additional_sources[0]["text"], "Extra")
+
+        self.assertEqual(len(less_relevant_sources), 1)
+        self.assertEqual(
+            less_relevant_sources[0]["text"],
+            "Below threshold",
+        )
 
 
 if __name__ == "__main__":

@@ -52,7 +52,11 @@ ApplicationWindow {
     // Track the assistant bubble waiting for a reply.
     property int pendingReplyIndex: -1
 
-    function finishPendingReply(message, sources) {
+    function finishPendingReply(
+        message, 
+        sources,
+        additionalSources,
+        lessRelevantSources) {
         if (pendingReplyIndex < 0
                 || pendingReplyIndex >= chatModel.count) {
             return
@@ -60,6 +64,8 @@ ApplicationWindow {
 
         const replyIndex = pendingReplyIndex
         const replySources = sources || []
+        const replyAdditionalSources = additionalSources || []
+        const replyLessRelevantSources = lessRelevantSources || []
 
         // Update the existing nested source model.
         const sourceModel = chatModel.get(replyIndex).sources
@@ -68,6 +74,24 @@ ApplicationWindow {
         for (let i = 0; i < replySources.length; i++) {
             sourceModel.append(replySources[i])
         }
+
+        const additionalSourceModel = 
+            chatModel.get(replyIndex).additionalSources
+        
+        additionalSourceModel.clear()
+
+        for (let i = 0; i < replyAdditionalSources.length; i++) {
+            additionalSourceModel.append(replyAdditionalSources[i])
+        }
+
+        const lessRelevantSourceModel =
+            chatModel.get(replyIndex).lessRelevantSources
+
+        lessRelevantSourceModel.clear()
+
+        for (let i = 0; i < replyLessRelevantSources.length; i++) {
+            lessRelevantSourceModel.append(replyLessRelevantSources[i])
+        }        
 
         chatModel.setProperty(replyIndex, "message", message)
         chatModel.setProperty(
@@ -197,8 +221,14 @@ ApplicationWindow {
             hoverColor: root.hoverColor
             pressedColor: root.pressedColor
 
-            onSourcesRequested: function(sources) {
+            onSourcesRequested: function(
+                sources,
+                additionalSources,
+                lessRelevantSources
+            ) {
                 sourceDialog.sources = sources
+                sourceDialog.additionalSources = additionalSources
+                sourceDialog.lessRelevantSources = lessRelevantSources
                 sourceDialog.open()
             }
         }
@@ -229,6 +259,8 @@ ApplicationWindow {
                     sender: "user",
                     message: question,
                     sources: [],
+                    additionalSources: [],
+                    lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
                     isPending: false
@@ -240,6 +272,8 @@ ApplicationWindow {
                     sender: "assistant",
                     message: "Tänker…",
                     sources: [],
+                    additionalSources: [],
+                    lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
                     isPending: true
@@ -442,8 +476,8 @@ ApplicationWindow {
 
         parent: root.contentItem
 
-        width: 700
-        height: 600
+        width: Math.min(820, parent.width - 80)
+        height: Math.min(700, parent.height - 80)
 
         x: (parent.width - width) / 2
         y: (parent.height - height) / 2
@@ -454,6 +488,7 @@ ApplicationWindow {
         assistantBubbleColor: root.assistantBubbleColor
         hoverColor: root.hoverColor
         pressedColor: root.pressedColor
+        accentColor: root.accentColor
 
         onKnowledgeEntryRequested: function(id) {
             backend.open_knowledge_entry(id)
@@ -637,8 +672,16 @@ ApplicationWindow {
         target: backend
 
         // Replace the waiting bubble with the answer.
-        function onReplyReady(reply, sources) {
-            root.finishPendingReply(reply, sources || [])
+        function onReplyReady(
+            reply, 
+            sources,
+            additionalSources,
+            lessRelevantSources) {
+            root.finishPendingReply(
+                reply, 
+                sources || [],
+                additionalSources || [],
+                lessRelevantSources || [])
         }
 
         // Show the result of saving or importing knowledge.
@@ -685,7 +728,7 @@ ApplicationWindow {
 
         // Replace the waiting bubble with an error message.
         function onReplyFailed(message) {
-            root.finishPendingReply("Fel: " + message, [])
+            root.finishPendingReply("Fel: " + message, [], [], [])
         }
 
         // Open knowledgeview for clicked entry
@@ -733,6 +776,8 @@ ApplicationWindow {
                     sender: "assistant",
                     message: "Analyserar mejl…",
                     sources: [],
+                    additionalSources: [],
+                    lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
                     isPending: true

@@ -5,6 +5,10 @@ Dialog {
     id: sourceDialog
 
     property var sources: []
+    property var additionalSources: []
+    property var lessRelevantSources: []
+
+    property bool showAdditionalSources: false
 
     property color surfaceColor
     property color textColor
@@ -12,12 +16,107 @@ Dialog {
     property color assistantBubbleColor
     property color hoverColor
     property color pressedColor
+    property color accentColor
 
     signal knowledgeEntryRequested(int id)
 
     modal: true
     title: "Källor"
 
+    ListModel {
+        id: visibleSourcesModel
+    }
+
+    ListModel {
+        id: filteredSourcesModel
+    }
+
+    function appendSources(sourceModel) {
+        if (!sourceModel) {
+            return
+        }
+
+        // QML ListModel
+        if (sourceModel.count !== undefined && sourceModel.get) {
+            for (let i = 0; i < sourceModel.count; i++) {
+                visibleSourcesModel.append(sourceModel.get(i))
+            }
+
+            return
+        }
+
+        // Normal JavaScript array
+        if (sourceModel.length !== undefined) {
+            for (let i = 0; i < sourceModel.length; i++) {
+                visibleSourcesModel.append(sourceModel[i])
+            }
+        }
+    }
+
+    function refreshVisibleSources() {
+        visibleSourcesModel.clear()
+
+        appendSources(sourceDialog.sources)
+
+        if (sourceDialog.showAdditionalSources) {
+            appendSources(sourceDialog.additionalSources)
+        }
+
+        filterSources()
+    }
+
+    function filterSources() {
+        filteredSourcesModel.clear()
+
+        const query = searchField.text.trim().toLowerCase()
+
+        for (let i = 0; i < visibleSourcesModel.count; i++) {
+            const item = visibleSourcesModel.get(i)
+
+            const sourceText = item.source
+                ? item.source.toLowerCase()
+                : ""
+
+            const contentText = item.text
+                ? item.text.toLowerCase()
+                : ""
+
+            if (query === ""
+                    || sourceText.includes(query)
+                    || contentText.includes(query)) {
+
+                filteredSourcesModel.append(item)
+            }
+        }
+    }
+
+    function hasAdditionalSources() {
+        if (!sourceDialog.additionalSources) {
+            return false
+        }
+
+        if (sourceDialog.additionalSources.count !== undefined) {
+            return sourceDialog.additionalSources.count > 0
+        }
+
+        if (sourceDialog.additionalSources.length !== undefined) {
+            return sourceDialog.additionalSources.length > 0
+        }
+
+        return false
+    }
+
+    onOpened: {
+        searchField.clear()
+        refreshVisibleSources()
+    }
+
+    onClosed: {
+        showAdditionalSources = false
+        searchField.clear()
+        visibleSourcesModel.clear()
+        filteredSourcesModel.clear()
+    }
 
     header: Item {
         implicitHeight: 56
@@ -91,83 +190,213 @@ Dialog {
         radius: 10
     }
 
-    contentItem: ListView {
-        anchors.fill: parent
-
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        anchors.bottomMargin: 16
-        anchors.topMargin: 48
-
-        model: sourceDialog.sources
+    contentItem: Column {
         spacing: 12
-        clip: true
 
-        delegate: Rectangle {
-            id: sourceItem
+        Label {
+            id: sourceCountLabel
 
-            required property int id
-            required property string source
-            required property string text
-            required property real score
-            required property string created_at
+            width: parent.width
 
-            width: ListView.view.width
-            height: contentColumn.implicitHeight + 20
-            radius: 8
+            text: searchField.text.trim() !== ""
+                ? "Visar "
+                    + filteredSourcesModel.count
+                    + " av "
+                    + visibleSourcesModel.count
+                    + " källposter"
+                : visibleSourcesModel.count === 1
+                    ? "Visar 1 källpost"
+                    : "Visar "
+                        + visibleSourcesModel.count
+                        + " källposter"
 
-            color: sourceDialog.assistantBubbleColor
+            color: sourceDialog.secondaryTextColor
+            font.pixelSize: 12
+        }
 
-            TapHandler {
-                onTapped: {
-                    sourceDialog.close()
-                    sourceDialog.knowledgeEntryRequested(sourceItem.id)
-                }
+        TextField {
+            id: searchField
+
+            width: parent.width - 16
+            height: 40
+
+            placeholderText: "Sök bland källor..."
+
+            color: sourceDialog.textColor
+            placeholderTextColor: sourceDialog.secondaryTextColor
+
+            leftPadding: 12
+            rightPadding: 12
+
+            selectByMouse: true
+
+            background: Rectangle {
+                radius: 8
+
+                color: sourceDialog.assistantBubbleColor
+
+                border.color: searchField.activeFocus
+                    ? sourceDialog.accentColor
+                    : sourceDialog.secondaryTextColor
+
+                border.width: searchField.activeFocus ? 1.5 : 1
             }
 
-            Column {
-                id: contentColumn
+            onTextChanged: {
+                sourceDialog.filterSources()
+            }
+        }
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.margins: 10
-                anchors.verticalCenter: parent.verticalCenter
+        ListView {
+            id: sourceList
 
-                spacing: 6
+            width: parent.width
 
-                Row {
-                    spacing: 10
+            height: parent.height
+                - sourceCountLabel.height
+                - searchField.height
+                - (showMoreButton.visible
+                    ? showMoreButton.height
+                    : 0)
+                - parent.spacing * (
+                    showMoreButton.visible ? 3 : 2
+                )
 
-                    Text {
-                        text: sourceItem.source
-                        color: sourceDialog.textColor
-                        font.bold: true
+            model: filteredSourcesModel
+
+            spacing: 12
+            clip: true
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                width: 14
+            }
+
+            delegate: Rectangle {
+                id: sourceItem
+
+                required property int id
+                required property string source
+                required property string text
+                required property real score
+                required property string created_at
+
+                width: ListView.view.width
+                    - (sourceList.ScrollBar.vertical.visible ? 16 : 0)
+
+                height: contentColumn.implicitHeight + 20
+                radius: 8
+
+                color: sourceDialog.assistantBubbleColor
+
+                TapHandler {
+                    onTapped: {
+                        sourceDialog.close()
+                        sourceDialog.knowledgeEntryRequested(sourceItem.id)
+                    }
+                }
+
+                Column {
+                    id: contentColumn
+
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: 10
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    spacing: 6
+
+                    Row {
+                        spacing: 10
+
+                        Text {
+                            text: sourceItem.source
+                            color: sourceDialog.textColor
+                            font.bold: true
+                        }
+
+                        Text {
+                            text: sourceItem.created_at
+                                .replace("T", " ")
+                                .slice(0, 16)
+
+                            color: sourceDialog.secondaryTextColor
+                            font.pixelSize: 11
+                        }
                     }
 
                     Text {
-                        text: sourceItem.created_at
-                            .replace("T", " ")
-                            .slice(0, 16)
+                        text: sourceItem.text
+                        width: parent.width
+                        wrapMode: Text.WordWrap
+                        color: sourceDialog.textColor
+                    }
 
+                    Text {
+                        text: "Score: " + sourceItem.score.toFixed(3)
                         color: sourceDialog.secondaryTextColor
                         font.pixelSize: 11
                     }
                 }
+            }
 
-                Text {
-                    text: sourceItem.text
-                    width: parent.width
-                    wrapMode: Text.WordWrap
-                    color: sourceDialog.textColor
-                }
+            Label {
+                anchors.centerIn: parent
 
-                Text {
-                    text: "Score: " + sourceItem.score.toFixed(3)
-                    color: sourceDialog.secondaryTextColor
-                    font.pixelSize: 11
-                }
+                visible: searchField.text.trim() !== ""
+                    && filteredSourcesModel.count === 0
+
+                text: "Inga källor matchar sökningen."
+                color: sourceDialog.secondaryTextColor
+                font.pixelSize: 13
+            }
+        }
+
+        Button {
+            id: showMoreButton
+
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            height: 40
+            leftPadding: 18
+            rightPadding: 18
+            hoverEnabled: true
+
+            visible: sourceDialog.hasAdditionalSources()
+
+            text: sourceDialog.showAdditionalSources
+                ? "Visa endast använda källor"
+                : "Visa fler relevanta källor"
+
+            contentItem: Text {
+                text: showMoreButton.text
+
+                color: sourceDialog.textColor
+                font.pixelSize: 13
+
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                radius: 8
+
+                color: showMoreButton.down
+                    ? sourceDialog.pressedColor
+                    : showMoreButton.hovered
+                        ? sourceDialog.hoverColor
+                        : sourceDialog.surfaceColor
+
+                border.color: sourceDialog.accentColor
+                border.width: 1
+            }
+
+            onClicked: {
+                sourceDialog.showAdditionalSources =
+                    !sourceDialog.showAdditionalSources
+
+                sourceDialog.refreshVisibleSources()
             }
         }
     }
-
 }

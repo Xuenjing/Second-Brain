@@ -30,7 +30,7 @@ def retrieve_knowledge(
     query: str,
     top_k: int = 5,
     similarity_threshold: float = 0.82,
-) -> list[dict]:
+) -> dict[str, list[dict]]:
     """Retrieve knowledge entries similar to a query.
 
     Query is embedded and compared to knowledge embeddings
@@ -56,7 +56,11 @@ def retrieve_knowledge(
     knowledge = get_all_knowledge()
 
     if not knowledge:
-        return []
+        return {
+            "used_sources": [],
+            "additional_sources": [],
+            "less_relevant_sources": [],
+        }
 
     from sentence_transformers import util
 
@@ -104,14 +108,18 @@ def retrieve_knowledge(
             "created_at": item["created_at"]
         })
 
-    ranked_results = filter_and_rank_results(
-        results,
-        similarity_threshold,
-        top_k,
+    ranked_results = rank_results(results)
+    used_sources, additional_sources, less_relevant_sources = (
+        split_retrieval_results(
+            ranked_results,
+            similarity_threshold,
+            top_k
+        )
     )
+    
 
     # Print retrievals in terminal.
-    for result in ranked_results:
+    for result in used_sources:
         print(
             f"Semantic score: {result['semantic_score']:.3f} | "
             f"Hybrid score: {result['score']:.3f} | "
@@ -120,7 +128,11 @@ def retrieve_knowledge(
             f"Text: {result['text']}"
         )
 
-    return ranked_results
+    return {
+        "used_sources": used_sources,
+        "additional_sources": additional_sources,
+        "less_relevant_sources": less_relevant_sources,
+    }
 
 
 def create_embedding(text: str) -> np.ndarray:
@@ -174,6 +186,61 @@ def extract_numeric_phrases(text: str) -> set[str]:
     }
 
 
+
+def rank_results(results: list[dict]) -> list[dict]:
+    """Rank retrieval results by hybrid score.
+    
+    Args:
+        results: Retrieval results containing semantic and hybrid scores.
+
+    Returns:
+        Results sorted by hybrid score in descending order.
+    """
+
+    return sorted(
+        results,
+        key=lambda result: result["score"], reverse=True
+    )
+
+
+def split_retrieval_results(
+        ranked_results: list[dict],
+        similarity_threshold: float,
+        top_k: int,
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """Split ranked results inte relevance levels.
+    
+    Args:
+        ranked_results: Retrieval results sorted by hybrid score.
+        similarity_threshold: Minimum semantic score for relevant results.
+        top_k: Maximum number of results used for generation.
+    
+    Returns:
+        A tuple containing used sources, additional relevant sources, and less relevant sources.
+    """ 
+
+    relevant_results = [
+        result 
+        for result in ranked_results
+        if result["semantic_score"] >= similarity_threshold
+    ]
+
+    less_relevant_results = [
+        result
+        for result in ranked_results
+        if result["semantic_score"] < similarity_threshold
+    ]
+
+    used_sources = relevant_results[:top_k]
+    additional_sources = relevant_results[top_k:]
+
+    return (
+        used_sources,
+        additional_sources,
+        less_relevant_results
+    )
+
+
 def filter_and_rank_results(
     results: list[dict], 
     similarity_threshold: float, 
@@ -190,18 +257,15 @@ def filter_and_rank_results(
         Results above the threshold, ranked by hybrid score.
     """
 
-    filtered_results = [
-        result
-        for result in results
-        if result["semantic_score"] >= similarity_threshold
-    ]
+    ranked_results = rank_results(results)
 
-    filtered_results.sort(
-        key=lambda result: result["score"],
-        reverse=True
+    used_sources, _, _ = split_retrieval_results(
+        ranked_results,
+        similarity_threshold,
+        top_k
     )
-
-    return filtered_results[:top_k]
+    
+    return used_sources
 
 
 # testing purposes

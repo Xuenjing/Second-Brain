@@ -16,7 +16,10 @@ Rectangle {
     property color hoverColor
     property color pressedColor
 
-    signal sourcesRequested(var sources)
+    signal sourcesRequested(
+        var sources,
+        var additionalSources,
+        var lessRelevantSources)
     signal mailReviewRequested()
 
     function scrollToBottom() {
@@ -78,6 +81,8 @@ Rectangle {
             required property string sender
             required property string message
             required property var sources
+            required property var additionalSources
+            required property var lessRelevantSources
             required property int sourceCount
             required property bool isPending
             required property bool canReviewMail
@@ -93,6 +98,8 @@ Rectangle {
                 sender: messageDelegate.sender
                 message: messageDelegate.message
                 sources: messageDelegate.sources
+                additionalSources: messageDelegate.additionalSources
+                lessRelevantSources: messageDelegate.lessRelevantSources
                 sourceCount: messageDelegate.sourceCount
 
                 isPending: messageDelegate.isPending
@@ -110,8 +117,15 @@ Rectangle {
                 hoverColor: chatView.hoverColor
                 pressedColor: chatView.pressedColor
 
-                onSourcesRequested: function(sources) {
-                    chatView.sourcesRequested(sources)
+                onSourcesRequested: function(
+                    sources,
+                    additionalSources,
+                    lessRelevantSources
+                ) {
+                    chatView.sourcesRequested(
+                        sources,
+                        additionalSources,
+                        lessRelevantSources)
                 }
             }
         }

@@ -41,7 +41,7 @@ from json_importer import import_knowledge_from_json_file
 class Thinker(QThread):
     """Process a question without blocking the interface."""
 
-    answerReady = Signal(str, list)
+    answerReady = Signal(str, list, list, list)
     answerFailed = Signal(str)
 
     def __init__(
@@ -73,15 +73,21 @@ class Thinker(QThread):
                 similarity_threshold=self.similarity_threshold 
             )
 
-            if not results:
+            used_sources = results["used_sources"]
+            additional_sources = results["additional_sources"]
+            less_relevant_sources = results["less_relevant_sources"]
+
+            if not used_sources:
                 self.answerReady.emit(
                     "Det finns inte tillräcklig information i kunskapsbasen.",
-                    []
+                    [],
+                    additional_sources,
+                    less_relevant_sources
                 )
                 return
 
             context = "\n".join(
-                result["text"] for result in results
+                result["text"] for result in used_sources
             )
 
             prompt = f"""
@@ -109,7 +115,7 @@ ANSWER:
 """
 
             answer = self.llm.generate(prompt)
-            self.answerReady.emit(answer, results)
+            self.answerReady.emit(answer, used_sources, additional_sources, less_relevant_sources)
 
         except Exception as error:
             print(f"Answer generation failed: {error}")
@@ -224,7 +230,7 @@ class Backend(QObject):
         # self.llm = LocalLLMProvider("Qwen/Qwen3-4B-Instruct-2507")
 
     # Signal from Python to QML with the text to display.
-    replyReady = Signal(str, list)
+    replyReady = Signal(str, list, list, list)
 
     # Send True when processing starts and False when it finishes.
     thinkingChanged = Signal(bool)
@@ -419,14 +425,20 @@ class Backend(QObject):
         self.thinkingChanged.emit(True)
         self.thinker.start()
 
-    @Slot(str, list)
-    def handle_answer(self, answer: str, sources: list) -> None:
+    @Slot(str, list, list, list)
+    def handle_answer(
+        self, 
+        answer: str,
+        used_sources: list,
+        additional_sources: list, 
+        less_relevant_sources: list,
+    ) -> None:
         """Send the answer to QML.
         
         Args:
             answer: generated answer to display in QML interface.
         """
-        self.replyReady.emit(answer, sources)
+        self.replyReady.emit(answer, used_sources, additional_sources, less_relevant_sources)
 
     @Slot(str)
     def handle_error(self, message: str) -> None:
