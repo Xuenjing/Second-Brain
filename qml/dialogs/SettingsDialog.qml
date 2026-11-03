@@ -348,12 +348,6 @@ Dialog {
                     text: "0.82"
                     color: settingsDialog.textColor
 
-                    validator: DoubleValidator {
-                        bottom: 0.0
-                        top: 1.0
-                        decimals: 2
-                    }
-
                     background: Rectangle {
                         radius: 6
                         color: settingsDialog.surfaceColor
@@ -399,10 +393,28 @@ Dialog {
                     border.width: 1
                 }
 
+                // Normalize "," and ".".
                 onClicked: {
+                    const normalizedThreshold =
+                        thresholdInput.text.trim().replace(",", ".")
+
+                    const thresholdValue = Number(normalizedThreshold)
+
+                    if (normalizedThreshold === ""
+                            || !Number.isFinite(thresholdValue)
+                            || thresholdValue < 0
+                            || thresholdValue > 1) {
+
+                        settingsDialog.showRagStatus(
+                            false,
+                            "Threshold måste vara ett giltigt tal mellan 0 och 1."
+                        )
+                        return
+                    }
+
                     settingsDialog.ragSettingsRequested(
                         topKInput.value,
-                        parseFloat(thresholdInput.text)
+                        thresholdValue
                     )
                 }
             }
