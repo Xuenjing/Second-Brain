@@ -259,78 +259,105 @@ Dialog {
                     font.pixelSize: 14
                 }
 
-            SpinBox {
+            Item {
                 id: topKInput
 
-                from: 1
-                to: 20
-                value: 5
+                property int value: 5
+                property int from: 1
+                property int to: 20
 
                 width: 140
                 height: 42
 
-                editable: false
-
-                contentItem: TextInput {
-                    text: topKInput.textFromValue(
-                        topKInput.value,
-                        topKInput.locale
-                    )
-
-                    color: settingsDialog.textColor
-                    font.pixelSize: 15
-
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-
-                    readOnly: true
-                    selectByMouse: false
-                }
-
-                background: Rectangle {
+                Rectangle {
+                    anchors.fill: parent
                     radius: 8
                     color: settingsDialog.surfaceColor
                     border.color: settingsDialog.borderColor
                     border.width: 1
                 }
 
-                down.indicator: Rectangle {
-                    x: 0
-                    width: 42
-                    height: parent.height
+                Row {
+                    anchors.fill: parent
+                    spacing: 0
 
-                    radius: 8
-                    color: topKInput.down.pressed
-                        ? settingsDialog.pressedColor
-                        : topKInput.down.hovered
-                            ? settingsDialog.hoverColor
-                            : "transparent"
+                    Rectangle {
+                        id: decrementButton
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: "−"
-                        color: settingsDialog.textColor
-                        font.pixelSize: 24
+                        width: 42
+                        height: parent.height
+                        radius: 8
+
+                        color: decrementArea.pressed
+                            ? settingsDialog.pressedColor
+                            : decrementArea.containsMouse
+                                ? settingsDialog.hoverColor
+                                : "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "−"
+                            color: settingsDialog.textColor
+                            font.pixelSize: 24
+                        }
+
+                        MouseArea {
+                            id: decrementArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onClicked: {
+                                if (topKInput.value > topKInput.from) {
+                                    topKInput.value--
+                                }
+                            }
+                        }
                     }
-                }
 
-                up.indicator: Rectangle {
-                    x: parent.width - width
-                    width: 42
-                    height: parent.height
+                    Rectangle {
+                        width: topKInput.width - 84
+                        height: parent.height
+                        color: "transparent"
 
-                    radius: 8
-                    color: topKInput.up.pressed
-                        ? settingsDialog.pressedColor
-                        : topKInput.up.hovered
-                            ? settingsDialog.hoverColor
-                            : "transparent"
+                        Text {
+                            anchors.centerIn: parent
+                            text: topKInput.value
+                            color: settingsDialog.textColor
+                            font.pixelSize: 15
+                        }
+                    }
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: "+"
-                        color: settingsDialog.textColor
-                        font.pixelSize: 22
+                    Rectangle {
+                        id: incrementButton
+
+                        width: 42
+                        height: parent.height
+                        radius: 8
+
+                        color: incrementArea.pressed
+                            ? settingsDialog.pressedColor
+                            : incrementArea.containsMouse
+                                ? settingsDialog.hoverColor
+                                : "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "+"
+                            color: settingsDialog.textColor
+                            font.pixelSize: 22
+                        }
+
+                        MouseArea {
+                            id: incrementArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onClicked: {
+                                if (topKInput.value < topKInput.to) {
+                                    topKInput.value++
+                                }
+                            }
+                        }
                     }
                 }
             }
