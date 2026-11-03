@@ -7,6 +7,8 @@ Item {
     property string sender
     property string message
     property var sources: []
+    property var additionalSources: []
+    property var lessRelevantSources: []
     property int sourceCount
 
     property color textColor
@@ -52,7 +54,10 @@ Item {
         return result
     }
 
-    signal sourcesRequested(var sources)
+    signal sourcesRequested(
+        var sources,
+        var additionalSources,
+        var lessRelevantSources)
 
     height: Math.max(messageBubble.height, avatar.height)
 
@@ -315,7 +320,10 @@ Item {
             }
 
             onClicked: {
-                chatMessage.sourcesRequested(chatMessage.sources)
+                chatMessage.sourcesRequested(
+                    chatMessage.sources,
+                    chatMessage.additionalSources,
+                    chatMessage.lessRelevantSources)
             }
         }
 
