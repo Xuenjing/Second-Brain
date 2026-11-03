@@ -44,7 +44,13 @@ class Thinker(QThread):
     answerReady = Signal(str, list)
     answerFailed = Signal(str)
 
-    def __init__(self, llm: LocalLLMProvider, question: str) -> None:
+    def __init__(
+        self, 
+        llm: LocalLLMProvider, 
+        question: str,
+        top_k: int,
+        similarity_threshold: float,
+    ) -> None:
         """Initialize a background question-processing thread.
 
         Args:
@@ -54,12 +60,18 @@ class Thinker(QThread):
         super().__init__()
         self.llm = llm
         self.question = question
+        self.top_k = top_k
+        self.similarity_threshold = similarity_threshold
 
     def run(self) -> None:
         """Retrieve relevant knowledge and generate an answer."""
 
         try:
-            results = retrieve_knowledge(self.question)
+            results = retrieve_knowledge(
+                self.question,
+                top_k=self.top_k,
+                similarity_threshold=self.similarity_threshold 
+            )
 
             if not results:
                 self.answerReady.emit(
@@ -194,6 +206,9 @@ class Backend(QObject):
         self.mail_review_source: str = ""
         self.mail_review_pending: bool = False
 
+        self.rag_top_k = 5
+        self.rag_similarity_threshold = 0.82
+
         initialize_database()
 
         # Preload embedding model during application startup.
@@ -253,6 +268,9 @@ class Backend(QObject):
 
     # Import JSON file from backup.
     importResult = Signal(str)
+
+    # Send the rag settings to QML.
+    ragSettingsResult = Signal(bool, str)
 
     @Slot(int)
     def load_model(self, model_index: str) -> None:
@@ -334,6 +352,38 @@ class Backend(QObject):
         self.modelLoadingChanged.emit(False)
 
 
+    @Slot(int, float)
+    def set_rag_settings(
+        self,
+        top_k: int,
+        similarity_threshold: float,
+    ) -> None:
+        """Validate and update the current rag retrieval settings."""
+
+        if top_k < 1:
+            self.ragSettingsResult.emit(
+                False,
+                "Top-K måste vara minst 1."
+            )
+            return
+        if not 0.0 <= similarity_threshold <= 1.0:
+            self.ragSettingsResult.emit(
+                False,
+                "Threshold måste vara mellan 0.0 och 1.0"
+            )
+            return
+
+     
+
+        self.rag_top_k = top_k
+        self.rag_similarity_threshold = similarity_threshold
+
+        self.ragSettingsResult.emit(
+            True,
+            "RAG-inställningarna har uppdaterats."
+        )
+        
+
     @Slot(str)
     def receive_text(self, text: str) -> None:
         """Start processing a question in the background.
@@ -353,7 +403,12 @@ class Backend(QObject):
             )
             return
 
-        self.thinker = Thinker(self.llm, text)
+        self.thinker = Thinker(
+            self.llm, 
+            text,
+            self.rag_top_k,
+            self.rag_similarity_threshold,
+        )
 
         # Receive the answer, errors and notification that the thread ended.
         self.thinker.answerReady.connect(self.handle_answer)
