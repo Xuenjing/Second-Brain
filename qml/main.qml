@@ -605,12 +605,40 @@ ApplicationWindow {
         }
 
         onAnalyzeRequested: function(emailText) {
-            backend.analyze_previewed_mail(emailText)
+            if (!emailText.trim()) {
+                mailPreviewDialog.statusMessage =
+                    "Det finns inget mejl att analysera."
+                return
+            }
+
+            mailAnalysisDialog.emailText = emailText
+            mailAnalysisDialog.open()
         }
 
         onReviewRequested: {
             mailPreviewDialog.close()
             mailReviewDialog.open()
+        }
+    }
+
+    // Confirm before starting the email analysis.
+    MailAnalysisDialog {
+        id: mailAnalysisDialog
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+        width: Math.min(520, root.width - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        accentColor: root.accentColor
+        assistantBubbleColor: root.assistantBubbleColor
+
+        onAnalysisConfirmed: function(emailText) {
+            backend.analyze_previewed_mail(emailText)
         }
     }
 
@@ -778,6 +806,9 @@ ApplicationWindow {
             root.isMailAnalyzing = analyzing
 
             if (analyzing) {
+                knowledgeDialog.setSaveStatus("Analyserar mejl…")
+                mailPreviewDialog.statusMessage = "Analyserar mejl…"
+
                 root.mailAnalysisIndex = chatModel.count
 
                 chatModel.append({
@@ -811,8 +842,13 @@ ApplicationWindow {
             root.mailReviewPending = true
             
 
-            mailPreviewDialog.statusMessage =
-                "Analysen är klar. " + facts.length + " förslag att granska."
+            const reviewMessage = facts.length > 0
+                ? "Mejlanalysen är klar. " + facts.length
+                    + " förslag att granska."
+                : "Mejlanalysen är klar. Inga faktauppgifter föreslogs."
+
+            knowledgeDialog.setSaveStatus(reviewMessage)
+            mailPreviewDialog.statusMessage = reviewMessage
 
             mailReviewDialog.loadSuggestions(facts)
 
@@ -833,6 +869,8 @@ ApplicationWindow {
 
         // Clear suggestions after saving or discarding them.
         function onMailReviewFinished() {
+            knowledgeDialog.clearSaveStatus()
+            mailPreviewDialog.statusMessage = ""
             if (root.mailAnalysisIndex >= 0) {
                 chatModel.setProperty(
                     root.mailAnalysisIndex,
