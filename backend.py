@@ -579,6 +579,43 @@ class Backend(QObject):
             self.knowledgeSaveResult.emit("No new knowledge was added.")
 
     @Slot(str)
+    def import_dropped_document(self, file_url: str) -> None:
+        """Validate a dropped document and use its existing importer."""
+        url = QUrl(file_url)
+
+        if not url.isLocalFile():
+            self.knowledgeSaveResult.emit(
+                "Släpp en lokal fil från datorn."
+            )
+            return
+
+        path = Path(url.toLocalFile())
+
+        if not path.is_file():
+            self.knowledgeSaveResult.emit(
+                "Filen kunde inte hittas. Mappar kan inte importeras."
+            )
+            return
+
+        importers = {
+            ".txt": self.add_txt_knowledge,
+            ".pdf": self.add_pdf_knowledge,
+            ".docx": self.add_docx_knowledge,
+            ".eml": self.preview_mail,
+            ".msg": self.preview_mail,
+        }
+
+        importer = importers.get(path.suffix.lower())
+
+        if importer is None:
+            self.knowledgeSaveResult.emit(
+                "Filtypen stöds inte. Välj TXT, PDF, DOCX, EML eller MSG."
+            )
+            return
+
+        importer(file_url)
+
+    @Slot(str)
     def add_txt_knowledge(self, file_path: str) -> None:
         """Import knowledge from a UTF-8 text file.
 
