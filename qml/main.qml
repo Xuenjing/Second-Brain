@@ -321,6 +321,10 @@ ApplicationWindow {
             backend.set_rag_settings(topK, similarityThreshold)
         }
 
+        onRagSettingsLoadRequested: {
+            backend.get_rag_settings()
+        }        
+
 
     }
 
@@ -855,6 +859,16 @@ ApplicationWindow {
         // Signal from backend whether rag settings were saved or not
         function onRagSettingsResult(success, message) {
             settingsDialog.showRagStatus(success, message)
+        }
+
+        function onRagSettingsLoaded(
+            top_k,
+            similarityThreshold
+        ) {
+            settingsDialog.loadRagSettings(
+                top_k,
+                similarityThreshold
+            )
         }
     }
 }

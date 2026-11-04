@@ -20,6 +20,7 @@ Dialog {
     signal exportRequested()
     signal importRequested()
     signal ragSettingsRequested(int topK, real similarityThreshold)
+    signal ragSettingsLoadRequested()
 
     function setBackupStatus(message) {
         backupStatus.text = message
@@ -34,6 +35,15 @@ Dialog {
         ragStatus.color = success
             ? settingsDialog.accentColor
             : settingsDialog.errorColor
+    }
+
+    function loadRagSettings(topK, similarityThreshold) {
+        topKInput.value = topK
+        thresholdInput.text = similarityThreshold.toFixed(2)
+    }
+
+    onOpened: {
+        settingsDialog.ragSettingsLoadRequested()
     }
 
     onClosed: {
