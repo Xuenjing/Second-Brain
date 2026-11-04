@@ -42,3 +42,6 @@ jobs:
 
       - name: Run exporter tests
         run: python -m tests.exporter_tests
+
+      - name: Run settings tests
+        run: python -m tests.settings_tests

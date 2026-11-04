@@ -470,7 +470,7 @@ Dialog {
                     hoverEnabled: true
 
                     contentItem: Text {
-                        text: saveRagSettingsButton.text
+                        text: resetRagSettingsButton.text
                         color: settingsDialog.textColor
                         font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
@@ -480,9 +480,9 @@ Dialog {
                     background: Rectangle {
                         radius: 8
 
-                        color: saveRagSettingsButton.down
+                        color: resetRagSettingsButton.down
                             ? settingsDialog.pressedColor
-                            : saveRagSettingsButton.hovered
+                            : resetRagSettingsButton.hovered
                                 ? settingsDialog.hoverColor
                                 : settingsDialog.surfaceColor
 
