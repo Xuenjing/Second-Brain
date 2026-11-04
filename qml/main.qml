@@ -365,6 +365,10 @@ ApplicationWindow {
             mailFileDialog.open()
         }
 
+        onDocumentDropped: function(fileUrl) {
+            backend.import_dropped_document(fileUrl.toString())
+        }
+
     }
 
     // Dialog for viewing and managing saved knowledge.

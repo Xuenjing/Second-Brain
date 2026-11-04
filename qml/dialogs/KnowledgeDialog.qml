@@ -19,6 +19,7 @@ Dialog {
     signal docxImportRequested()
     signal pdfImportRequested()
     signal mailImportRequested()
+    signal documentDropped(url fileUrl)
 
     function setSaveStatus(message) {
     knowledgeSaveStatus.text = message
@@ -31,7 +32,7 @@ Dialog {
     title: "Lägg till kunskap"
     modal: true
     width: 800
-    height: 400
+    height: 480
 
     background: Rectangle {
         color: knowledgeDialog.surfaceColor
@@ -140,6 +141,69 @@ Dialog {
                         : knowledgeDialog.borderColor
 
                     border.width: 1
+                }
+            }
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 56
+            radius: 8
+
+            color: documentDropArea.containsDrag
+                ? knowledgeDialog.hoverColor
+                : knowledgeDialog.surfaceColor
+
+            border.color: documentDropArea.containsDrag
+                ? knowledgeDialog.accentColor
+                : knowledgeDialog.borderColor
+
+            border.width: documentDropArea.containsDrag ? 2 : 1
+
+            Label {
+                anchors.centerIn: parent
+                text: documentDropArea.containsDrag
+                    ? "Släpp filen här"
+                    : "Dra hit en TXT-, PDF-, DOCX-, EML- eller MSG-fil"
+
+                color: knowledgeDialog.textColor
+            }
+
+            DropArea {
+                id: documentDropArea
+                anchors.fill: parent
+
+                onEntered: function(drag) {
+                    drag.accepted = drag.hasUrls
+                }
+
+                onDropped: function(drop) {
+                    if (!drop.hasUrls) {
+                        return
+                    }
+
+                    if (drop.urls.length !== 1) {
+                        knowledgeDialog.setSaveStatus(
+                            "Släpp en fil åt gången."
+                        )
+                        return
+                    }
+
+                    const fileUrl = drop.urls[0]
+                    const fileName = fileUrl.toString().toLowerCase()
+
+                    if (!/\.(txt|pdf|docx|eml|msg)$/.test(fileName)) {
+                        knowledgeDialog.setSaveStatus(
+                            "Filtypen stöds inte. Välj TXT, PDF, DOCX, EML eller MSG."
+                        )
+                        return
+                    }
+
+                    // Accept copying the document into the knowledge base.
+                    drop.accept(Qt.CopyAction)
+
+                    knowledgeDialog.clearSaveStatus()
+                    knowledgeDialog.documentDropped(fileUrl)
                 }
             }
         }
