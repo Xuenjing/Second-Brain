@@ -10,7 +10,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal, Slot, QUrl, QThread
+from PySide6.QtCore import QObject, Signal, Slot, QUrl, QThread, QSettings
 
 from retrieval import (
     retrieve_knowledge,
@@ -212,8 +212,22 @@ class Backend(QObject):
         self.mail_review_source: str = ""
         self.mail_review_pending: bool = False
 
-        self.rag_top_k = 5
-        self.rag_similarity_threshold = 0.82
+        self.settings = QSettings(
+            "SecondBrain",
+            "SecondBrain",
+        )
+
+        self.rag_top_k = self.settings.value(
+            "rag/top_k",
+            5,
+            type=int,
+        )
+
+        self.rag_similarity_threshold = self.settings.value(
+            "rag/similarity_threshold",
+            0.82,
+            type=float
+        )
 
         initialize_database()
 
@@ -277,6 +291,9 @@ class Backend(QObject):
 
     # Send the rag settings to QML.
     ragSettingsResult = Signal(bool, str)
+
+    # Show settings for top_k and similarity_threshold.
+    ragSettingsLoaded = Signal(int, float)
 
     @Slot(int)
     def load_model(self, model_index: str) -> None:
@@ -358,6 +375,16 @@ class Backend(QObject):
         self.modelLoadingChanged.emit(False)
 
 
+    @Slot()
+    def get_rag_settings(self) -> None:
+        """Send the current RAG settings to QML."""
+
+        self.ragSettingsLoaded.emit(
+            self.rag_top_k,
+            self.rag_similarity_threshold
+        )
+
+
     @Slot(int, float)
     def set_rag_settings(
         self,
@@ -383,6 +410,16 @@ class Backend(QObject):
 
         self.rag_top_k = top_k
         self.rag_similarity_threshold = similarity_threshold
+
+        self.settings.setValue(
+            "rag/top_k",
+            top_k,
+        )
+
+        self.settings.setValue(
+            "rag/similarity_threshold",
+            similarity_threshold,
+        )
 
         self.ragSettingsResult.emit(
             True,
