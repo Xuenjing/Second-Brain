@@ -398,63 +398,111 @@ Dialog {
                 }
             }
 
-            Button {
-                id: saveRagSettingsButton
+            Row {
+                spacing: 12
 
-                text: "Spara RAG-inställningar"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true
+                Button {
+                    id: saveRagSettingsButton
 
-                contentItem: Text {
-                    text: saveRagSettingsButton.text
-                    color: settingsDialog.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
+                    text: "Spara RAG-inställningar"
+                    height: 40
+                    width: 180
+                    leftPadding: 16
+                    rightPadding: 16
+                    hoverEnabled: true
 
-                
-
-                background: Rectangle {
-                    radius: 8
-
-                    color: saveRagSettingsButton.down
-                        ? settingsDialog.pressedColor
-                        : saveRagSettingsButton.hovered
-                            ? settingsDialog.hoverColor
-                            : settingsDialog.surfaceColor
-
-                    border.color: settingsDialog.accentColor
-                    border.width: 1
-                }
-
-                // Normalize "," and ".".
-                onClicked: {
-                    const normalizedThreshold =
-                        thresholdInput.text.trim().replace(",", ".")
-
-                    const thresholdValue = Number(normalizedThreshold)
-
-                    if (normalizedThreshold === ""
-                            || !Number.isFinite(thresholdValue)
-                            || thresholdValue < 0
-                            || thresholdValue > 1) {
-
-                        settingsDialog.showRagStatus(
-                            false,
-                            "Threshold måste vara ett giltigt tal mellan 0 och 1."
-                        )
-                        return
+                    contentItem: Text {
+                        text: saveRagSettingsButton.text
+                        color: settingsDialog.textColor
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
                     }
 
-                    settingsDialog.ragSettingsRequested(
-                        topKInput.value,
-                        thresholdValue
-                    )
+                    
+
+                    background: Rectangle {
+                        radius: 8
+
+                        color: saveRagSettingsButton.down
+                            ? settingsDialog.pressedColor
+                            : saveRagSettingsButton.hovered
+                                ? settingsDialog.hoverColor
+                                : settingsDialog.surfaceColor
+
+                        border.color: settingsDialog.accentColor
+                        border.width: 1
+                    }
+
+                    // Normalize "," and ".".
+                    onClicked: {
+                        const normalizedThreshold =
+                            thresholdInput.text.trim().replace(",", ".")
+
+                        const thresholdValue = Number(normalizedThreshold)
+
+                        if (normalizedThreshold === ""
+                                || !Number.isFinite(thresholdValue)
+                                || thresholdValue < 0
+                                || thresholdValue > 1) {
+
+                            settingsDialog.showRagStatus(
+                                false,
+                                "Threshold måste vara ett giltigt tal mellan 0 och 1."
+                            )
+                            return
+                        }
+
+                        settingsDialog.ragSettingsRequested(
+                            topKInput.value,
+                            thresholdValue
+                        )
+                    }
+                }
+
+                Button {
+                    id: resetRagSettingsButton
+                    text: "Återställ standard"
+                    height: 40
+                    width: 180
+                    leftPadding: 16
+                    rightPadding: 16
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: saveRagSettingsButton.text
+                        color: settingsDialog.textColor
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+
+                        color: saveRagSettingsButton.down
+                            ? settingsDialog.pressedColor
+                            : saveRagSettingsButton.hovered
+                                ? settingsDialog.hoverColor
+                                : settingsDialog.surfaceColor
+
+                        border.color: settingsDialog.accentColor
+                        border.width: 1
+                    }                    
+
+                    onClicked: {
+                        topKInput.value = 5
+                        thresholdInput.text = "0.82"
+
+                        settingsDialog.ragSettingsRequested(
+                            5,
+                            0.82
+                        )
+                    }
                 }
             }
+
+            
 
             // Backup
             Label {
@@ -473,6 +521,7 @@ Dialog {
 
                     text: "Exportera databas"
                     height: 40
+                    width: 180
                     leftPadding: 16
                     rightPadding: 16
                     hoverEnabled: true
@@ -509,6 +558,7 @@ Dialog {
 
                     text: "Importera databas"
                     height: 40
+                    width: 180
                     leftPadding: 16
                     rightPadding: 16
                     hoverEnabled: true
