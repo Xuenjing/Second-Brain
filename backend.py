@@ -19,11 +19,13 @@ from retrieval import (
 )
 from llm.local_provider import LocalLLMProvider
 from database import (
+    get_knowledge_sources,
     get_all_knowledge,
     get_knowledge_by_id,
     add_knowledge, 
     search_knowledge, 
-    edit_knowledge, 
+    edit_knowledge,
+    delete_knowledge_by_source, 
     delete_knowledge, 
     initialize_database
 )
@@ -295,6 +297,12 @@ class Backend(QObject):
     # Show settings for top_k and similarity_threshold.
     ragSettingsLoaded = Signal(int, float)
 
+    # Send list of sources to QML.
+    knowledgeSourcesLoaded = Signal(list)
+
+    # Send number of entries deleted.
+    knowledgeSourceDeleteResult = Signal(bool, str)    
+
     @Slot(int)
     def load_model(self, model_index: str) -> None:
         """Load the language model selected from the interface.
@@ -551,6 +559,20 @@ class Backend(QObject):
             self.knowledgeDeleteResult.emit(
                 False, "Kunskapsposten kunde inte hittas."
             )
+
+
+    @Slot(str)
+    def delete_knowledge_source(self, source: str) -> None:
+        """Delete all knowledge entries belonging to one source."""
+
+        deleted_count = delete_knowledge_by_source(source)
+
+        if deleted_count == 0:
+            self.knowledgeSourceDeleteResult.emit(False, "Inga kunskapsposter kunde tas bort.")
+            return
+
+        self.knowledgeSourceDeleteResult.emit(True, f"{deleted_count} kunskapsposter togs bort.")
+            
     
     @Slot(str)
     def add_manual_knowledge(self, text: str) -> None:
@@ -953,7 +975,7 @@ class Backend(QObject):
             )
 
 
-    @Slot(str, str, bool, bool, bool, bool, bool)
+    @Slot(str, str, bool, bool, bool, bool, bool, str)
     def load_filtered_knowledge(
         self,
         search: str, 
@@ -962,7 +984,8 @@ class Backend(QObject):
         docx_active: bool, 
         pdf_active: bool, 
         manual_active: bool,
-        mail_active: bool
+        mail_active: bool,
+        selected_source: str,
     ) -> None:
         """Load and filter knowledge for display in QML.
         
@@ -991,6 +1014,11 @@ class Backend(QObject):
         for item in knowledge:
             source = item["source"].lower()
 
+            # If a specific source is chosen, skip every post not from that source.
+            if selected_source:
+                if item["source"] != selected_source:
+                    continue
+
             if txt_active and source.endswith(".txt"):
                 filtered_knowledge.append(item)
             elif docx_active and source.endswith(".docx"):
@@ -1005,6 +1033,44 @@ class Backend(QObject):
         knowledge_data = self._format_knowledge_for_qml(filtered_knowledge)
         self.knowledgeLoaded.emit(knowledge_data)
 
+
+    @Slot(str, bool, bool, bool, bool, bool)
+    def load_filtered_sources(
+        self,
+        sort_order: str,
+        txt_active: bool,
+        docx_active: bool,
+        pdf_active: bool,
+        manual_active: bool,
+        mail_active: bool,
+    ) -> None:
+        """Load and filter group knowledge sources for display in QML."""
+
+        sources = get_knowledge_sources(sort_order)
+
+        filtered_sources = []
+
+        for item in sources:
+            source = item["source"].lower()
+
+            if txt_active and source.endswith(".txt"):
+                filtered_sources.append(item)
+            elif docx_active and source.endswith(".docx"):
+                filtered_sources.append(item)
+            elif pdf_active and source.endswith(".pdf"):
+                filtered_sources.append(item)
+            elif manual_active and source == "manual":
+                filtered_sources.append(item)
+            elif mail_active and source.endswith((".eml", ".msg")):
+                filtered_sources.append(item)
+
+        for item in filtered_sources:
+            source_date = datetime.fromisoformat(item["source_date"])
+
+            item["source_date"] = source_date.strftime("%Y-%m-%d %H:%M")
+
+        self.knowledgeSourcesLoaded.emit(filtered_sources)
+            
 
     def _format_knowledge_for_qml(self, knowledge: list[dict]) -> list[dict]:
         """Format knowledge entries for display in QML.
