@@ -19,6 +19,9 @@ Dialog {
     property color dangerHoverColor
     property color dangerPressedColor
 
+    property string viewMode: "posts"
+    property string selectedSource: ""
+
     // Reusable document icon within this dialog.
     component DocumentIcon: Item {
         id: documentIcon
@@ -113,14 +116,40 @@ Dialog {
         bool docxFilterActive,
         bool pdfFilterActive,
         bool manualFilterActive,
-        bool mailFilterActive
+        bool mailFilterActive,
+        string selectedSource
     )
 
     
     signal editRequested(int id, string text)
     signal deleteRequested(int id, string text)
 
+    signal knowledgeSourcesRequested(
+        string sortOrder,
+        bool txtFilterActive,
+        bool docxFilterActive,
+        bool pdfFilterActive,
+        bool manualFilterActive,
+        bool mailFilterActive
+    )
+
+    signal deleteSourceRequested(string source)
+
+    // Depending on if posts or sources are toggled.
     function requestRefresh() {
+        if (viewMode === "sources") {
+            knowledgeSourcesRequested(
+                sortOrder,
+                txtFilterActive,
+                docxFilterActive,
+                pdfFilterActive,
+                manualFilterActive,
+                mailFilterActive
+            )
+
+            return
+        }
+
         refreshRequested(
             knowledgeSearchField.text,
             sortOrder,
@@ -128,13 +157,23 @@ Dialog {
             docxFilterActive,
             pdfFilterActive,
             manualFilterActive,
-            mailFilterActive
+            mailFilterActive,
+            selectedSource
         )
     }
 
     function setPosts(posts) {
         knowledgeList.model = posts
     }    
+
+    function setSources(sources) {
+        sourceList.model = sources
+    }    
+
+    function showSourceDeleteStatus(message) {
+        console.log("SOURCE DELETE STATUS:", message)
+        sourceDeleteStatus.text = message
+    }   
 
     title: "Kunskapsbas"
     modal: true
@@ -220,7 +259,7 @@ Dialog {
 
             color: knowledgeViewDialog.secondaryTextColor
             font.pixelSize: 12
-        }        
+        }
 
         TextField {
             id: knowledgeSearchField
@@ -254,361 +293,38 @@ Dialog {
             }
         }
 
-        Row {
+        Item {
             id: sortButtons
 
             anchors.top: knowledgeSearchField.bottom
             anchors.topMargin: 10
+            anchors.left: parent.left
             anchors.right: parent.right
 
-            spacing: 30
+            height: 40
 
             Row {
-                id: filterButtons
+                id: viewModeButtons
+
+                anchors.left: parent.left
                 spacing: 6
 
-                Button {
-                    id: filterTxtButton
-                    text: "TXT"
-                    width: 40
+                Button{
+                    id: showPostsButton
+                    text: "Visa poster"
                     height: 40
-                    hoverEnabled: true
-
-                    contentItem: DocumentIcon {
-                        label: filterTxtButton.text
-                        iconColor: knowledgeViewDialog.txtFilterActive
-                            ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.secondaryTextColor
-                        labelColor: knowledgeViewDialog.surfaceColor
-                    }
-
-                    background: Rectangle {
-                        radius: 8
-
-                        color: filterTxtButton.down
-                            ? knowledgeViewDialog.pressedColor
-                            : knowledgeViewDialog.txtFilterActive
-                                || filterTxtButton.hovered
-                                ? knowledgeViewDialog.hoverColor
-                                : knowledgeViewDialog.surfaceColor
-
-                        border.color: knowledgeViewDialog.txtFilterActive
-                            ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.borderColor
-
-                        border.width: 1
-                    }
-
-                    onClicked: {
-                        knowledgeViewDialog.txtFilterActive =
-                            !knowledgeViewDialog.txtFilterActive
-
-                        knowledgeViewDialog.requestRefresh()
-                    }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: "TXT-filer"
-                }
-
-                Button {
-                    id: filterDocxButton
-                    text: "DOCX"
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-
-                    contentItem: DocumentIcon {
-                        label: filterDocxButton.text
-                        iconColor: knowledgeViewDialog.docxFilterActive
-                            ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.secondaryTextColor
-                        labelColor: knowledgeViewDialog.surfaceColor
-                    }
-
-                    background: Rectangle {
-                        radius: 8
-
-                        color: filterDocxButton.down
-                            ? knowledgeViewDialog.pressedColor
-                            : knowledgeViewDialog.docxFilterActive
-                                || filterDocxButton.hovered
-                                ? knowledgeViewDialog.hoverColor
-                                : knowledgeViewDialog.surfaceColor
-
-                        border.color: knowledgeViewDialog.docxFilterActive
-                            ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.borderColor
-
-                        border.width: 1
-                    }
-
-                    onClicked: {
-                        knowledgeViewDialog.docxFilterActive =
-                            !knowledgeViewDialog.docxFilterActive
-
-                        knowledgeViewDialog.requestRefresh()
-                    }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: "DOCX-filer"
-                }
-
-                Button {
-                    id: filterPdfButton
-                    text: "PDF"
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-
-                    contentItem: DocumentIcon {
-                        label: filterPdfButton.text
-                        iconColor: knowledgeViewDialog.pdfFilterActive
-                            ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.secondaryTextColor
-                        labelColor: knowledgeViewDialog.surfaceColor
-                    }
-
-                    background: Rectangle {
-                        radius: 8
-
-                        color: filterPdfButton.down
-                            ? knowledgeViewDialog.pressedColor
-                            : knowledgeViewDialog.pdfFilterActive
-                                || filterPdfButton.hovered
-                                ? knowledgeViewDialog.hoverColor
-                                : knowledgeViewDialog.surfaceColor
-
-                        border.color: knowledgeViewDialog.pdfFilterActive
-                            ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.borderColor
-
-                        border.width: 1
-                    }
-
-                    onClicked: {
-                        knowledgeViewDialog.pdfFilterActive =
-                            !knowledgeViewDialog.pdfFilterActive
-
-                        knowledgeViewDialog.requestRefresh()
-                    }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: "PDF-filer"
-                }
-
-                // Filter imported emails.
-                Button {
-                    id: filterMailButton
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-
-                    Accessible.name: "Filtrera mejl"
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Mejl (.eml och .msg)"
-
-                    // Draw an envelope icon.
-                    contentItem: Item {
-                        Canvas {
-                            anchors.centerIn: parent
-                            width: 24
-                            height: 20
-
-                            property color iconColor:
-                                knowledgeViewDialog.mailFilterActive
-                                    ? knowledgeViewDialog.accentColor
-                                    : knowledgeViewDialog.secondaryTextColor
-
-                            // Redraw when the theme or filter changes.
-                            onIconColorChanged: requestPaint()
-
-                            onPaint: {
-                                const ctx = getContext("2d")
-                                ctx.clearRect(0, 0, width, height)
-                                ctx.strokeStyle = iconColor
-                                ctx.lineWidth = 2
-                                ctx.lineJoin = "round"
-                                ctx.lineCap = "round"
-
-                                // Envelope outline.
-                                ctx.beginPath()
-                                ctx.moveTo(2, 2)
-                                ctx.lineTo(22, 2)
-                                ctx.lineTo(22, 18)
-                                ctx.lineTo(2, 18)
-                                ctx.closePath()
-                                ctx.stroke()
-
-                                // Lower folds.
-                                ctx.beginPath()
-                                ctx.moveTo(2, 18)
-                                ctx.lineTo(9, 11)
-                                ctx.moveTo(22, 18)
-                                ctx.lineTo(15, 11)
-                                ctx.stroke()
-
-                                // Envelope flap.
-                                ctx.beginPath()
-                                ctx.moveTo(2, 2)
-                                ctx.lineTo(12, 12)
-                                ctx.lineTo(22, 2)
-                                ctx.stroke()
-                            }
-                        }
-                    }
-
-                    // Highlight the button when the filter is active.
-                    background: Rectangle {
-                        radius: 8
-
-                        color: filterMailButton.down
-                            ? knowledgeViewDialog.pressedColor
-                            : (knowledgeViewDialog.mailFilterActive
-                                || filterMailButton.hovered)
-                                ? knowledgeViewDialog.hoverColor
-                                : knowledgeViewDialog.surfaceColor
-
-                        border.color: knowledgeViewDialog.mailFilterActive
-                            ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.borderColor
-
-                        border.width: 1
-                    }
-
-                    // Toggle the email filter and refresh the list.
-                    onClicked: {
-                        knowledgeViewDialog.mailFilterActive =
-                            !knowledgeViewDialog.mailFilterActive
-
-                        knowledgeViewDialog.requestRefresh()
-                    }
-                }
-
-                Button {
-                    id: filterManualButton
-                    text: "M"
-                    width: 40
-                    height: 40
-                    hoverEnabled: true
-                    Accessible.name: "Filtrera manuella poster"
-
-                    // Draw a document with a pencil for manual entries.
-                    contentItem: Item {
-                        Canvas {
-                            anchors.centerIn: parent
-                            width: 26
-                            height: 26
-
-                            property color iconColor:
-                                knowledgeViewDialog.manualFilterActive
-                                    ? knowledgeViewDialog.accentColor
-                                    : knowledgeViewDialog.secondaryTextColor
-
-                            // Redraw when the theme or filter changes.
-                            onIconColorChanged: requestPaint()
-
-                            onPaint: {
-                                const ctx = getContext("2d")
-                                ctx.clearRect(0, 0, width, height)
-                                ctx.strokeStyle = iconColor
-                                ctx.lineWidth = 1.8
-                                ctx.lineJoin = "round"
-                                ctx.lineCap = "round"
-
-                                // Document outline.
-                                ctx.beginPath()
-                                ctx.moveTo(12, 24)
-                                ctx.lineTo(3, 24)
-                                ctx.lineTo(3, 2)
-                                ctx.lineTo(14, 2)
-                                ctx.lineTo(20, 8)
-                                ctx.lineTo(20, 12)
-                                ctx.stroke()
-
-                                // Folded corner.
-                                ctx.beginPath()
-                                ctx.moveTo(14, 2)
-                                ctx.lineTo(14, 8)
-                                ctx.lineTo(20, 8)
-                                ctx.stroke()
-
-                                // Text lines.
-                                ctx.beginPath()
-                                ctx.moveTo(7, 12)
-                                ctx.lineTo(14, 12)
-                                ctx.moveTo(7, 16)
-                                ctx.lineTo(12, 16)
-                                ctx.stroke()
-
-                                // Pencil body and pointed tip.
-                                ctx.beginPath()
-                                ctx.moveTo(13, 24)
-                                ctx.lineTo(14, 19)
-                                ctx.lineTo(22, 11)
-                                ctx.lineTo(25, 14)
-                                ctx.lineTo(17, 22)
-                                ctx.closePath()
-                                ctx.stroke()
-
-                                // Pencil tip and end.
-                                ctx.beginPath()
-                                ctx.moveTo(14, 19)
-                                ctx.lineTo(17, 22)
-                                ctx.moveTo(20, 13)
-                                ctx.lineTo(23, 16)
-                                ctx.stroke()
-                            }
-                        }
-                    }
-
-                    background: Rectangle {
-                        radius: 8
-
-                        color: filterManualButton.down
-                            ? knowledgeViewDialog.pressedColor
-                            : knowledgeViewDialog.manualFilterActive
-                                || filterManualButton.hovered
-                                ? knowledgeViewDialog.hoverColor
-                                : knowledgeViewDialog.surfaceColor
-
-                        border.color: knowledgeViewDialog.manualFilterActive
-                            ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.borderColor
-
-                        border.width: 1
-                    }
-
-                    onClicked: {
-                        knowledgeViewDialog.manualFilterActive =
-                            !knowledgeViewDialog.manualFilterActive
-
-                        knowledgeViewDialog.requestRefresh()
-                    }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Manuella poster"
-                }
-            }
-
-            Row {
-                id: dateSortButtons
-                spacing: 6
-
-                Button {
-                    id: sortAscendingButton
-                    width: 40
-                    height: 40
+                    leftPadding: 14
+                    rightPadding: 14
                     hoverEnabled: true
 
                     contentItem: Text {
-                        text: "↑"
+                        text: showPostsButton.text
 
-                        color: knowledgeViewDialog.sortOrder === "asc"
+                        color: knowledgeViewDialog.viewMode === "posts"
                             ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.secondaryTextColor
+                            : knowledgeViewDialog.textColor
 
-                        font.pixelSize: 20
-                        font.bold: true
+                        font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -616,14 +332,14 @@ Dialog {
                     background: Rectangle {
                         radius: 8
 
-                        color: sortAscendingButton.down
+                        color: showPostsButton.down
                             ? knowledgeViewDialog.pressedColor
-                            : knowledgeViewDialog.sortOrder === "asc"
-                                || sortAscendingButton.hovered
+                            : knowledgeViewDialog.viewMode === "posts"
+                                || showPostsButton.hovered
                                 ? knowledgeViewDialog.hoverColor
                                 : knowledgeViewDialog.surfaceColor
 
-                        border.color: knowledgeViewDialog.sortOrder === "asc"
+                        border.color: knowledgeViewDialog.viewMode === "posts"
                             ? knowledgeViewDialog.accentColor
                             : knowledgeViewDialog.borderColor
 
@@ -631,29 +347,29 @@ Dialog {
                     }
 
                     onClicked: {
-                        knowledgeViewDialog.sortOrder = "asc"
+                        knowledgeViewDialog.selectedSource = ""
+                        knowledgeViewDialog.viewMode = "posts"
                         knowledgeViewDialog.requestRefresh()
-                    }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Äldst först"
+                    }                                        
                 }
 
                 Button {
-                    id: sortDescendingButton
-                    width: 40
+                    id: showSourcesButton
+
+                    text: "Visa källor"
                     height: 40
+                    leftPadding: 14
+                    rightPadding: 14
                     hoverEnabled: true
 
                     contentItem: Text {
-                        text: "↓"
+                        text: showSourcesButton.text
 
-                        color: knowledgeViewDialog.sortOrder === "desc"
+                        color: knowledgeViewDialog.viewMode === "sources"
                             ? knowledgeViewDialog.accentColor
-                            : knowledgeViewDialog.secondaryTextColor
+                            : knowledgeViewDialog.textColor
 
-                        font.pixelSize: 20
-                        font.bold: true
+                        font.pixelSize: 14
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -661,14 +377,14 @@ Dialog {
                     background: Rectangle {
                         radius: 8
 
-                        color: sortDescendingButton.down
+                        color: showSourcesButton.down
                             ? knowledgeViewDialog.pressedColor
-                            : knowledgeViewDialog.sortOrder === "desc"
-                                || sortDescendingButton.hovered
+                            : knowledgeViewDialog.viewMode === "sources"
+                                || showSourcesButton.hovered
                                 ? knowledgeViewDialog.hoverColor
                                 : knowledgeViewDialog.surfaceColor
 
-                        border.color: knowledgeViewDialog.sortOrder === "desc"
+                        border.color: knowledgeViewDialog.viewMode === "sources"
                             ? knowledgeViewDialog.accentColor
                             : knowledgeViewDialog.borderColor
 
@@ -676,18 +392,449 @@ Dialog {
                     }
 
                     onClicked: {
-                        knowledgeViewDialog.sortOrder = "desc"
+                        knowledgeViewDialog.selectedSource = ""
+                        knowledgeViewDialog.viewMode = "sources"
                         knowledgeViewDialog.requestRefresh()
-                    }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Nyast först"
+                    }                    
                 }
             }
+
+            Row {
+                id: rightButtons
+
+                anchors.right: parent.right
+                spacing: 30
+
+                Row {
+                    id: filterButtons
+                    spacing: 6
+
+                    Button {
+                        id: filterTxtButton
+                        text: "TXT"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        contentItem: DocumentIcon {
+                            label: filterTxtButton.text
+                            iconColor: knowledgeViewDialog.txtFilterActive
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.secondaryTextColor
+                            labelColor: knowledgeViewDialog.surfaceColor
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+
+                            color: filterTxtButton.down
+                                ? knowledgeViewDialog.pressedColor
+                                : knowledgeViewDialog.txtFilterActive
+                                    || filterTxtButton.hovered
+                                    ? knowledgeViewDialog.hoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.txtFilterActive
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.borderColor
+
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            knowledgeViewDialog.txtFilterActive =
+                                !knowledgeViewDialog.txtFilterActive
+
+                            knowledgeViewDialog.requestRefresh()
+                        }
+
+                        ToolTip.visible: hovered
+                        ToolTip.text: "TXT-filer"
+                    }
+
+                    Button {
+                        id: filterDocxButton
+                        text: "DOCX"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        contentItem: DocumentIcon {
+                            label: filterDocxButton.text
+                            iconColor: knowledgeViewDialog.docxFilterActive
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.secondaryTextColor
+                            labelColor: knowledgeViewDialog.surfaceColor
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+
+                            color: filterDocxButton.down
+                                ? knowledgeViewDialog.pressedColor
+                                : knowledgeViewDialog.docxFilterActive
+                                    || filterDocxButton.hovered
+                                    ? knowledgeViewDialog.hoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.docxFilterActive
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.borderColor
+
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            knowledgeViewDialog.docxFilterActive =
+                                !knowledgeViewDialog.docxFilterActive
+
+                            knowledgeViewDialog.requestRefresh()
+                        }
+
+                        ToolTip.visible: hovered
+                        ToolTip.text: "DOCX-filer"
+                    }
+
+                    Button {
+                        id: filterPdfButton
+                        text: "PDF"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        contentItem: DocumentIcon {
+                            label: filterPdfButton.text
+                            iconColor: knowledgeViewDialog.pdfFilterActive
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.secondaryTextColor
+                            labelColor: knowledgeViewDialog.surfaceColor
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+
+                            color: filterPdfButton.down
+                                ? knowledgeViewDialog.pressedColor
+                                : knowledgeViewDialog.pdfFilterActive
+                                    || filterPdfButton.hovered
+                                    ? knowledgeViewDialog.hoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.pdfFilterActive
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.borderColor
+
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            knowledgeViewDialog.pdfFilterActive =
+                                !knowledgeViewDialog.pdfFilterActive
+
+                            knowledgeViewDialog.requestRefresh()
+                        }
+
+                        ToolTip.visible: hovered
+                        ToolTip.text: "PDF-filer"
+                    }
+
+                    // Filter imported emails.
+                    Button {
+                        id: filterMailButton
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        Accessible.name: "Filtrera mejl"
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Mejl (.eml och .msg)"
+
+                        // Draw an envelope icon.
+                        contentItem: Item {
+                            Canvas {
+                                anchors.centerIn: parent
+                                width: 24
+                                height: 20
+
+                                property color iconColor:
+                                    knowledgeViewDialog.mailFilterActive
+                                        ? knowledgeViewDialog.accentColor
+                                        : knowledgeViewDialog.secondaryTextColor
+
+                                // Redraw when the theme or filter changes.
+                                onIconColorChanged: requestPaint()
+
+                                onPaint: {
+                                    const ctx = getContext("2d")
+                                    ctx.clearRect(0, 0, width, height)
+                                    ctx.strokeStyle = iconColor
+                                    ctx.lineWidth = 2
+                                    ctx.lineJoin = "round"
+                                    ctx.lineCap = "round"
+
+                                    // Envelope outline.
+                                    ctx.beginPath()
+                                    ctx.moveTo(2, 2)
+                                    ctx.lineTo(22, 2)
+                                    ctx.lineTo(22, 18)
+                                    ctx.lineTo(2, 18)
+                                    ctx.closePath()
+                                    ctx.stroke()
+
+                                    // Lower folds.
+                                    ctx.beginPath()
+                                    ctx.moveTo(2, 18)
+                                    ctx.lineTo(9, 11)
+                                    ctx.moveTo(22, 18)
+                                    ctx.lineTo(15, 11)
+                                    ctx.stroke()
+
+                                    // Envelope flap.
+                                    ctx.beginPath()
+                                    ctx.moveTo(2, 2)
+                                    ctx.lineTo(12, 12)
+                                    ctx.lineTo(22, 2)
+                                    ctx.stroke()
+                                }
+                            }
+                        }
+
+                        // Highlight the button when the filter is active.
+                        background: Rectangle {
+                            radius: 8
+
+                            color: filterMailButton.down
+                                ? knowledgeViewDialog.pressedColor
+                                : (knowledgeViewDialog.mailFilterActive
+                                    || filterMailButton.hovered)
+                                    ? knowledgeViewDialog.hoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.mailFilterActive
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.borderColor
+
+                            border.width: 1
+                        }
+
+                        // Toggle the email filter and refresh the list.
+                        onClicked: {
+                            knowledgeViewDialog.mailFilterActive =
+                                !knowledgeViewDialog.mailFilterActive
+
+                            knowledgeViewDialog.requestRefresh()
+                        }
+                    }
+
+                    Button {
+                        id: filterManualButton
+                        text: "M"
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+                        Accessible.name: "Filtrera manuella poster"
+
+                        // Draw a document with a pencil for manual entries.
+                        contentItem: Item {
+                            Canvas {
+                                anchors.centerIn: parent
+                                width: 26
+                                height: 26
+
+                                property color iconColor:
+                                    knowledgeViewDialog.manualFilterActive
+                                        ? knowledgeViewDialog.accentColor
+                                        : knowledgeViewDialog.secondaryTextColor
+
+                                // Redraw when the theme or filter changes.
+                                onIconColorChanged: requestPaint()
+
+                                onPaint: {
+                                    const ctx = getContext("2d")
+                                    ctx.clearRect(0, 0, width, height)
+                                    ctx.strokeStyle = iconColor
+                                    ctx.lineWidth = 1.8
+                                    ctx.lineJoin = "round"
+                                    ctx.lineCap = "round"
+
+                                    // Document outline.
+                                    ctx.beginPath()
+                                    ctx.moveTo(12, 24)
+                                    ctx.lineTo(3, 24)
+                                    ctx.lineTo(3, 2)
+                                    ctx.lineTo(14, 2)
+                                    ctx.lineTo(20, 8)
+                                    ctx.lineTo(20, 12)
+                                    ctx.stroke()
+
+                                    // Folded corner.
+                                    ctx.beginPath()
+                                    ctx.moveTo(14, 2)
+                                    ctx.lineTo(14, 8)
+                                    ctx.lineTo(20, 8)
+                                    ctx.stroke()
+
+                                    // Text lines.
+                                    ctx.beginPath()
+                                    ctx.moveTo(7, 12)
+                                    ctx.lineTo(14, 12)
+                                    ctx.moveTo(7, 16)
+                                    ctx.lineTo(12, 16)
+                                    ctx.stroke()
+
+                                    // Pencil body and pointed tip.
+                                    ctx.beginPath()
+                                    ctx.moveTo(13, 24)
+                                    ctx.lineTo(14, 19)
+                                    ctx.lineTo(22, 11)
+                                    ctx.lineTo(25, 14)
+                                    ctx.lineTo(17, 22)
+                                    ctx.closePath()
+                                    ctx.stroke()
+
+                                    // Pencil tip and end.
+                                    ctx.beginPath()
+                                    ctx.moveTo(14, 19)
+                                    ctx.lineTo(17, 22)
+                                    ctx.moveTo(20, 13)
+                                    ctx.lineTo(23, 16)
+                                    ctx.stroke()
+                                }
+                            }
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+
+                            color: filterManualButton.down
+                                ? knowledgeViewDialog.pressedColor
+                                : knowledgeViewDialog.manualFilterActive
+                                    || filterManualButton.hovered
+                                    ? knowledgeViewDialog.hoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.manualFilterActive
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.borderColor
+
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            knowledgeViewDialog.manualFilterActive =
+                                !knowledgeViewDialog.manualFilterActive
+
+                            knowledgeViewDialog.requestRefresh()
+                        }
+
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Manuella poster"
+                    }
+                }
+
+                Row {
+                    id: dateSortButtons
+                    spacing: 6
+
+                    Button {
+                        id: sortAscendingButton
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        contentItem: Text {
+                            text: "↑"
+
+                            color: knowledgeViewDialog.sortOrder === "asc"
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.secondaryTextColor
+
+                            font.pixelSize: 20
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+
+                            color: sortAscendingButton.down
+                                ? knowledgeViewDialog.pressedColor
+                                : knowledgeViewDialog.sortOrder === "asc"
+                                    || sortAscendingButton.hovered
+                                    ? knowledgeViewDialog.hoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.sortOrder === "asc"
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.borderColor
+
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            knowledgeViewDialog.sortOrder = "asc"
+                            knowledgeViewDialog.requestRefresh()
+                        }
+
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Äldst först"
+                    }
+
+                    Button {
+                        id: sortDescendingButton
+                        width: 40
+                        height: 40
+                        hoverEnabled: true
+
+                        contentItem: Text {
+                            text: "↓"
+
+                            color: knowledgeViewDialog.sortOrder === "desc"
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.secondaryTextColor
+
+                            font.pixelSize: 20
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+
+                            color: sortDescendingButton.down
+                                ? knowledgeViewDialog.pressedColor
+                                : knowledgeViewDialog.sortOrder === "desc"
+                                    || sortDescendingButton.hovered
+                                    ? knowledgeViewDialog.hoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.sortOrder === "desc"
+                                ? knowledgeViewDialog.accentColor
+                                : knowledgeViewDialog.borderColor
+
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            knowledgeViewDialog.sortOrder = "desc"
+                            knowledgeViewDialog.requestRefresh()
+                        }
+
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Nyast först"
+                    }
+                }                
+            }
+
+            
         }
 
         ListView {
             id: knowledgeList
+
+            visible: knowledgeViewDialog.viewMode === "posts"
 
             anchors.top: sortButtons.bottom
             anchors.topMargin: 10
@@ -932,11 +1079,277 @@ Dialog {
                 color: knowledgeViewDialog.secondaryTextColor
             }
         }
+
+        ListView {
+            id: sourceList
+
+            anchors.top: sortButtons.bottom
+            anchors.topMargin: 10
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+
+            visible: knowledgeViewDialog.viewMode === "sources"
+
+            clip: true
+            spacing: 12
+            model: []
+
+            ScrollBar.vertical: ScrollBar {
+                width: 15
+            }
+
+            delegate: Rectangle {
+                id: sourceItem
+
+                required property var modelData
+
+                width: sourceList.width
+                height: 64
+                radius: 8
+
+                color: knowledgeViewDialog.assistantBubbleColor
+
+                Column {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 12
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    spacing: 4
+
+                    Label {
+                        text: sourceItem.modelData.source
+                        color: knowledgeViewDialog.textColor
+                        font.pixelSize: 14
+                    }
+
+                    Label {
+                        text: sourceItem.modelData.entry_count + " poster"
+                        color: knowledgeViewDialog.secondaryTextColor
+                        font.pixelSize: 12
+                    }
+
+                    Label {
+                        visible: sourceItem.modelData.source.toLowerCase() !== "manual"
+
+                        text: "Tillagd: " + sourceItem.modelData.source_date
+
+                        color: knowledgeViewDialog.secondaryTextColor
+                        font.pixelSize: 12
+                    }
+
+                }
+
+                Row {
+                    id: sourceActions
+
+                    anchors.right: parent.right
+                    anchors.rightMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    spacing: 8
+
+                    Button {
+                        id: inspectSourceButton
+
+                        width: 32
+                        height: 32
+                        hoverEnabled: true
+
+                        Accessible.name: "Visa poster från källan"
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Visa poster från källan"
+
+                        contentItem: Item {
+                            Canvas {
+                                anchors.centerIn: parent
+                                width: 22
+                                height: 18
+
+                                property color iconColor:
+                                    knowledgeViewDialog.accentColor
+
+                                onIconColorChanged: requestPaint()
+
+                                onPaint: {
+                                    const ctx = getContext("2d")
+                                    ctx.clearRect(0, 0, width, height)
+                                    ctx.strokeStyle = iconColor
+                                    ctx.lineWidth = 1.8
+                                    ctx.lineJoin = "round"
+
+                                    // Eye outline.
+                                    ctx.beginPath()
+                                    ctx.moveTo(1, 9)
+                                    ctx.quadraticCurveTo(11, -3, 21, 9)
+                                    ctx.quadraticCurveTo(11, 21, 1, 9)
+                                    ctx.closePath()
+                                    ctx.stroke()
+
+                                    // Pupil.
+                                    ctx.beginPath()
+                                    ctx.arc(11, 9, 3, 0, 2 * Math.PI)
+                                    ctx.stroke()
+                                }
+                            }
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+
+                            color: inspectSourceButton.down
+                                ? knowledgeViewDialog.pressedColor
+                                : inspectSourceButton.hovered
+                                    ? knowledgeViewDialog.hoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.accentColor
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            knowledgeViewDialog.selectedSource =
+                                sourceItem.modelData.source
+
+                            knowledgeViewDialog.viewMode = "posts"
+                            knowledgeViewDialog.requestRefresh()
+                        }
+
+                    }
+
+                    Button {
+                        id: deleteSourceButton
+
+                        width: 32
+                        height: 32
+                        hoverEnabled: true
+
+                        Accessible.name: "Ta bort alla poster från källan"
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Ta bort alla poster från källan"
+
+                        contentItem: Item {
+                            Item {
+                                anchors.centerIn: parent
+                                width: 20
+                                height: 24
+
+                                Rectangle {
+                                    x: 7
+                                    y: 1
+                                    width: 6
+                                    height: 5
+                                    radius: 1
+                                    color: "transparent"
+                                    border.color: knowledgeViewDialog.dangerColor
+                                    border.width: 2
+                                }
+
+                                Rectangle {
+                                    x: 2
+                                    y: 5
+                                    width: 16
+                                    height: 2
+                                    radius: 1
+                                    color: knowledgeViewDialog.dangerColor
+                                }
+
+                                Rectangle {
+                                    x: 4
+                                    y: 9
+                                    width: 12
+                                    height: 14
+                                    radius: 2
+                                    color: knowledgeViewDialog.dangerColor
+
+                                    Repeater {
+                                        model: 3
+
+                                        Rectangle {
+                                            required property int index
+
+                                            x: 3 + index * 3
+                                            y: 3
+                                            width: 1
+                                            height: 8
+                                            radius: 0.5
+                                            color: knowledgeViewDialog.surfaceColor
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+
+                            color: deleteSourceButton.down
+                                ? knowledgeViewDialog.dangerPressedColor
+                                : deleteSourceButton.hovered
+                                    ? knowledgeViewDialog.dangerHoverColor
+                                    : knowledgeViewDialog.surfaceColor
+
+                            border.color: knowledgeViewDialog.dangerBorderColor
+                            border.width: 1
+                        }
+
+                        onClicked: {
+                            deleteSourceDialog.sourceName =
+                                sourceItem.modelData.source
+
+                            deleteSourceDialog.entryCount =
+                                sourceItem.modelData.entry_count
+
+                            deleteSourceDialog.open()
+                        }                        
+                    }
+                }
+            }
+        }
         
     }
 
+    DeleteSourceDialog {
+        id: deleteSourceDialog
+
+        parent: knowledgeViewDialog.parent
+        anchors.centerIn: parent
+
+        width: Math.min(500, parent.width - 48)
+        height: Math.min(320, parent.height - 48)        
+
+        surfaceColor: knowledgeViewDialog.surfaceColor
+        borderColor: knowledgeViewDialog.borderColor
+        textColor: knowledgeViewDialog.textColor
+        secondaryTextColor: knowledgeViewDialog.secondaryTextColor
+
+        hoverColor: knowledgeViewDialog.hoverColor
+        pressedColor: knowledgeViewDialog.pressedColor        
+        
+        dangerColor: knowledgeViewDialog.dangerColor
+        dangerBorderColor: knowledgeViewDialog.dangerBorderColor
+        dangerHoverColor: knowledgeViewDialog.dangerHoverColor
+        dangerPressedColor: knowledgeViewDialog.dangerPressedColor
+
+        onDeleteConfirmed: function(source) {
+            knowledgeViewDialog.deleteSourceRequested(source)
+        }
+    }
+
     footer: Item {
-        implicitHeight: 16
+        implicitHeight: 48
+
+        Label {
+            id: sourceDeleteStatus
+
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            text: ""
+            color: knowledgeViewDialog.secondaryTextColor
+            font.pixelSize: 12
+        }
 
     }
 

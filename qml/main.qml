@@ -379,7 +379,7 @@ ApplicationWindow {
         anchors.centerIn: parent
 
         width: Math.min(800, root.width - 48)
-        height: Math.min(600, root.height - 48)
+        height: Math.min(640, root.height - 48)
 
         surfaceColor: root.surfaceColor
         borderColor: root.borderColor
@@ -403,7 +403,8 @@ ApplicationWindow {
             docxFilterActive,
             pdfFilterActive,
             manualFilterActive,
-            mailFilterActive
+            mailFilterActive,
+            selectedSource
         ) {
             backend.load_filtered_knowledge(
                 searchText,
@@ -412,7 +413,8 @@ ApplicationWindow {
                 docxFilterActive,
                 pdfFilterActive,
                 manualFilterActive,
-                mailFilterActive
+                mailFilterActive,
+                selectedSource
             )
         }
 
@@ -425,6 +427,29 @@ ApplicationWindow {
             deleteKnowledgeDialog.loadKnowledge(id, text)
             deleteKnowledgeDialog.open()
         }
+
+        onKnowledgeSourcesRequested: function(
+            sortOrder,
+            txtFilterActive,
+            docxFilterActive,
+            pdfFilterActive,
+            manualFilterActive,
+            mailFilterActive
+        ) {
+            backend.load_filtered_sources(
+                sortOrder,
+                txtFilterActive,
+                docxFilterActive,
+                pdfFilterActive,
+                manualFilterActive,
+                mailFilterActive
+            )
+        }
+
+        onDeleteSourceRequested: function(source) {
+            backend.delete_knowledge_source(source)
+        }        
+
     }
 
     // Dialog for editing a saved knowledge post.
@@ -912,5 +937,28 @@ ApplicationWindow {
                 similarityThreshold
             )
         }
+
+        // 
+        function onKnowledgeSourcesLoaded(sources) {
+            knowledgeViewDialog.setSources(sources)
+        }
+
+        // Print number of removed posts when deleting a source.
+        function onKnowledgeSourceDeleteResult(success, message) {
+            console.log(
+                "DELETE RESULT:",
+                success,
+                message
+            )
+
+            knowledgeViewDialog.showSourceDeleteStatus(message)
+
+            if (success) {
+                knowledgeViewDialog.requestRefresh()
+            }
+        }      
+
     }
+
+
 }
