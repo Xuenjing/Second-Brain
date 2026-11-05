@@ -206,13 +206,27 @@ Dialog {
 
             onClicked: knowledgeViewDialog.close()
         }
-    }            
+    }
 
     contentItem: Item {
+
+        Label {
+            id: knowledgeCountLabel
+
+            anchors.top: parent.top
+            anchors.left: parent.left
+
+            text: "Visar " + knowledgeList.count + " kunskapsposter"
+
+            color: knowledgeViewDialog.secondaryTextColor
+            font.pixelSize: 12
+        }        
+
         TextField {
             id: knowledgeSearchField
 
-            anchors.top: parent.top
+            anchors.top: knowledgeCountLabel.bottom
+            anchors.topMargin: 8
             anchors.left: parent.left
             anchors.right: parent.right
 
