@@ -11,6 +11,7 @@ Item {
     property color surfaceColor
 
     signal settingsClicked()
+    signal helpClicked()
 
     width: parent.width
     height: 76
@@ -53,6 +54,48 @@ Item {
                 color: "#FACC15"
             }
         }
+    }
+
+    // Open the user guide.
+    Button {
+        id: helpButton
+
+        width: 44
+        height: 44
+
+        anchors.right: settingsButton.left
+        anchors.rightMargin: 12
+        anchors.top: parent.top
+
+        hoverEnabled: true
+
+        Accessible.name: "Användarguide"
+        ToolTip.visible: hovered
+        ToolTip.text: "Användarguide"
+
+        contentItem: Text {
+            text: "?"
+            font.pixelSize: 26
+            font.bold: true
+            color: header.accentColor
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        background: Rectangle {
+            radius: 8
+
+            color: helpButton.down
+                ? header.pressedColor
+                : helpButton.hovered
+                    ? header.hoverColor
+                    : header.surfaceColor
+
+            border.color: header.accentColor
+            border.width: 1
+        }
+
+        onClicked: header.helpClicked()
     }
 
     Button {

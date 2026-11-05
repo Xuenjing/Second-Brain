@@ -160,6 +160,7 @@ ApplicationWindow {
             surfaceColor: root.surfaceColor
 
             onSettingsClicked: settingsDialog.open()
+            onHelpClicked: helpDialog.open()
         }
 
         // Place the knowledge buttons next to each other.
@@ -284,6 +285,24 @@ ApplicationWindow {
         }
     }
     
+    // Display the built-in user guide.
+    HelpDialog {
+        id: helpDialog
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        width: Math.min(700, root.width - 48)
+        height: Math.min(600, root.height - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        accentColor: root.accentColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+    }
 
     // Dialog for application settings.
     SettingsDialog {
