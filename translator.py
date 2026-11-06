@@ -15,6 +15,7 @@ TRANSLATIONS = {
         "common.save": "Spara",
         "common.close": "Stäng",
         "common.reset": "Återställ",
+        "common.cancel": "Avbryt",
 
         # Settings
         "settings.title": "Inställningar",
@@ -34,6 +35,7 @@ TRANSLATIONS = {
         # Backup
         "settings.backup": "Back-up",
         "settings.export_database": "Exportera databas",
+        "settings.import_database": "Importera databas",
 
         # RAG
         "settings.rag": "RAG-inställningar",
@@ -56,7 +58,21 @@ TRANSLATIONS = {
         "knowledge.drop_here":
             "Släpp filen här",            
         "knowledge.import_mail":
-            "Importera mejl (.eml eller .msg)",                
+            "Importera mejl (.eml eller .msg)",
+
+        # File dialog
+        "filedialog.select_txt": "Välj en textfil",
+        "filedialog.txt_files": "Textfiler (*.txt)",
+
+        "filedialog.select_docx": "Välj en DOCX-fil",
+        "filedialog.docx_files": "Word-dokument (*.docx)",
+
+        "filedialog.select_pdf": "Välj en PDF-fil",
+        "filedialog.pdf_files": "PDF-dokument (*.pdf)",
+
+        "filedialog.save_backup": "Spara säkerhetskopia",
+        "filedialog.json_files": "JSON-filer (*.json)",             
+
     },
 
     "en": {
@@ -64,6 +80,7 @@ TRANSLATIONS = {
         "common.save": "Save",
         "common.close": "Close",
         "common.reset": "Reset",
+        "common.cancel": "Cancel",
 
         # Settings
         "settings.title": "Settings",
@@ -83,6 +100,7 @@ TRANSLATIONS = {
         # Backup
         "settings.backup": "Backup",
         "settings.export_database": "Export database",
+        "settings.import_database": "Import database",
 
         # RAG
         "settings.rag": "RAG settings",
@@ -106,7 +124,20 @@ TRANSLATIONS = {
         "knowledge.drop_here":
             "Drop the file here",
         "knowledge.import_mail":
-            "Import email (.eml or .msg)",                
+            "Import email (.eml or .msg)",   
+
+        # File dialog
+        "filedialog.select_txt": "Select a text file",
+        "filedialog.txt_files": "Text files (*.txt)",
+
+        "filedialog.select_docx": "Select a DOCX file",
+        "filedialog.docx_files": "Word documents (*.docx)",
+
+        "filedialog.select_pdf": "Select a PDF file",
+        "filedialog.pdf_files": "PDF documents (*.pdf)",
+
+        "filedialog.save_backup": "Save backup",
+        "filedialog.json_files": "JSON files (*.json)",             
     },
 }
 

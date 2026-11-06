@@ -630,7 +630,10 @@ Dialog {
                 Button {
                     id: importKnowledgeButton
 
-                    text: "Importera databas"
+                    text: translator.text(
+                        "settings.import_database",
+                        translator.language
+                    )
                     height: 40
                     width: 180
                     leftPadding: 16
