@@ -64,7 +64,7 @@ print(f"Backend creation: {backend_end - backend_start:.3f} seconds")
 engine.rootContext().setContextProperty("backend", backend)
 
 # Create translator object and expose it to QML.
-translator = Translator()
+translator = Translator(engine)
 engine.rootContext().setContextProperty("translator", translator)
 
 # Locate the QML entry file qml/main.qml

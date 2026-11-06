@@ -4,6 +4,11 @@ import QtQuick.Controls
 Dialog {
     id: knowledgeDialog
 
+    title: translator.text(
+        "knowledge.add_title",
+        translator.language
+    )
+
     property color surfaceColor
     property color borderColor
     property color textColor
@@ -29,7 +34,6 @@ Dialog {
         knowledgeSaveStatus.text = ""
     }    
 
-    title: "Lägg till kunskap"
     modal: true
     width: 800
     height: 480
@@ -52,6 +56,7 @@ Dialog {
             anchors.verticalCenter: parent.verticalCenter
 
             text: knowledgeDialog.title
+
             color: knowledgeDialog.textColor
             font.pixelSize: 18
             font.bold: true
@@ -70,9 +75,16 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            Accessible.name: "Stäng"
+            Accessible.name: translator.text(
+                "common.close",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng"
+            ToolTip.text: translator.text(
+                "common.close",
+                translator.language
+            )
+
 
             contentItem: Item {
                 Rectangle {
@@ -112,7 +124,10 @@ Dialog {
         spacing: 12
 
         Label {
-            text: "Skriv eller klistra in information:"
+            text: translator.text(
+                "knowledge.input_label",
+                translator.language
+            )
             color: knowledgeDialog.textColor
         }
 
@@ -123,7 +138,10 @@ Dialog {
             TextArea {
                 id: knowledgeInput
 
-                placeholderText: "Information till kunskapsbasen"
+                placeholderText: translator.text(
+                    "knowledge.input_placeholder",
+                    translator.language
+                )
                 wrapMode: TextArea.Wrap
                 textFormat: TextEdit.PlainText
 
@@ -162,9 +180,16 @@ Dialog {
 
             Label {
                 anchors.centerIn: parent
+
                 text: documentDropArea.containsDrag
-                    ? "Släpp filen här"
-                    : "Dra hit en TXT-, PDF-, DOCX-, EML- eller MSG-fil"
+                    ? translator.text(
+                        "knowledge.drop_here",
+                        translator.language
+                    )
+                    : translator.text(
+                        "knowledge.drop_files",
+                        translator.language
+                    )
 
                 color: knowledgeDialog.textColor
             }
@@ -213,14 +238,23 @@ Dialog {
 
             Button {
                 id: saveKnowledgeButton
-                text: "Spara"
+                text: translator.text(
+                    "common.save",
+                    translator.language
+                )
                 width: 40
                 height: 40
                 hoverEnabled: true
 
-                Accessible.name: "Spara kunskap"
+                Accessible.name: translator.text(
+                    "knowledge.save",
+                    translator.language
+                )
                 ToolTip.visible: hovered
-                ToolTip.text: "Spara kunskap"
+                ToolTip.text: translator.text(
+                    "knowledge.save",
+                    translator.language
+                )
 
                 contentItem: Item {
                     Rectangle {
@@ -282,9 +316,15 @@ Dialog {
                 height: 40
                 hoverEnabled: true
 
-                Accessible.name: "Importera .txt-fil"
+                Accessible.name: translator.text(
+                    "knowledge.import_txt",
+                    translator.language
+                )
                 ToolTip.visible: hovered
-                ToolTip.text: "Importera .txt-fil"
+                ToolTip.text: translator.text(
+                    "knowledge.import_txt",
+                    translator.language
+                )
 
                 contentItem: Item {
                     Item {
@@ -372,9 +412,15 @@ Dialog {
                 height: 40
                 hoverEnabled: true
 
-                Accessible.name: "Importera .docx-fil"
+                Accessible.name: translator.text(
+                    "knowledge.import_docx",
+                    translator.language
+                )
                 ToolTip.visible: hovered
-                ToolTip.text: "Importera .docx-fil"
+                ToolTip.text: translator.text(
+                    "knowledge.import_docx",
+                    translator.language
+                )
 
                 contentItem: Item {
                     Item {
@@ -462,9 +508,16 @@ Dialog {
                 height: 40
                 hoverEnabled: true
 
-                Accessible.name: "Importera .pdf-fil"
+                Accessible.name: translator.text(
+                    "knowledge.import_pdf",
+                    translator.language
+                )
                 ToolTip.visible: hovered
-                ToolTip.text: "Importera .pdf-fil"
+                ToolTip.text: translator.text(
+                    "knowledge.import_pdf",
+                    translator.language
+                )
+
 
                 contentItem: Item {
                     Item {
@@ -552,9 +605,16 @@ Dialog {
                 height: 40
                 hoverEnabled: true
 
-                Accessible.name: "Importera mejl"
+                Accessible.name: translator.text(
+                    "knowledge.import_mail",
+                    translator.language
+                )
                 ToolTip.visible: hovered
-                ToolTip.text: "Importera mejl (.eml eller .msg)"
+                ToolTip.text: translator.text(
+                    "knowledge.import_mail",
+                    translator.language
+                )
+
 
                 contentItem: Item {
                     Canvas {

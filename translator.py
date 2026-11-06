@@ -41,6 +41,22 @@ TRANSLATIONS = {
         "settings.similarity_threshold": "Likhetströskel",
         "settings.save_rag": "Spara RAG-inställningar",
         "settings.reset_rag": "Återställ standardvärden",
+
+        # Knowledge dialog
+        "knowledge.add_title": "Lägg till kunskap",
+        "knowledge.input_label": "Skriv eller klistra in information:",
+        "knowledge.input_placeholder": "Information till kunskapsbasen",
+        "knowledge.save": "Spara kunskap",
+        "knowledge.import_txt": "Importera .txt-fil",
+        "knowledge.import_docx": "Importera .docx-fil",
+        "knowledge.import_pdf": "Importera .pdf-fil",
+        "knowledge.input_label": "Skriv eller klistra in information",
+        "knowledge.drop_files":
+            "Dra hit en TXT-, PDF-, DOCX-, EML- eller MSG-fil",
+        "knowledge.drop_here":
+            "Släpp filen här",            
+        "knowledge.import_mail":
+            "Importera mejl (.eml eller .msg)",                
     },
 
     "en": {
@@ -74,6 +90,23 @@ TRANSLATIONS = {
         "settings.similarity_threshold": "Similarity threshold",
         "settings.save_rag": "Save RAG settings",
         "settings.reset_rag": "Reset to defaults",
+
+        # Knowledge dialog
+        "knowledge.add_title": "Add knowledge",
+        "knowledge.input_label": "Write or paste information:",
+        "knowledge.input_placeholder": "Information for the knowledge base",
+        "knowledge.save": "Save knowledge",
+        "knowledge.import_txt": "Import .txt file",
+        "knowledge.import_docx": "Import .docx file",
+        "knowledge.import_pdf": "Import .pdf file",
+
+        "knowledge.input_label": "Write or paste information",
+        "knowledge.drop_files":
+            "Drop a TXT, PDF, DOCX, EML, or MSG file here",
+        "knowledge.drop_here":
+            "Drop the file here",
+        "knowledge.import_mail":
+            "Import email (.eml or .msg)",                
     },
 }
 
@@ -81,8 +114,8 @@ TRANSLATIONS = {
 class Translator(QObject):
     languageChanged = Signal()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         self.settings = QSettings("SecondBrain", "SecondBrain")
 
