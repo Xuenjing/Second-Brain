@@ -20,6 +20,7 @@ Dialog {
     signal exportRequested()
     signal importRequested()
     signal ragSettingsRequested(int topK, real similarityThreshold)
+    signal ragSettingsLoadRequested()
 
     function setBackupStatus(message) {
         backupStatus.text = message
@@ -36,11 +37,20 @@ Dialog {
             : settingsDialog.errorColor
     }
 
+    function loadRagSettings(topK, similarityThreshold) {
+        topKInput.value = topK
+        thresholdInput.text = similarityThreshold.toFixed(2)
+    }
+
+    onOpened: {
+        settingsDialog.ragSettingsLoadRequested()
+    }
+
     onClosed: {
         ragStatus.text = ""
     }    
 
-    title: "Inställningar"
+    title: translator.text("settings.title", translator.language)
     modal: true
 
     background: Rectangle {
@@ -75,7 +85,10 @@ Dialog {
 
             Accessible.name: "Stäng"
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng"
+            ToolTip.text: translator.text(
+                "common.close",
+                translator.language
+            )
 
             contentItem: Item {
                 Rectangle {
@@ -123,7 +136,10 @@ Dialog {
 
             // Appearance
             Label {
-                text: "Utseende"
+                text: translator.text(
+                    "settings.appearance",
+                    translator.language
+                )
                 color: settingsDialog.textColor
                 font.pixelSize: 16
                 font.bold: true
@@ -133,7 +149,10 @@ Dialog {
                 spacing: 12
 
                 Label {
-                    text: "Ljust"
+                    text: translator.text(
+                        "settings.light",
+                        translator.language
+                    )
                     anchors.verticalCenter: parent.verticalCenter
 
                     color: settingsDialog.darkMode
@@ -152,12 +171,20 @@ Dialog {
                     padding: 0
                     hoverEnabled: true
 
-                    Accessible.name: "Byt mellan ljust och mörkt läge"
+                    Accessible.name: translator.text(
+                        "settings.theme.accessible",
+                        translator.language
+                    )
 
-                    ToolTip.visible: hovered
                     ToolTip.text: settingsDialog.darkMode
-                        ? "Byt till ljust läge"
-                        : "Byt till mörkt läge"
+                        ? translator.text(
+                            "settings.theme.to_light",
+                            translator.language
+                        )
+                        : translator.text(
+                            "settings.theme.to_dark",
+                            translator.language
+                        )
 
                     onClicked: settingsDialog.themeToggleRequested()
 
@@ -227,7 +254,10 @@ Dialog {
                 }
 
                 Label {
-                    text: "Mörkt"
+                    text: translator.text(
+                        "settings.dark",
+                        translator.language
+                    )
                     anchors.verticalCenter: parent.verticalCenter
 
                     color: settingsDialog.darkMode
@@ -239,9 +269,45 @@ Dialog {
                 }
             }
 
+            // LANGUAGE SETTINGS
+            Row {
+                spacing: 12
+
+                Label {
+                    text: translator.text(
+                        "settings.language",
+                        translator.language
+                    )
+
+                    color: settingsDialog.textColor
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                ComboBox {
+                    id: languageComboBox
+
+                    // Display options for the user.
+                    model: ["Svenska", "English"]
+
+                    // If sv: select first option, else the second.
+                    currentIndex: translator.language === "sv" ? 0 : 1
+
+                    onActivated: {
+                        if (currentIndex === 0) {
+                            translator.set_language("sv")
+                        } else {
+                            translator.set_language("en")
+                        }
+                    }
+                }
+            }
+
             // RAG
             Label {
-                text: "RAG-inställningar"
+                text: translator.text(
+                    "settings.rag",
+                    translator.language
+                )
                 color: settingsDialog.textColor
                 font.pixelSize: 16
                 font.bold: true
@@ -254,89 +320,122 @@ Dialog {
                 rowSpacing: 12
 
                 Label {
-                    text: "Antal källor (Top-K)"
+                    text: translator.text(
+                        "settings.top_k",
+                        translator.language
+                    )
                     color: settingsDialog.textColor
                     font.pixelSize: 14
                 }
 
-            SpinBox {
+            Item {
                 id: topKInput
 
-                from: 1
-                to: 20
-                value: 5
+                property int value: 5
+                property int from: 1
+                property int to: 20
 
                 width: 140
                 height: 42
 
-                editable: false
-
-                contentItem: TextInput {
-                    text: topKInput.textFromValue(
-                        topKInput.value,
-                        topKInput.locale
-                    )
-
-                    color: settingsDialog.textColor
-                    font.pixelSize: 15
-
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-
-                    readOnly: true
-                    selectByMouse: false
-                }
-
-                background: Rectangle {
+                Rectangle {
+                    anchors.fill: parent
                     radius: 8
                     color: settingsDialog.surfaceColor
                     border.color: settingsDialog.borderColor
                     border.width: 1
                 }
 
-                down.indicator: Rectangle {
-                    x: 0
-                    width: 42
-                    height: parent.height
+                Row {
+                    anchors.fill: parent
+                    spacing: 0
 
-                    radius: 8
-                    color: topKInput.down.pressed
-                        ? settingsDialog.pressedColor
-                        : topKInput.down.hovered
-                            ? settingsDialog.hoverColor
-                            : "transparent"
+                    Rectangle {
+                        id: decrementButton
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: "−"
-                        color: settingsDialog.textColor
-                        font.pixelSize: 24
+                        width: 42
+                        height: parent.height
+                        radius: 8
+
+                        color: decrementArea.pressed
+                            ? settingsDialog.pressedColor
+                            : decrementArea.containsMouse
+                                ? settingsDialog.hoverColor
+                                : "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "−"
+                            color: settingsDialog.textColor
+                            font.pixelSize: 24
+                        }
+
+                        MouseArea {
+                            id: decrementArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onClicked: {
+                                if (topKInput.value > topKInput.from) {
+                                    topKInput.value--
+                                }
+                            }
+                        }
                     }
-                }
 
-                up.indicator: Rectangle {
-                    x: parent.width - width
-                    width: 42
-                    height: parent.height
+                    Rectangle {
+                        width: topKInput.width - 84
+                        height: parent.height
+                        color: "transparent"
 
-                    radius: 8
-                    color: topKInput.up.pressed
-                        ? settingsDialog.pressedColor
-                        : topKInput.up.hovered
-                            ? settingsDialog.hoverColor
-                            : "transparent"
+                        Text {
+                            anchors.centerIn: parent
+                            text: topKInput.value
+                            color: settingsDialog.textColor
+                            font.pixelSize: 15
+                        }
+                    }
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: "+"
-                        color: settingsDialog.textColor
-                        font.pixelSize: 22
+                    Rectangle {
+                        id: incrementButton
+
+                        width: 42
+                        height: parent.height
+                        radius: 8
+
+                        color: incrementArea.pressed
+                            ? settingsDialog.pressedColor
+                            : incrementArea.containsMouse
+                                ? settingsDialog.hoverColor
+                                : "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "+"
+                            color: settingsDialog.textColor
+                            font.pixelSize: 22
+                        }
+
+                        MouseArea {
+                            id: incrementArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onClicked: {
+                                if (topKInput.value < topKInput.to) {
+                                    topKInput.value++
+                                }
+                            }
+                        }
                     }
                 }
             }
 
                 Label {
-                    text: "Likhetströskel (Threshold)"
+                    text: translator.text(
+                        "settings.similarity_threshold",
+                        translator.language
+                    )
                     color: settingsDialog.textColor
                     font.pixelSize: 14
                 }
@@ -347,12 +446,6 @@ Dialog {
                     width: 120
                     text: "0.82"
                     color: settingsDialog.textColor
-
-                    validator: DoubleValidator {
-                        bottom: 0.0
-                        top: 1.0
-                        decimals: 2
-                    }
 
                     background: Rectangle {
                         radius: 6
@@ -367,49 +460,124 @@ Dialog {
                 }
             }
 
-            Button {
-                id: saveRagSettingsButton
+            Row {
+                spacing: 12
 
-                text: "Spara RAG-inställningar"
-                height: 40
-                leftPadding: 16
-                rightPadding: 16
-                hoverEnabled: true
+                Button {
+                    id: saveRagSettingsButton
 
-                contentItem: Text {
-                    text: saveRagSettingsButton.text
-                    color: settingsDialog.textColor
-                    font.pixelSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                
-
-                background: Rectangle {
-                    radius: 8
-
-                    color: saveRagSettingsButton.down
-                        ? settingsDialog.pressedColor
-                        : saveRagSettingsButton.hovered
-                            ? settingsDialog.hoverColor
-                            : settingsDialog.surfaceColor
-
-                    border.color: settingsDialog.accentColor
-                    border.width: 1
-                }
-
-                onClicked: {
-                    settingsDialog.ragSettingsRequested(
-                        topKInput.value,
-                        parseFloat(thresholdInput.text)
+                    text: translator.text(
+                        "settings.save_rag",
+                        translator.language
                     )
+                    height: 40
+                    width: 180
+                    leftPadding: 16
+                    rightPadding: 16
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: saveRagSettingsButton.text
+                        color: settingsDialog.textColor
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    
+
+                    background: Rectangle {
+                        radius: 8
+
+                        color: saveRagSettingsButton.down
+                            ? settingsDialog.pressedColor
+                            : saveRagSettingsButton.hovered
+                                ? settingsDialog.hoverColor
+                                : settingsDialog.surfaceColor
+
+                        border.color: settingsDialog.accentColor
+                        border.width: 1
+                    }
+
+                    // Normalize "," and ".".
+                    onClicked: {
+                        const normalizedThreshold =
+                            thresholdInput.text.trim().replace(",", ".")
+
+                        const thresholdValue = Number(normalizedThreshold)
+
+                        if (normalizedThreshold === ""
+                                || !Number.isFinite(thresholdValue)
+                                || thresholdValue < 0
+                                || thresholdValue > 1) {
+
+                            settingsDialog.showRagStatus(
+                                false,
+                                "Threshold måste vara ett giltigt tal mellan 0 och 1."
+                            )
+                            return
+                        }
+
+                        settingsDialog.ragSettingsRequested(
+                            topKInput.value,
+                            thresholdValue
+                        )
+                    }
+                }
+
+                Button {
+                    id: resetRagSettingsButton
+                    text: translator.text(
+                        "settings.reset_rag",
+                        translator.language
+                    )
+                    height: 40
+                    width: 180
+                    leftPadding: 16
+                    rightPadding: 16
+                    hoverEnabled: true
+
+                    contentItem: Text {
+                        text: resetRagSettingsButton.text
+                        color: settingsDialog.textColor
+                        font.pixelSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+
+                        color: resetRagSettingsButton.down
+                            ? settingsDialog.pressedColor
+                            : resetRagSettingsButton.hovered
+                                ? settingsDialog.hoverColor
+                                : settingsDialog.surfaceColor
+
+                        border.color: settingsDialog.accentColor
+                        border.width: 1
+                    }                    
+
+                    onClicked: {
+                        topKInput.value = 5
+                        thresholdInput.text = "0.82"
+
+                        settingsDialog.ragSettingsRequested(
+                            5,
+                            0.82
+                        )
+                    }
                 }
             }
 
+            
+
             // Backup
             Label {
-                text: "Back-up"
+                text: translator.text(
+                    "settings.backup",
+                    translator.language
+                )
                 color: settingsDialog.textColor
                 font.pixelSize: 16
                 font.bold: true
@@ -422,8 +590,12 @@ Dialog {
                 Button {
                     id: exportKnowledgeButton
 
-                    text: "Exportera databas"
+                    text: translator.text(
+                        "settings.export_database",
+                        translator.language
+                    )
                     height: 40
+                    width: 180
                     leftPadding: 16
                     rightPadding: 16
                     hoverEnabled: true
@@ -458,8 +630,12 @@ Dialog {
                 Button {
                     id: importKnowledgeButton
 
-                    text: "Importera databas"
+                    text: translator.text(
+                        "settings.import_database",
+                        translator.language
+                    )
                     height: 40
+                    width: 180
                     leftPadding: 16
                     rightPadding: 16
                     hoverEnabled: true

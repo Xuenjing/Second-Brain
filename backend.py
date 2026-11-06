@@ -10,7 +10,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal, Slot, QUrl, QThread
+from PySide6.QtCore import QObject, Signal, Slot, QUrl, QThread, QSettings
 
 from retrieval import (
     retrieve_knowledge,
@@ -19,11 +19,13 @@ from retrieval import (
 )
 from llm.local_provider import LocalLLMProvider
 from database import (
+    get_knowledge_sources,
     get_all_knowledge,
     get_knowledge_by_id,
     add_knowledge, 
     search_knowledge, 
-    edit_knowledge, 
+    edit_knowledge,
+    delete_knowledge_by_source, 
     delete_knowledge, 
     initialize_database
 )
@@ -41,7 +43,7 @@ from json_importer import import_knowledge_from_json_file
 class Thinker(QThread):
     """Process a question without blocking the interface."""
 
-    answerReady = Signal(str, list)
+    answerReady = Signal(str, list, list, list)
     answerFailed = Signal(str)
 
     def __init__(
@@ -73,15 +75,21 @@ class Thinker(QThread):
                 similarity_threshold=self.similarity_threshold 
             )
 
-            if not results:
+            used_sources = results["used_sources"]
+            additional_sources = results["additional_sources"]
+            less_relevant_sources = results["less_relevant_sources"]
+
+            if not used_sources:
                 self.answerReady.emit(
                     "Det finns inte tillräcklig information i kunskapsbasen.",
-                    []
+                    [],
+                    additional_sources,
+                    less_relevant_sources
                 )
                 return
 
             context = "\n".join(
-                result["text"] for result in results
+                result["text"] for result in used_sources
             )
 
             prompt = f"""
@@ -109,7 +117,7 @@ ANSWER:
 """
 
             answer = self.llm.generate(prompt)
-            self.answerReady.emit(answer, results)
+            self.answerReady.emit(answer, used_sources, additional_sources, less_relevant_sources)
 
         except Exception as error:
             print(f"Answer generation failed: {error}")
@@ -206,8 +214,22 @@ class Backend(QObject):
         self.mail_review_source: str = ""
         self.mail_review_pending: bool = False
 
-        self.rag_top_k = 5
-        self.rag_similarity_threshold = 0.82
+        self.settings = QSettings(
+            "SecondBrain",
+            "SecondBrain",
+        )
+
+        self.rag_top_k = self.settings.value(
+            "rag/top_k",
+            5,
+            type=int,
+        )
+
+        self.rag_similarity_threshold = self.settings.value(
+            "rag/similarity_threshold",
+            0.82,
+            type=float
+        )
 
         initialize_database()
 
@@ -224,7 +246,7 @@ class Backend(QObject):
         # self.llm = LocalLLMProvider("Qwen/Qwen3-4B-Instruct-2507")
 
     # Signal from Python to QML with the text to display.
-    replyReady = Signal(str, list)
+    replyReady = Signal(str, list, list, list)
 
     # Send True when processing starts and False when it finishes.
     thinkingChanged = Signal(bool)
@@ -271,6 +293,15 @@ class Backend(QObject):
 
     # Send the rag settings to QML.
     ragSettingsResult = Signal(bool, str)
+
+    # Show settings for top_k and similarity_threshold.
+    ragSettingsLoaded = Signal(int, float)
+
+    # Send list of sources to QML.
+    knowledgeSourcesLoaded = Signal(list)
+
+    # Send number of entries deleted.
+    knowledgeSourceDeleteResult = Signal(bool, str)    
 
     @Slot(int)
     def load_model(self, model_index: str) -> None:
@@ -352,6 +383,16 @@ class Backend(QObject):
         self.modelLoadingChanged.emit(False)
 
 
+    @Slot()
+    def get_rag_settings(self) -> None:
+        """Send the current RAG settings to QML."""
+
+        self.ragSettingsLoaded.emit(
+            self.rag_top_k,
+            self.rag_similarity_threshold
+        )
+
+
     @Slot(int, float)
     def set_rag_settings(
         self,
@@ -377,6 +418,16 @@ class Backend(QObject):
 
         self.rag_top_k = top_k
         self.rag_similarity_threshold = similarity_threshold
+
+        self.settings.setValue(
+            "rag/top_k",
+            top_k,
+        )
+
+        self.settings.setValue(
+            "rag/similarity_threshold",
+            similarity_threshold,
+        )
 
         self.ragSettingsResult.emit(
             True,
@@ -419,14 +470,20 @@ class Backend(QObject):
         self.thinkingChanged.emit(True)
         self.thinker.start()
 
-    @Slot(str, list)
-    def handle_answer(self, answer: str, sources: list) -> None:
+    @Slot(str, list, list, list)
+    def handle_answer(
+        self, 
+        answer: str,
+        used_sources: list,
+        additional_sources: list, 
+        less_relevant_sources: list,
+    ) -> None:
         """Send the answer to QML.
         
         Args:
             answer: generated answer to display in QML interface.
         """
-        self.replyReady.emit(answer, sources)
+        self.replyReady.emit(answer, used_sources, additional_sources, less_relevant_sources)
 
     @Slot(str)
     def handle_error(self, message: str) -> None:
@@ -502,6 +559,20 @@ class Backend(QObject):
             self.knowledgeDeleteResult.emit(
                 False, "Kunskapsposten kunde inte hittas."
             )
+
+
+    @Slot(str)
+    def delete_knowledge_source(self, source: str) -> None:
+        """Delete all knowledge entries belonging to one source."""
+
+        deleted_count = delete_knowledge_by_source(source)
+
+        if deleted_count == 0:
+            self.knowledgeSourceDeleteResult.emit(False, "Inga kunskapsposter kunde tas bort.")
+            return
+
+        self.knowledgeSourceDeleteResult.emit(True, f"{deleted_count} kunskapsposter togs bort.")
+            
     
     @Slot(str)
     def add_manual_knowledge(self, text: str) -> None:
@@ -528,6 +599,43 @@ class Backend(QObject):
             self.knowledgeSaveResult.emit("Knowledge added.")
         else:
             self.knowledgeSaveResult.emit("No new knowledge was added.")
+
+    @Slot(str)
+    def import_dropped_document(self, file_url: str) -> None:
+        """Validate a dropped document and use its existing importer."""
+        url = QUrl(file_url)
+
+        if not url.isLocalFile():
+            self.knowledgeSaveResult.emit(
+                "Släpp en lokal fil från datorn."
+            )
+            return
+
+        path = Path(url.toLocalFile())
+
+        if not path.is_file():
+            self.knowledgeSaveResult.emit(
+                "Filen kunde inte hittas. Mappar kan inte importeras."
+            )
+            return
+
+        importers = {
+            ".txt": self.add_txt_knowledge,
+            ".pdf": self.add_pdf_knowledge,
+            ".docx": self.add_docx_knowledge,
+            ".eml": self.preview_mail,
+            ".msg": self.preview_mail,
+        }
+
+        importer = importers.get(path.suffix.lower())
+
+        if importer is None:
+            self.knowledgeSaveResult.emit(
+                "Filtypen stöds inte. Välj TXT, PDF, DOCX, EML eller MSG."
+            )
+            return
+
+        importer(file_url)
 
     @Slot(str)
     def add_txt_knowledge(self, file_path: str) -> None:
@@ -867,7 +975,7 @@ class Backend(QObject):
             )
 
 
-    @Slot(str, str, bool, bool, bool, bool, bool)
+    @Slot(str, str, bool, bool, bool, bool, bool, str)
     def load_filtered_knowledge(
         self,
         search: str, 
@@ -876,7 +984,8 @@ class Backend(QObject):
         docx_active: bool, 
         pdf_active: bool, 
         manual_active: bool,
-        mail_active: bool
+        mail_active: bool,
+        selected_source: str,
     ) -> None:
         """Load and filter knowledge for display in QML.
         
@@ -905,6 +1014,11 @@ class Backend(QObject):
         for item in knowledge:
             source = item["source"].lower()
 
+            # If a specific source is chosen, skip every post not from that source.
+            if selected_source:
+                if item["source"] != selected_source:
+                    continue
+
             if txt_active and source.endswith(".txt"):
                 filtered_knowledge.append(item)
             elif docx_active and source.endswith(".docx"):
@@ -919,6 +1033,44 @@ class Backend(QObject):
         knowledge_data = self._format_knowledge_for_qml(filtered_knowledge)
         self.knowledgeLoaded.emit(knowledge_data)
 
+
+    @Slot(str, bool, bool, bool, bool, bool)
+    def load_filtered_sources(
+        self,
+        sort_order: str,
+        txt_active: bool,
+        docx_active: bool,
+        pdf_active: bool,
+        manual_active: bool,
+        mail_active: bool,
+    ) -> None:
+        """Load and filter group knowledge sources for display in QML."""
+
+        sources = get_knowledge_sources(sort_order)
+
+        filtered_sources = []
+
+        for item in sources:
+            source = item["source"].lower()
+
+            if txt_active and source.endswith(".txt"):
+                filtered_sources.append(item)
+            elif docx_active and source.endswith(".docx"):
+                filtered_sources.append(item)
+            elif pdf_active and source.endswith(".pdf"):
+                filtered_sources.append(item)
+            elif manual_active and source == "manual":
+                filtered_sources.append(item)
+            elif mail_active and source.endswith((".eml", ".msg")):
+                filtered_sources.append(item)
+
+        for item in filtered_sources:
+            source_date = datetime.fromisoformat(item["source_date"])
+
+            item["source_date"] = source_date.strftime("%Y-%m-%d %H:%M")
+
+        self.knowledgeSourcesLoaded.emit(filtered_sources)
+            
 
     def _format_knowledge_for_qml(self, knowledge: list[dict]) -> list[dict]:
         """Format knowledge entries for display in QML.

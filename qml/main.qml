@@ -52,7 +52,11 @@ ApplicationWindow {
     // Track the assistant bubble waiting for a reply.
     property int pendingReplyIndex: -1
 
-    function finishPendingReply(message, sources) {
+    function finishPendingReply(
+        message, 
+        sources,
+        additionalSources,
+        lessRelevantSources) {
         if (pendingReplyIndex < 0
                 || pendingReplyIndex >= chatModel.count) {
             return
@@ -60,6 +64,8 @@ ApplicationWindow {
 
         const replyIndex = pendingReplyIndex
         const replySources = sources || []
+        const replyAdditionalSources = additionalSources || []
+        const replyLessRelevantSources = lessRelevantSources || []
 
         // Update the existing nested source model.
         const sourceModel = chatModel.get(replyIndex).sources
@@ -68,6 +74,24 @@ ApplicationWindow {
         for (let i = 0; i < replySources.length; i++) {
             sourceModel.append(replySources[i])
         }
+
+        const additionalSourceModel = 
+            chatModel.get(replyIndex).additionalSources
+        
+        additionalSourceModel.clear()
+
+        for (let i = 0; i < replyAdditionalSources.length; i++) {
+            additionalSourceModel.append(replyAdditionalSources[i])
+        }
+
+        const lessRelevantSourceModel =
+            chatModel.get(replyIndex).lessRelevantSources
+
+        lessRelevantSourceModel.clear()
+
+        for (let i = 0; i < replyLessRelevantSources.length; i++) {
+            lessRelevantSourceModel.append(replyLessRelevantSources[i])
+        }        
 
         chatModel.setProperty(replyIndex, "message", message)
         chatModel.setProperty(
@@ -136,6 +160,7 @@ ApplicationWindow {
             surfaceColor: root.surfaceColor
 
             onSettingsClicked: settingsDialog.open()
+            onHelpClicked: helpDialog.open()
         }
 
         // Place the knowledge buttons next to each other.
@@ -197,8 +222,14 @@ ApplicationWindow {
             hoverColor: root.hoverColor
             pressedColor: root.pressedColor
 
-            onSourcesRequested: function(sources) {
+            onSourcesRequested: function(
+                sources,
+                additionalSources,
+                lessRelevantSources
+            ) {
                 sourceDialog.sources = sources
+                sourceDialog.additionalSources = additionalSources
+                sourceDialog.lessRelevantSources = lessRelevantSources
                 sourceDialog.open()
             }
         }
@@ -229,6 +260,8 @@ ApplicationWindow {
                     sender: "user",
                     message: question,
                     sources: [],
+                    additionalSources: [],
+                    lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
                     isPending: false
@@ -240,6 +273,8 @@ ApplicationWindow {
                     sender: "assistant",
                     message: "Tänker…",
                     sources: [],
+                    additionalSources: [],
+                    lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
                     isPending: true
@@ -250,6 +285,24 @@ ApplicationWindow {
         }
     }
     
+    // Display the built-in user guide.
+    HelpDialog {
+        id: helpDialog
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        width: Math.min(700, root.width - 48)
+        height: Math.min(600, root.height - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        accentColor: root.accentColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+    }
 
     // Dialog for application settings.
     SettingsDialog {
@@ -286,6 +339,10 @@ ApplicationWindow {
         onRagSettingsRequested: function(topK, similarityThreshold) {
             backend.set_rag_settings(topK, similarityThreshold)
         }
+
+        onRagSettingsLoadRequested: {
+            backend.get_rag_settings()
+        }        
 
 
     }
@@ -327,6 +384,10 @@ ApplicationWindow {
             mailFileDialog.open()
         }
 
+        onDocumentDropped: function(fileUrl) {
+            backend.import_dropped_document(fileUrl.toString())
+        }
+
     }
 
     // Dialog for viewing and managing saved knowledge.
@@ -337,7 +398,7 @@ ApplicationWindow {
         anchors.centerIn: parent
 
         width: Math.min(800, root.width - 48)
-        height: Math.min(600, root.height - 48)
+        height: Math.min(640, root.height - 48)
 
         surfaceColor: root.surfaceColor
         borderColor: root.borderColor
@@ -361,7 +422,8 @@ ApplicationWindow {
             docxFilterActive,
             pdfFilterActive,
             manualFilterActive,
-            mailFilterActive
+            mailFilterActive,
+            selectedSource
         ) {
             backend.load_filtered_knowledge(
                 searchText,
@@ -370,7 +432,8 @@ ApplicationWindow {
                 docxFilterActive,
                 pdfFilterActive,
                 manualFilterActive,
-                mailFilterActive
+                mailFilterActive,
+                selectedSource
             )
         }
 
@@ -383,6 +446,29 @@ ApplicationWindow {
             deleteKnowledgeDialog.loadKnowledge(id, text)
             deleteKnowledgeDialog.open()
         }
+
+        onKnowledgeSourcesRequested: function(
+            sortOrder,
+            txtFilterActive,
+            docxFilterActive,
+            pdfFilterActive,
+            manualFilterActive,
+            mailFilterActive
+        ) {
+            backend.load_filtered_sources(
+                sortOrder,
+                txtFilterActive,
+                docxFilterActive,
+                pdfFilterActive,
+                manualFilterActive,
+                mailFilterActive
+            )
+        }
+
+        onDeleteSourceRequested: function(source) {
+            backend.delete_knowledge_source(source)
+        }        
+
     }
 
     // Dialog for editing a saved knowledge post.
@@ -442,8 +528,8 @@ ApplicationWindow {
 
         parent: root.contentItem
 
-        width: 700
-        height: 600
+        width: Math.min(820, parent.width - 80)
+        height: Math.min(700, parent.height - 80)
 
         x: (parent.width - width) / 2
         y: (parent.height - height) / 2
@@ -454,6 +540,7 @@ ApplicationWindow {
         assistantBubbleColor: root.assistantBubbleColor
         hoverColor: root.hoverColor
         pressedColor: root.pressedColor
+        accentColor: root.accentColor
 
         onKnowledgeEntryRequested: function(id) {
             backend.open_knowledge_entry(id)
@@ -463,8 +550,17 @@ ApplicationWindow {
     // File picker for importing a text file.
     FileDialog {
         id: textFileDialog
-        title: "Välj en textfil"
-        nameFilters: ["Textfiler (*.txt)"]
+        title: translator.text(
+            "filedialog.select_txt",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.txt_files",
+                translator.language
+            )
+        ]
 
         // Send the selected file URL to Python.
         onAccepted: {
@@ -476,8 +572,17 @@ ApplicationWindow {
     // File picker for importing a docx file.
     FileDialog {
         id: docxFileDialog
-        title: "Välj en DOCX-fil"
-        nameFilters: ["Word-dokument (*.docx)"]
+        title: translator.text(
+            "filedialog.select_docx",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.docx_files",
+                translator.language
+            )
+        ]
 
         // Send the selected file URL to Python.
         onAccepted: {
@@ -489,8 +594,17 @@ ApplicationWindow {
     // File picker for importing a pdf file.
     FileDialog {
         id: pdfFileDialog
-        title: "Välj en PDF-fil"
-        nameFilters: ["PDF-dokument (*.pdf)"]
+        title: translator.text(
+            "filedialog.select_pdf",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.pdf_files",
+                translator.language
+            )
+        ]
 
         // Send the selected file URL to python.
         onAccepted: {
@@ -562,12 +676,40 @@ ApplicationWindow {
         }
 
         onAnalyzeRequested: function(emailText) {
-            backend.analyze_previewed_mail(emailText)
+            if (!emailText.trim()) {
+                mailPreviewDialog.statusMessage =
+                    "Det finns inget mejl att analysera."
+                return
+            }
+
+            mailAnalysisDialog.emailText = emailText
+            mailAnalysisDialog.open()
         }
 
         onReviewRequested: {
             mailPreviewDialog.close()
             mailReviewDialog.open()
+        }
+    }
+
+    // Confirm before starting the email analysis.
+    MailAnalysisDialog {
+        id: mailAnalysisDialog
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+        width: Math.min(520, root.width - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        accentColor: root.accentColor
+        assistantBubbleColor: root.assistantBubbleColor
+
+        onAnalysisConfirmed: function(emailText) {
+            backend.analyze_previewed_mail(emailText)
         }
     }
 
@@ -588,12 +730,26 @@ ApplicationWindow {
     // Choose where to save the JSON backup.
     FileDialog {
         id: exportFileDialog
-        title: "Spara säkerhetskopia"
+        title: translator.text(
+            "filedialog.save_backup",
+            translator.language
+        )
         fileMode: FileDialog.SaveFile
-        nameFilters: ["JSON-filer (*.json)"]
+        nameFilters: [
+            translator.text(
+                "filedialog.json_files",
+                translator.language
+            )
+        ]
         defaultSuffix: "json"
-        acceptLabel: "Spara"
-        rejectLabel: "Avbryt"
+        acceptLabel: translator.text(
+            "common.save",
+            translator.language
+        )
+        rejectLabel: translator.text(
+            "common.cancel",
+            translator.language
+        )
 
         // Send the destination file URL to Python.
         onAccepted: {
@@ -637,8 +793,16 @@ ApplicationWindow {
         target: backend
 
         // Replace the waiting bubble with the answer.
-        function onReplyReady(reply, sources) {
-            root.finishPendingReply(reply, sources || [])
+        function onReplyReady(
+            reply, 
+            sources,
+            additionalSources,
+            lessRelevantSources) {
+            root.finishPendingReply(
+                reply, 
+                sources || [],
+                additionalSources || [],
+                lessRelevantSources || [])
         }
 
         // Show the result of saving or importing knowledge.
@@ -685,7 +849,7 @@ ApplicationWindow {
 
         // Replace the waiting bubble with an error message.
         function onReplyFailed(message) {
-            root.finishPendingReply("Fel: " + message, [])
+            root.finishPendingReply("Fel: " + message, [], [], [])
         }
 
         // Open knowledgeview for clicked entry
@@ -727,12 +891,17 @@ ApplicationWindow {
             root.isMailAnalyzing = analyzing
 
             if (analyzing) {
+                knowledgeDialog.setSaveStatus("Analyserar mejl…")
+                mailPreviewDialog.statusMessage = "Analyserar mejl…"
+
                 root.mailAnalysisIndex = chatModel.count
 
                 chatModel.append({
                     sender: "assistant",
                     message: "Analyserar mejl…",
                     sources: [],
+                    additionalSources: [],
+                    lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
                     isPending: true
@@ -758,8 +927,13 @@ ApplicationWindow {
             root.mailReviewPending = true
             
 
-            mailPreviewDialog.statusMessage =
-                "Analysen är klar. " + facts.length + " förslag att granska."
+            const reviewMessage = facts.length > 0
+                ? "Mejlanalysen är klar. " + facts.length
+                    + " förslag att granska."
+                : "Mejlanalysen är klar. Inga faktauppgifter föreslogs."
+
+            knowledgeDialog.setSaveStatus(reviewMessage)
+            mailPreviewDialog.statusMessage = reviewMessage
 
             mailReviewDialog.loadSuggestions(facts)
 
@@ -780,6 +954,8 @@ ApplicationWindow {
 
         // Clear suggestions after saving or discarding them.
         function onMailReviewFinished() {
+            knowledgeDialog.clearSaveStatus()
+            mailPreviewDialog.statusMessage = ""
             if (root.mailAnalysisIndex >= 0) {
                 chatModel.setProperty(
                     root.mailAnalysisIndex,
@@ -811,5 +987,38 @@ ApplicationWindow {
         function onRagSettingsResult(success, message) {
             settingsDialog.showRagStatus(success, message)
         }
+
+        function onRagSettingsLoaded(
+            top_k,
+            similarityThreshold
+        ) {
+            settingsDialog.loadRagSettings(
+                top_k,
+                similarityThreshold
+            )
+        }
+
+        // 
+        function onKnowledgeSourcesLoaded(sources) {
+            knowledgeViewDialog.setSources(sources)
+        }
+
+        // Print number of removed posts when deleting a source.
+        function onKnowledgeSourceDeleteResult(success, message) {
+            console.log(
+                "DELETE RESULT:",
+                success,
+                message
+            )
+
+            knowledgeViewDialog.showSourceDeleteStatus(message)
+
+            if (success) {
+                knowledgeViewDialog.requestRefresh()
+            }
+        }      
+
     }
+
+
 }

@@ -111,6 +111,7 @@ def get_all_knowledge(sort_order: str = "desc") -> list[dict]:
 
     return knowledge
 
+
 def get_knowledge_by_id(knowledge_id: int) -> dict | None:
     """Return a knowledge entry by database ID.
     
@@ -136,33 +137,51 @@ def get_knowledge_by_id(knowledge_id: int) -> dict | None:
     return dict(row) if row else None
 
 
-# NOT CURRENTLY IN USE: FLAGGED FOR REMOVAL ???
-# ONLY FOR TESTING PURPOSES
-def add_txt_file_to_database(file_path, model):
-    '''
-    Receieve, read and add the contents of a .txt file to the knowledge database,
-    unless the file does not exist or is empty.
-    Creates an embedding before storing.
-    '''
-    path = Path(file_path)
-    if not path.exists():
-        return False
-    if path.suffix.lower() != ".txt":
-        return False
-    text = path.read_text(encoding="utf-8")
+def get_knowledge_sources(sort_order: str = "desc") -> list[dict]:
+    """
+    Retrun all unique sources together with
+    the number of entries belonging to each source.
 
-    if not text.strip():
-        return False
-
-    embedding = model.encode(text)
+    Args:
+        sort_order: Sort sources by their newest or oldest entry.
     
-    add_knowledge(
-        text,
-        embedding,
-        source = path.name
-    )
-    return True
+    Returns:
+        A list of dictionaries containing the source name,
+        entry count and creation time.
+    """
 
+    connection = sqlite3.connect(DATABASE_PATH)
+    cursor = connection.cursor()
+
+    if sort_order == "asc":
+        order = "ASC"
+    else:
+        order = "DESC"
+
+    cursor.execute(f"""
+        SELECT
+            source,
+            COUNT(*) AS entry_count,
+            MIN(created_at) AS source_date
+        FROM knowledge
+        GROUP BY source
+        ORDER BY source_date {order}
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    sources = []
+
+    for source, entry_count, source_date in rows:
+        sources.append({
+            "source": source,
+            "entry_count": entry_count,
+            "source_date": source_date,
+        })
+
+    return sources
+    
 
 def delete_knowledge(knowledge_id: int) -> bool:
     """Delete a knowledge entry from the database.
@@ -183,6 +202,32 @@ def delete_knowledge(knowledge_id: int) -> bool:
     connection.commit()
     connection.close()
     return deleted
+
+
+def delete_knowledge_by_source(source: str) -> int:
+    """Delete all knowledge entries corresponding to the same source.
+    
+    Args:
+        source: Source name whose entries to be deleted.
+    
+    Returns:
+        Number of deleted knowledge entries.
+    """
+
+    connection = sqlite3.connect(DATABASE_PATH)
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "DELETE FROM knowledge WHERE source = ?",
+        (source,)
+    )
+
+    deleted_count = cursor.rowcount
+
+    connection.commit()
+    connection.close()
+
+    return deleted_count
 
 
 def edit_knowledge(knowledge_id: int, new_text: str, new_embedding: np.ndarray) -> bool:
@@ -254,30 +299,8 @@ def search_knowledge(search_term: str) -> list[dict]:
 # testing database methods
 if __name__ == "__main__":
 
-    from sentence_transformers import SentenceTransformer
+    sources = get_knowledge_sources()
 
-    model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-    text = "The school opens at 8.00AM."
-    embedding = model.encode(text)
-
-    initialize_database()
-
-    add_knowledge(text, embedding, source="manual") # add to database
-
-    # add contents of txt-file to db(1), try to add an empty file (2), and a non-existing file (3)
-    add_txt_file_to_database("test.txt", model)
-    add_txt_file_to_database("test2.txt", model)
-    add_txt_file_to_database("test3.txt", model)
-
-    all_knowledge = get_all_knowledge() # get entire database
-
-    # print it
-    for row in all_knowledge:
-        print({
-            "id": row["id"],
-            "text": row["text"],
-            "source": row["source"],
-            "created_at": row["created_at"],
-            "embedding_length": len(row["embedding"])
-        })
+    for source in sources:
+        print(source)
 
