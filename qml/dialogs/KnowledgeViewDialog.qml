@@ -175,7 +175,10 @@ Dialog {
         sourceDeleteStatus.text = message
     }   
 
-    title: "Kunskapsbas"
+    title: translator.text(
+        "knowledge_view.title",
+        translator.language
+    )
     modal: true
 
     background: Rectangle {
@@ -209,9 +212,22 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            Accessible.name: "Stäng"
+            text: translator.text(
+                "common.close",
+                translator.language
+            )
+
+            Accessible.name: translator.text(
+                "common.close",
+                translator.language
+            )
+
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng"
+
+            ToolTip.text: translator.text(
+                "common.close",
+                translator.language
+            )
 
             contentItem: Item {
                 Rectangle {
@@ -255,7 +271,17 @@ Dialog {
             anchors.top: parent.top
             anchors.left: parent.left
 
-            text: "Visar " + knowledgeList.count + " kunskapsposter"
+            text: translator.text(
+                    "knowledge_view.showing",
+                    translator.language
+                )
+                + " "
+                + knowledgeList.count
+                + " "
+                + translator.text(
+                    "knowledge_view.knowledge_entries",
+                    translator.language
+                )
 
             color: knowledgeViewDialog.secondaryTextColor
             font.pixelSize: 12
@@ -270,7 +296,10 @@ Dialog {
             anchors.right: parent.right
 
             height: 44
-            placeholderText: "Sök bland sparad kunskap"
+            placeholderText: translator.text(
+                "knowledge_view.search",
+                translator.language
+            )
 
             color: knowledgeViewDialog.textColor
             placeholderTextColor: knowledgeViewDialog.secondaryTextColor
@@ -311,7 +340,10 @@ Dialog {
 
                 Button{
                     id: showPostsButton
-                    text: "Visa poster"
+                    text: translator.text(
+                        "knowledge_view.show_posts",
+                        translator.language
+                    )
                     height: 40
                     leftPadding: 14
                     rightPadding: 14
@@ -356,7 +388,10 @@ Dialog {
                 Button {
                     id: showSourcesButton
 
-                    text: "Visa källor"
+                    text: translator.text(
+                        "knowledge_view.show_sources",
+                        translator.language
+                    )
                     height: 40
                     leftPadding: 14
                     rightPadding: 14
@@ -449,7 +484,10 @@ Dialog {
                         }
 
                         ToolTip.visible: hovered
-                        ToolTip.text: "TXT-filer"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.filter_txt",
+                            translator.language
+                        )
                     }
 
                     Button {
@@ -492,7 +530,10 @@ Dialog {
                         }
 
                         ToolTip.visible: hovered
-                        ToolTip.text: "DOCX-filer"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.filter_docx",
+                            translator.language
+                        )
                     }
 
                     Button {
@@ -535,7 +576,10 @@ Dialog {
                         }
 
                         ToolTip.visible: hovered
-                        ToolTip.text: "PDF-filer"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.filter_pdf",
+                            translator.language
+                        )
                     }
 
                     // Filter imported emails.
@@ -545,9 +589,15 @@ Dialog {
                         height: 40
                         hoverEnabled: true
 
-                        Accessible.name: "Filtrera mejl"
+                        text: translator.text(
+                            "knowledge_view.filter_mail",
+                            translator.language
+                        )
                         ToolTip.visible: hovered
-                        ToolTip.text: "Mejl (.eml och .msg)"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.filter_mail",
+                            translator.language
+                        )
 
                         // Draw an envelope icon.
                         contentItem: Item {
@@ -728,7 +778,10 @@ Dialog {
                         }
 
                         ToolTip.visible: hovered
-                        ToolTip.text: "Manuella poster"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.filter_manual",
+                            translator.language
+                        )
                     }
                 }
 
@@ -778,7 +831,10 @@ Dialog {
                         }
 
                         ToolTip.visible: hovered
-                        ToolTip.text: "Äldst först"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.sort_oldest",
+                            translator.language
+                        )
                     }
 
                     Button {
@@ -823,7 +879,10 @@ Dialog {
                         }
 
                         ToolTip.visible: hovered
-                        ToolTip.text: "Nyast först"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.sort_newest",
+                            translator.language
+                        )
                     }
                 }                
             }
@@ -887,9 +946,18 @@ Dialog {
                     Label {
                         width: parent.width
 
-                        text: "Källa: "
+                        text: translator.text(
+                                "knowledge_view.source",
+                                translator.language
+                            )
+                            + " "
                             + postItem.modelData.source
-                            + " | Skapad: "
+                            + " | "
+                            + translator.text(
+                                "knowledge_view.created",
+                                translator.language
+                            )
+                            + " "
                             + postItem.modelData.created_at
 
                         textFormat: Text.PlainText
@@ -911,14 +979,24 @@ Dialog {
 
                     Button {
                         id: editPostButton
-                        text: "Redigera"
+                        text: translator.text(
+                            "knowledge_view.edit_post",
+                            translator.language
+                        )
                         width: 32
                         height: 32
                         hoverEnabled: true
 
-                        Accessible.name: "Redigera kunskapspost"
+                        Accessible.name: translator.text(
+                            "knowledge_view.edit_post",
+                            translator.language
+                        )
                         ToolTip.visible: hovered
-                        ToolTip.text: "Redigera kunskapspost"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.edit_post",
+                            translator.language
+                        )
+
 
                         contentItem: Item {
                             Item {
@@ -987,14 +1065,23 @@ Dialog {
 
                     Button {
                         id: deletePostButton
-                        text: "Ta bort"
+                        text: translator.text(
+                            "knowledge_view.delete_post",
+                            translator.language
+                        )
                         width: 32
                         height: 32
                         hoverEnabled: true
-
-                        Accessible.name: "Ta bort kunskapspost"
+                        Accessible.name: translator.text(
+                            "knowledge_view.delete_post",
+                            translator.language
+                        )
                         ToolTip.visible: hovered
-                        ToolTip.text: "Ta bort kunskapspost"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.delete_post",
+                            translator.language
+                        )
+
 
                         contentItem: Item {
                             Item {
@@ -1075,7 +1162,10 @@ Dialog {
             Label {
                 anchors.centerIn: parent
                 visible: knowledgeList.count === 0
-                text: "Inga kunskapsposter att visa."
+                text: translator.text(
+                    "knowledge_view.no_posts",
+                    translator.language
+                )
                 color: knowledgeViewDialog.secondaryTextColor
             }
         }
@@ -1124,7 +1214,12 @@ Dialog {
                     }
 
                     Label {
-                        text: sourceItem.modelData.entry_count + " poster"
+                        text: sourceItem.modelData.entry_count
+                            + " "
+                            + translator.text(
+                                "knowledge_view.entries",
+                                translator.language
+                            )
                         color: knowledgeViewDialog.secondaryTextColor
                         font.pixelSize: 12
                     }
@@ -1132,7 +1227,12 @@ Dialog {
                     Label {
                         visible: sourceItem.modelData.source.toLowerCase() !== "manual"
 
-                        text: "Tillagd: " + sourceItem.modelData.source_date
+                        text: translator.text(
+                                "knowledge_view.added",
+                                translator.language
+                            )
+                            + " "
+                            + sourceItem.modelData.source_date
 
                         color: knowledgeViewDialog.secondaryTextColor
                         font.pixelSize: 12
@@ -1156,9 +1256,15 @@ Dialog {
                         height: 32
                         hoverEnabled: true
 
-                        Accessible.name: "Visa poster från källan"
+                        Accessible.name: translator.text(
+                            "knowledge_view.view_source",
+                            translator.language
+                        )
                         ToolTip.visible: hovered
-                        ToolTip.text: "Visa poster från källan"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.view_source",
+                            translator.language
+                        )
 
                         contentItem: Item {
                             Canvas {
@@ -1224,9 +1330,15 @@ Dialog {
                         height: 32
                         hoverEnabled: true
 
-                        Accessible.name: "Ta bort alla poster från källan"
+                        Accessible.name: translator.text(
+                            "knowledge_view.delete_source",
+                            translator.language
+                        )
                         ToolTip.visible: hovered
-                        ToolTip.text: "Ta bort alla poster från källan"
+                        ToolTip.text: translator.text(
+                            "knowledge_view.delete_source",
+                            translator.language
+                        )
 
                         contentItem: Item {
                             Item {

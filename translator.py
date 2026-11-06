@@ -71,7 +71,37 @@ TRANSLATIONS = {
         "filedialog.pdf_files": "PDF-dokument (*.pdf)",
 
         "filedialog.save_backup": "Spara säkerhetskopia",
-        "filedialog.json_files": "JSON-filer (*.json)",             
+        "filedialog.json_files": "JSON-filer (*.json)",    
+
+        # Knowledge view
+        "knowledge_view.title": "Kunskapsbas",
+        "knowledge_view.search": "Sök bland sparad kunskap",
+        "knowledge_view.show_posts": "Visa poster",
+        "knowledge_view.show_sources": "Visa källor",
+        "knowledge_view.posts_shown": "Visar {count} kunskapsposter",
+        "knowledge_view.no_posts": "Inga kunskapsposter att visa.",   
+        "knowledge_view.showing": "Visar",
+        "knowledge_view.knowledge_entries": "kunskapsposter",    
+
+        "knowledge_view.filter_txt": "TXT-filer",
+        "knowledge_view.filter_docx": "DOCX-filer",
+        "knowledge_view.filter_pdf": "PDF-filer",
+        "knowledge_view.filter_mail": "Mejl",
+        "knowledge_view.filter_manual": "Manuella poster",
+
+        "knowledge_view.sort_oldest": "Äldst först",
+        "knowledge_view.sort_newest": "Nyast först",
+
+        "knowledge_view.source": "Källa:",
+        "knowledge_view.created": "Skapad:",
+        "knowledge_view.added": "Tillagd:",
+        "knowledge_view.entries": "kunskapsposter",
+
+        "knowledge_view.edit_post": "Redigera kunskapspost",
+        "knowledge_view.delete_post": "Ta bort kunskapspost",
+
+        "knowledge_view.view_source": "Visa poster från källan",
+        "knowledge_view.delete_source": "Ta bort källa",          
 
     },
 
@@ -137,7 +167,38 @@ TRANSLATIONS = {
         "filedialog.pdf_files": "PDF documents (*.pdf)",
 
         "filedialog.save_backup": "Save backup",
-        "filedialog.json_files": "JSON files (*.json)",             
+        "filedialog.json_files": "JSON files (*.json)",    
+
+        # Knowledge view
+        "knowledge_view.title": "Knowledge base",
+        "knowledge_view.search": "Search saved knowledge",
+        "knowledge_view.show_posts": "Show entries",
+        "knowledge_view.show_sources": "Show sources",
+        "knowledge_view.posts_shown": "Showing {count} knowledge entries",
+        "knowledge_view.no_posts": "No knowledge entries to display.",
+        "knowledge_view.showing": "Showing",
+        "knowledge_view.knowledge_entries": "knowledge entries",
+
+        "knowledge_view.filter_txt": "TXT files",
+        "knowledge_view.filter_docx": "DOCX files",
+        "knowledge_view.filter_pdf": "PDF files",
+        "knowledge_view.filter_mail": "Email",
+        "knowledge_view.filter_manual": "Manual entries",
+
+        "knowledge_view.sort_oldest": "Oldest first",
+        "knowledge_view.sort_newest": "Newest first", 
+
+        "knowledge_view.source": "Source:",
+        "knowledge_view.created": "Created:",
+        "knowledge_view.added": "Added:",
+        "knowledge_view.entries": "knowledge entries",
+
+        "knowledge_view.edit_post": "Edit knowledge entry",
+        "knowledge_view.delete_post": "Delete knowledge entry",
+
+        "knowledge_view.view_source": "View entries from source",
+        "knowledge_view.delete_source": "Delete source",               
+
     },
 }
 
