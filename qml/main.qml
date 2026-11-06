@@ -550,8 +550,17 @@ ApplicationWindow {
     // File picker for importing a text file.
     FileDialog {
         id: textFileDialog
-        title: "Välj en textfil"
-        nameFilters: ["Textfiler (*.txt)"]
+        title: translator.text(
+            "filedialog.select_txt",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.txt_files",
+                translator.language
+            )
+        ]
 
         // Send the selected file URL to Python.
         onAccepted: {
@@ -563,8 +572,17 @@ ApplicationWindow {
     // File picker for importing a docx file.
     FileDialog {
         id: docxFileDialog
-        title: "Välj en DOCX-fil"
-        nameFilters: ["Word-dokument (*.docx)"]
+        title: translator.text(
+            "filedialog.select_docx",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.docx_files",
+                translator.language
+            )
+        ]
 
         // Send the selected file URL to Python.
         onAccepted: {
@@ -576,8 +594,17 @@ ApplicationWindow {
     // File picker for importing a pdf file.
     FileDialog {
         id: pdfFileDialog
-        title: "Välj en PDF-fil"
-        nameFilters: ["PDF-dokument (*.pdf)"]
+        title: translator.text(
+            "filedialog.select_pdf",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.pdf_files",
+                translator.language
+            )
+        ]
 
         // Send the selected file URL to python.
         onAccepted: {
@@ -703,12 +730,26 @@ ApplicationWindow {
     // Choose where to save the JSON backup.
     FileDialog {
         id: exportFileDialog
-        title: "Spara säkerhetskopia"
+        title: translator.text(
+            "filedialog.save_backup",
+            translator.language
+        )
         fileMode: FileDialog.SaveFile
-        nameFilters: ["JSON-filer (*.json)"]
+        nameFilters: [
+            translator.text(
+                "filedialog.json_files",
+                translator.language
+            )
+        ]
         defaultSuffix: "json"
-        acceptLabel: "Spara"
-        rejectLabel: "Avbryt"
+        acceptLabel: translator.text(
+            "common.save",
+            translator.language
+        )
+        rejectLabel: translator.text(
+            "common.cancel",
+            translator.language
+        )
 
         // Send the destination file URL to Python.
         onAccepted: {
