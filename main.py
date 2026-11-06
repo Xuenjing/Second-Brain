@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (
     QSystemTrayIcon, 
     QMenu
 )
+from translator import Translator
+
 from PySide6.QtGui import QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuickControls2 import QQuickStyle
@@ -60,6 +62,10 @@ print(f"Backend creation: {backend_end - backend_start:.3f} seconds")
 
 # Make the Python object available to QML under the name "backend".
 engine.rootContext().setContextProperty("backend", backend)
+
+# Create translator object and expose it to QML.
+translator = Translator()
+engine.rootContext().setContextProperty("translator", translator)
 
 # Locate the QML entry file qml/main.qml
 qml_file = Path(__file__).resolve().parent / "qml" / "main.qml"

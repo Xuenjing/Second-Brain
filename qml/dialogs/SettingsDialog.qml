@@ -50,7 +50,7 @@ Dialog {
         ragStatus.text = ""
     }    
 
-    title: "Inställningar"
+    title: translator.text("settings.title", translator.language)
     modal: true
 
     background: Rectangle {
@@ -85,7 +85,10 @@ Dialog {
 
             Accessible.name: "Stäng"
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng"
+            ToolTip.text: translator.text(
+                "common.close",
+                translator.language
+            )
 
             contentItem: Item {
                 Rectangle {
@@ -133,7 +136,10 @@ Dialog {
 
             // Appearance
             Label {
-                text: "Utseende"
+                text: translator.text(
+                    "settings.appearance",
+                    translator.language
+                )
                 color: settingsDialog.textColor
                 font.pixelSize: 16
                 font.bold: true
@@ -143,7 +149,10 @@ Dialog {
                 spacing: 12
 
                 Label {
-                    text: "Ljust"
+                    text: translator.text(
+                        "settings.light",
+                        translator.language
+                    )
                     anchors.verticalCenter: parent.verticalCenter
 
                     color: settingsDialog.darkMode
@@ -162,12 +171,20 @@ Dialog {
                     padding: 0
                     hoverEnabled: true
 
-                    Accessible.name: "Byt mellan ljust och mörkt läge"
+                    Accessible.name: translator.text(
+                        "settings.theme.accessible",
+                        translator.language
+                    )
 
-                    ToolTip.visible: hovered
                     ToolTip.text: settingsDialog.darkMode
-                        ? "Byt till ljust läge"
-                        : "Byt till mörkt läge"
+                        ? translator.text(
+                            "settings.theme.to_light",
+                            translator.language
+                        )
+                        : translator.text(
+                            "settings.theme.to_dark",
+                            translator.language
+                        )
 
                     onClicked: settingsDialog.themeToggleRequested()
 
@@ -237,7 +254,10 @@ Dialog {
                 }
 
                 Label {
-                    text: "Mörkt"
+                    text: translator.text(
+                        "settings.dark",
+                        translator.language
+                    )
                     anchors.verticalCenter: parent.verticalCenter
 
                     color: settingsDialog.darkMode
@@ -249,9 +269,45 @@ Dialog {
                 }
             }
 
+            // LANGUAGE SETTINGS
+            Row {
+                spacing: 12
+
+                Label {
+                    text: translator.text(
+                        "settings.language",
+                        translator.language
+                    )
+
+                    color: settingsDialog.textColor
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                ComboBox {
+                    id: languageComboBox
+
+                    // Display options for the user.
+                    model: ["Svenska", "English"]
+
+                    // If sv: select first option, else the second.
+                    currentIndex: translator.language === "sv" ? 0 : 1
+
+                    onActivated: {
+                        if (currentIndex === 0) {
+                            translator.set_language("sv")
+                        } else {
+                            translator.set_language("en")
+                        }
+                    }
+                }
+            }
+
             // RAG
             Label {
-                text: "RAG-inställningar"
+                text: translator.text(
+                    "settings.rag",
+                    translator.language
+                )
                 color: settingsDialog.textColor
                 font.pixelSize: 16
                 font.bold: true
@@ -264,7 +320,10 @@ Dialog {
                 rowSpacing: 12
 
                 Label {
-                    text: "Antal källor (Top-K)"
+                    text: translator.text(
+                        "settings.top_k",
+                        translator.language
+                    )
                     color: settingsDialog.textColor
                     font.pixelSize: 14
                 }
@@ -373,7 +432,10 @@ Dialog {
             }
 
                 Label {
-                    text: "Likhetströskel (Threshold)"
+                    text: translator.text(
+                        "settings.similarity_threshold",
+                        translator.language
+                    )
                     color: settingsDialog.textColor
                     font.pixelSize: 14
                 }
@@ -404,7 +466,10 @@ Dialog {
                 Button {
                     id: saveRagSettingsButton
 
-                    text: "Spara RAG-inställningar"
+                    text: translator.text(
+                        "settings.save_rag",
+                        translator.language
+                    )
                     height: 40
                     width: 180
                     leftPadding: 16
@@ -462,7 +527,10 @@ Dialog {
 
                 Button {
                     id: resetRagSettingsButton
-                    text: "Återställ standard"
+                    text: translator.text(
+                        "settings.reset_rag",
+                        translator.language
+                    )
                     height: 40
                     width: 180
                     leftPadding: 16
@@ -506,7 +574,10 @@ Dialog {
 
             // Backup
             Label {
-                text: "Back-up"
+                text: translator.text(
+                    "settings.backup",
+                    translator.language
+                )
                 color: settingsDialog.textColor
                 font.pixelSize: 16
                 font.bold: true
@@ -519,7 +590,10 @@ Dialog {
                 Button {
                     id: exportKnowledgeButton
 
-                    text: "Exportera databas"
+                    text: translator.text(
+                        "settings.export_database",
+                        translator.language
+                    )
                     height: 40
                     width: 180
                     leftPadding: 16
