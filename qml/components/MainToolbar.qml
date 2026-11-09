@@ -26,7 +26,10 @@ Row {
     Button {
         id: addKnowledgeButton
 
-        text: "Lägg till kunskap"
+        text: translator.text(
+            "toolbar.add_knowledge",
+            translator.language
+        )
         height: 40
         leftPadding: 16
         rightPadding: 16
@@ -61,7 +64,10 @@ Row {
     Button {
         id: viewKnowledgeButton
 
-        text: "Visa kunskapsposter"
+        text: translator.text(
+            "toolbar.view_knowledge",
+            translator.language
+        )
         height: 40
         leftPadding: 16
         rightPadding: 16
@@ -100,9 +106,18 @@ Row {
         height: 40
 
         model: [
-            "Qwen3 0.6B — Snabb",
-            "Qwen3 1.7B — Rekommenderas",
-            "Qwen3 4B — Långsam"
+            translator.text(
+                "toolbar.model_fast",
+                translator.language
+            ),
+            translator.text(
+                "toolbar.model_recommended",
+                translator.language
+            ),
+            translator.text(
+                "toolbar.model_slow",
+                translator.language
+            )
         ]
 
         currentIndex: 1
@@ -195,7 +210,10 @@ Row {
     Button {
         id: loadModelButton
 
-        text: "Ladda modell"
+        text: translator.text(
+            "toolbar.load_model",
+            translator.language
+        )
         height: 40
         leftPadding: 16
         rightPadding: 16
@@ -205,8 +223,15 @@ Row {
 
         contentItem: Text {
             text: mainToolbar.modelLoading
-                ? "Laddar..."
-                : "Ladda modell"
+                ? translator.text(
+                    "toolbar.loading_model",
+                    translator.language
+                )
+                : translator.text(
+                    "toolbar.load_model",
+                    translator.language
+                )
+
             color: mainToolbar.accentColor
             font.pixelSize: 14
             horizontalAlignment: Text.AlignHCenter
