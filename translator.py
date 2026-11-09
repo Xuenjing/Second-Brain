@@ -101,7 +101,13 @@ TRANSLATIONS = {
         "knowledge_view.delete_post": "Ta bort kunskapspost",
 
         "knowledge_view.view_source": "Visa poster från källan",
-        "knowledge_view.delete_source": "Ta bort källa",          
+        "knowledge_view.delete_source": "Ta bort källa",   
+
+        # Edit knowledge dialog.
+        "edit_knowledge.title": "Redigera kunskap",
+        "edit_knowledge.placeholder": "Ändra kunskapspostens text",
+        "edit_knowledge.save_changes": "Spara ändringar",
+        "edit_knowledge.close_without_saving": "Stäng utan att spara",       
 
     },
 
@@ -197,7 +203,14 @@ TRANSLATIONS = {
         "knowledge_view.delete_post": "Delete knowledge entry",
 
         "knowledge_view.view_source": "View entries from source",
-        "knowledge_view.delete_source": "Delete source",               
+        "knowledge_view.delete_source": "Delete source",      
+
+        # Edit knowledge dialog.
+
+        "edit_knowledge.title": "Edit knowledge",
+        "edit_knowledge.placeholder": "Edit the knowledge entry text",
+        "edit_knowledge.save_changes": "Save changes",
+        "edit_knowledge.close_without_saving": "Close without saving",         
 
     },
 }

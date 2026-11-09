@@ -28,7 +28,10 @@ Dialog {
         editKnowledgeStatus.text = message
     }
 
-    title: "Redigera kunskap"
+    title: translator.text(
+        "edit_knowledge.title",
+        translator.language
+    )
     modal: true
 
     background: Rectangle {
@@ -67,9 +70,15 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            Accessible.name: "Stäng utan att spara"
+            Accessible.name: translator.text(
+                "edit_knowledge.close_without_saving",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng utan att spara"
+            ToolTip.text: translator.text(
+                "edit_knowledge.close_without_saving",
+                translator.language
+            )
 
             contentItem: Item {
                 Rectangle {
@@ -118,7 +127,10 @@ Dialog {
             TextArea {
                 id: editKnowledgeInput
 
-                placeholderText: "Ändra kunskapspostens text"
+                placeholderText: translator.text(
+                    "edit_knowledge.placeholder",
+                    translator.language
+                )
                 wrapMode: TextArea.Wrap
                 textFormat: TextEdit.PlainText
 
@@ -161,9 +173,15 @@ Dialog {
             padding: 0
             hoverEnabled: true
 
-            Accessible.name: "Spara ändringar"
+            Accessible.name: translator.text(
+                "edit_knowledge.save_changes",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Spara ändringar"
+            ToolTip.text: translator.text(
+                "edit_knowledge.save_changes",
+                translator.language
+            )
 
             // Draw a floppy-disk icon.
             contentItem: Item {
