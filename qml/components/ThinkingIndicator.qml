@@ -59,7 +59,11 @@ Item {
         }
 
         Label {
-            text: "Tänker…"
+            text: translator.text(
+                "thinking.status",
+                translator.language
+            )
+
             color: thinkingIndicator.textColor
             font.pixelSize: 14
             font.bold: true

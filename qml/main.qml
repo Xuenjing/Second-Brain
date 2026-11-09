@@ -271,7 +271,10 @@ ApplicationWindow {
 
                 chatModel.append({
                     sender: "assistant",
-                    message: "Tänker…",
+                    message: translator.text(
+                        "thinking.status",
+                        translator.language
+                    ),
                     sources: [],
                     additionalSources: [],
                     lessRelevantSources: [],
