@@ -136,13 +136,17 @@ TRANSLATIONS = {
         # Main toolbar.
         "toolbar.add_knowledge": "Lägg till kunskap",
         "toolbar.view_knowledge": "Visa kunskapsposter",
-
         "toolbar.model_fast": "Qwen3 0.6B — Snabb",
         "toolbar.model_recommended": "Qwen3 1.7B — Rekommenderas",
         "toolbar.model_slow": "Qwen3 4B — Långsam",
-
         "toolbar.load_model": "Ladda modell",
         "toolbar.loading_model": "Laddar...",
+
+        # Header
+        "header.user_guide": "Användarguide",
+
+        # Thinking
+        "thinking.status": "Tänker…",
 
     },
 
@@ -278,6 +282,12 @@ TRANSLATIONS = {
         "toolbar.model_slow": "Qwen3 4B — Slow",
         "toolbar.load_model": "Load model",
         "toolbar.loading_model": "Loading...",
+
+        # Header.
+        "header.user_guide": "User guide",
+
+        # Thinking
+        "thinking.status": "Thinking…",
 
     },
 }
