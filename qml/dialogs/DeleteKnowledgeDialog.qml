@@ -31,7 +31,10 @@ Dialog {
         deleteKnowledgeStatus.text = message
     }    
 
-    title: "Ta bort kunskap"
+    title: translator.text(
+        "delete_knowledge.title",
+        translator.language
+    )
     modal: true
 
     background: Rectangle {
@@ -70,9 +73,15 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            Accessible.name: "Avbryt borttagning"
+            Accessible.name: translator.text(
+                "common.cancel",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Avbryt borttagning"
+            ToolTip.text: translator.text(
+                "common.cancel",
+                translator.language
+            )
 
             contentItem: Item {
                 Rectangle {
@@ -180,9 +189,15 @@ Dialog {
             padding: 0
             hoverEnabled: true
 
-            Accessible.name: "Bekräfta borttagning av kunskapsposten"
+            Accessible.name: translator.text(
+                "common.delete",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Ta bort kunskapsposten"
+            ToolTip.text: translator.text(
+                "common.delete",
+                translator.language
+            )
 
             // Draw a trash-can icon.
             contentItem: Item {

@@ -16,6 +16,7 @@ TRANSLATIONS = {
         "common.close": "Stäng",
         "common.reset": "Återställ",
         "common.cancel": "Avbryt",
+        "common.delete": "Ta bort",
 
         # Settings
         "settings.title": "Inställningar",
@@ -107,7 +108,11 @@ TRANSLATIONS = {
         "edit_knowledge.title": "Redigera kunskap",
         "edit_knowledge.placeholder": "Ändra kunskapspostens text",
         "edit_knowledge.save_changes": "Spara ändringar",
-        "edit_knowledge.close_without_saving": "Stäng utan att spara",       
+        "edit_knowledge.close_without_saving": "Stäng utan att spara",
+
+        # Delete knowledge dialog.
+        "delete_knowledge.title": "Ta bort kunskap",
+        "delete_knowledge.confirm": "Vill du ta bort den här kunskapsposten?",       
 
     },
 
@@ -117,6 +122,7 @@ TRANSLATIONS = {
         "common.close": "Close",
         "common.reset": "Reset",
         "common.cancel": "Cancel",
+        "common.delete": "Delete",
 
         # Settings
         "settings.title": "Settings",
@@ -206,11 +212,14 @@ TRANSLATIONS = {
         "knowledge_view.delete_source": "Delete source",      
 
         # Edit knowledge dialog.
-
         "edit_knowledge.title": "Edit knowledge",
         "edit_knowledge.placeholder": "Edit the knowledge entry text",
         "edit_knowledge.save_changes": "Save changes",
         "edit_knowledge.close_without_saving": "Close without saving",         
+
+        # Delete knowledge dialog.
+        "delete_knowledge.title": "Delete knowledge",
+        "delete_knowledge.confirm": "Do you want to delete this knowledge entry?",
 
     },
 }
