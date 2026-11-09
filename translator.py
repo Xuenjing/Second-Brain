@@ -119,7 +119,22 @@ TRANSLATIONS = {
         "delete_source.confirm": "Vill du ta bort alla kunskapsposter från den här källan?",
         "delete_source.entries": "Kunskapsposter:",
         "delete_source.all": "Ta bort alla",
-        "delete_source.warning": "Detta går inte att ångra"       
+        "delete_source.warning": "Detta går inte att ångra",
+
+        # Source dialog.
+        "source_dialog.title": "Källor",
+        "source_dialog.search": "Sök bland källor",
+        "source_dialog.showing": "Visar",
+        "source_dialog.of": "av",
+        "source_dialog.source_entry": "källpost",
+        "source_dialog.source_entries": "källposter",
+
+        "source_dialog.score": "Likhet",
+
+        "source_dialog.no_search_results": "Inga källor matchar sökningen.",
+
+        "source_dialog.show_used_only": "Visa endast använda källor",
+        "source_dialog.show_more_relevant": "Visa fler relevanta källor",
 
     },
 
@@ -233,7 +248,22 @@ TRANSLATIONS = {
         "delete_source.confirm": "Do you want to delete all knowledge entries from this source?",
         "delete_source.entries": "Knowledge entries:",
         "delete_source.all": "Delete all",
-        "delete_source.warning": "This cannot be undone",    
+        "delete_source.warning": "This cannot be undone",
+
+        # Source dialog.
+        "source_dialog.title": "Sources",
+        "source_dialog.search": "Search sources",
+        "source_dialog.showing": "Showing",
+        "source_dialog.of": "of",
+        "source_dialog.source_entry": "source entry",
+        "source_dialog.source_entries": "source entries",
+
+        "source_dialog.score": "Similarity",
+
+        "source_dialog.no_search_results": "No sources match the search.",
+
+        "source_dialog.show_used_only": "Show used sources only",
+        "source_dialog.show_more_relevant": "Show more relevant sources",   
 
     },
 }
