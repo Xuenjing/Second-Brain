@@ -112,7 +112,14 @@ TRANSLATIONS = {
 
         # Delete knowledge dialog.
         "delete_knowledge.title": "Ta bort kunskap",
-        "delete_knowledge.confirm": "Vill du ta bort den här kunskapsposten?",       
+        "delete_knowledge.confirm": "Vill du ta bort den här kunskapsposten?",
+
+        # Delete source dialog.
+        "delete_source.title": "Ta bort källa",
+        "delete_source.confirm": "Vill du ta bort alla kunskapsposter från den här källan?",
+        "delete_source.entries": "Kunskapsposter:",
+        "delete_source.all": "Ta bort alla",
+        "delete_source.warning": "Detta går inte att ångra"       
 
     },
 
@@ -220,6 +227,13 @@ TRANSLATIONS = {
         # Delete knowledge dialog.
         "delete_knowledge.title": "Delete knowledge",
         "delete_knowledge.confirm": "Do you want to delete this knowledge entry?",
+
+        # Delete source dialog.
+        "delete_source.title": "Delete source",
+        "delete_source.confirm": "Do you want to delete all knowledge entries from this source?",
+        "delete_source.entries": "Knowledge entries:",
+        "delete_source.all": "Delete all",
+        "delete_source.warning": "This cannot be undone",    
 
     },
 }
