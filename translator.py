@@ -128,13 +128,21 @@ TRANSLATIONS = {
         "source_dialog.of": "av",
         "source_dialog.source_entry": "källpost",
         "source_dialog.source_entries": "källposter",
-
         "source_dialog.score": "Likhet",
-
         "source_dialog.no_search_results": "Inga källor matchar sökningen.",
-
         "source_dialog.show_used_only": "Visa endast använda källor",
         "source_dialog.show_more_relevant": "Visa fler relevanta källor",
+
+        # Main toolbar.
+        "toolbar.add_knowledge": "Lägg till kunskap",
+        "toolbar.view_knowledge": "Visa kunskapsposter",
+
+        "toolbar.model_fast": "Qwen3 0.6B — Snabb",
+        "toolbar.model_recommended": "Qwen3 1.7B — Rekommenderas",
+        "toolbar.model_slow": "Qwen3 4B — Långsam",
+
+        "toolbar.load_model": "Ladda modell",
+        "toolbar.loading_model": "Laddar...",
 
     },
 
@@ -257,13 +265,19 @@ TRANSLATIONS = {
         "source_dialog.of": "of",
         "source_dialog.source_entry": "source entry",
         "source_dialog.source_entries": "source entries",
-
         "source_dialog.score": "Similarity",
-
         "source_dialog.no_search_results": "No sources match the search.",
-
         "source_dialog.show_used_only": "Show used sources only",
         "source_dialog.show_more_relevant": "Show more relevant sources",   
+
+        # Main toolbar.
+        "toolbar.add_knowledge": "Add knowledge",
+        "toolbar.view_knowledge": "View knowledge entries",
+        "toolbar.model_fast": "Qwen3 0.6B — Fast",
+        "toolbar.model_recommended": "Qwen3 1.7B — Recommended",
+        "toolbar.model_slow": "Qwen3 4B — Slow",
+        "toolbar.load_model": "Load model",
+        "toolbar.loading_model": "Loading...",
 
     },
 }
