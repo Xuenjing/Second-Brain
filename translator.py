@@ -201,6 +201,14 @@ TRANSLATIONS = {
         "mail_preview.preview_prefix": "Förhandsgranska:",
         "mail_preview.close_preview": "Stäng förhandsgranskningen",
 
+        # Mail analysis
+        "mail_analysis.title": "Analysera mejl med AI?",
+        "mail_analysis.warning": (
+            "AI-analysen kan ta flera minuter beroende på mejlets längd, "
+            "den laddade modellen och datorns prestanda. Du får granska och "
+            "redigera förslagen innan något sparas."
+        ),
+        "mail_analysis.analyze": "Analysera mejl",
 
     },
 
@@ -396,6 +404,16 @@ TRANSLATIONS = {
         "mail_preview.suggest_facts": "Suggest facts with AI",
         "mail_preview.preview_prefix": "Preview:",
         "mail_preview.close_preview": "Close preview",
+
+        # Mail analysis.
+        "mail_analysis.title": "Analyze email with AI?",
+        "mail_analysis.warning": (
+            "The AI analysis may take several minutes depending on the length "
+            "of the email, the loaded model, and your computer's performance. "
+            "You will be able to review and edit the suggestions before "
+            "anything is saved."
+        ),
+        "mail_analysis.analyze": "Analyze email",
 
     },
 }
