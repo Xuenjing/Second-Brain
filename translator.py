@@ -164,6 +164,37 @@ TRANSLATIONS = {
         "chat_message.entries": "poster",
         "chat_message.click_for_details": "Klicka för detaljer",
 
+        # Model load.
+        "model_load.title": "Byta språkmodell?",
+        "model_load.warning": (
+            "Att ladda en ny modell kan ta från några sekunder till flera minuter "
+            "beroende på modellstorlek, hårdvara och om modellen redan finns lokalt. "
+            "Om modellen saknas kan den behöva laddas ner först."
+        ),
+        "model_load.confirm": "Ladda modell",
+
+        # Mail review.
+
+        "mail_review.title_prefix": "Granska fakta:",
+        "mail_review.close": "Stäng granskningen",
+        "mail_review.close_keep": "Stäng och behåll förslagen",
+        "mail_review.discard": "Kasta förslagen",
+        "mail_review.save_selected": "Spara valda fakta",
+        "mail_review.empty_selected_error":
+            "Valda faktauppgifter får inte vara tomma.",
+        "mail_review.none_selected_error":
+            "Välj minst en faktauppgift att spara.",
+        "mail_review.original_email": "Originalmejl",
+        "mail_review.select_edit": "Välj och redigera fakta",
+        "mail_review.check_warning":
+            "Kontrollera förslagen mot originalet. "
+            "AI:n kan missa eller misstolka information.",
+        "mail_review.no_facts":
+            "AI:n föreslog inga faktauppgifter.",
+        "mail_review.include_suggestion":
+            "Ta med förslag",
+
+
     },
 
     "en": {
@@ -320,6 +351,36 @@ TRANSLATIONS = {
         "chat_message.entry": "entry",
         "chat_message.entries": "entries",
         "chat_message.click_for_details": "Click for details",
+
+        # Model load.
+        "model_load.title": "Change language model?",
+        "model_load.warning": (
+            "Loading a new model can take anywhere from a few seconds to several "
+            "minutes depending on the model size, hardware, and whether the model "
+            "is already available locally. If the model is missing, it may need "
+            "to be downloaded first."
+        ),
+        "model_load.confirm": "Load model",
+
+        # Mail review.
+        "mail_review.title_prefix": "Review facts:",
+        "mail_review.close": "Close review",
+        "mail_review.close_keep": "Close and keep suggestions",
+        "mail_review.discard": "Discard suggestions",
+        "mail_review.save_selected": "Save selected facts",
+        "mail_review.empty_selected_error":
+            "Selected facts cannot be empty.",
+        "mail_review.none_selected_error":
+            "Select at least one fact to save.",
+        "mail_review.original_email": "Original email",
+        "mail_review.select_edit": "Select and edit facts",
+        "mail_review.check_warning":
+            "Check the suggestions against the original email. "
+            "The AI may miss or misinterpret information.",
+        "mail_review.no_facts":
+            "The AI did not suggest any facts.",
+        "mail_review.include_suggestion":
+            "Include suggestion",
 
     },
 }

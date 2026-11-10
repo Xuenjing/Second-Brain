@@ -67,7 +67,12 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            text: "Granska fakta: " + mailReviewDialog.mailReviewSource
+            text: translator.text(
+                    "mail_review.title_prefix",
+                    translator.language
+                )
+                + " "
+                + mailReviewDialog.mailReviewSource
             color: mailReviewDialog.textColor
             font.pixelSize: 18
             font.bold: true
@@ -86,9 +91,16 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            Accessible.name: "Stäng granskningen"
+            Accessible.name: translator.text(
+                "mail_review.close",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng och behåll förslagen"
+            ToolTip.text: translator.text(
+                "mail_review.close_keep",
+                translator.language
+            )
+
 
             contentItem: Text {
                 text: "×"
@@ -134,9 +146,16 @@ Dialog {
                 padding: 0
                 hoverEnabled: true
 
-                Accessible.name: "Kasta förslagen"
+                Accessible.name: translator.text(
+                    "mail_review.discard",
+                    translator.language
+                )
                 ToolTip.visible: hovered
-                ToolTip.text: "Kasta förslagen"
+                ToolTip.text: translator.text(
+                    "mail_review.discard",
+                    translator.language
+                )
+
 
                 // Draw a trash-can icon.
                 contentItem: Item {
@@ -216,9 +235,15 @@ Dialog {
                 enabled: mailFactsModel.count > 0
                 opacity: enabled ? 1.0 : 0.5
 
-                Accessible.name: "Spara valda fakta"
+                Accessible.name: translator.text(
+                    "mail_review.save_selected",
+                    translator.language
+                )
                 ToolTip.visible: hovered
-                ToolTip.text: "Spara valda fakta"
+                ToolTip.text: translator.text(
+                    "mail_review.save_selected",
+                    translator.language
+                )
 
                 // Draw a floppy-disk icon.
                 contentItem: Item {
@@ -292,8 +317,10 @@ Dialog {
 
                         if (fact.keepFact) {
                             if (!fact.factText.trim()) {
-                                mailReviewDialog.statusMessage =
-                                    "Valda faktauppgifter får inte vara tomma."
+                                mailReviewDialog.statusMessage = translator.text(
+                                    "mail_review.empty_selected_error",
+                                    translator.language
+                                )
                                 return
                             }
 
@@ -302,8 +329,10 @@ Dialog {
                     }
 
                     if (selectedFacts.length === 0) {
-                        mailReviewDialog.statusMessage =
-                            "Välj minst en faktauppgift att spara."
+                        mailReviewDialog.statusMessage = translator.text(
+                            "mail_review.none_selected_error",
+                            translator.language
+                        )
                         return
                     }
 
@@ -323,7 +352,10 @@ Dialog {
             Layout.preferredWidth: 1
 
             Label {
-                text: "Originalmejl"
+                text: translator.text(
+                    "mail_review.original_email",
+                    translator.language
+                )
                 color: mailReviewDialog.textColor
                 font.bold: true
             }
@@ -355,15 +387,20 @@ Dialog {
             Layout.preferredWidth: 1
 
             Label {
-                text: "Välj och redigera fakta"
+                text: translator.text(
+                    "mail_review.select_edit",
+                    translator.language
+                )
                 color: mailReviewDialog.textColor
                 font.bold: true
             }
 
             Label {
                 Layout.fillWidth: true
-                text: "Kontrollera förslagen mot originalet. "
-                    + "AI:n kan missa eller misstolka information."
+                text: translator.text(
+                    "mail_review.check_warning",
+                    translator.language
+                )
                 color: mailReviewDialog.secondaryTextColor
                 wrapMode: Text.WordWrap
             }
@@ -381,7 +418,10 @@ Dialog {
                     Label {
                         width: parent.width
                         visible: mailFactsModel.count === 0
-                        text: "AI:n föreslog inga faktauppgifter."
+                        text: translator.text(
+                            "mail_review.no_facts",
+                            translator.language
+                        )
                         color: mailReviewDialog.secondaryTextColor
                         wrapMode: Text.WordWrap
                     }
@@ -400,7 +440,11 @@ Dialog {
                             spacing: 4
 
                             CheckBox {
-                                text: "Ta med förslag "
+                                text: translator.text(
+                                        "mail_review.include_suggestion",
+                                        translator.language
+                                    )
+                                    + " "
                                     + (factItem.index + 1)
                                 checked: factItem.keepFact
                                 palette.windowText: mailReviewDialog.textColor
