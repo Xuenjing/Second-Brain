@@ -720,8 +720,17 @@ ApplicationWindow {
     FileDialog {
         id: mailFileDialog
 
-        title: "Välj ett mejl"
-        nameFilters: ["Mejlfiler (*.eml *.msg)"]
+        title: translator.text(
+            "filedialog.select_mail",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.mail_files",
+                translator.language
+            )
+        ]
         fileMode: FileDialog.OpenFile
 
         onAccepted: {
@@ -756,7 +765,12 @@ ApplicationWindow {
 
         // Send the destination file URL to Python.
         onAccepted: {
-            settingsDialog.setBackupStatus("Exporterar…")
+            settingsDialog.setBackupStatus(
+                translator.text(
+                    "status.exporting",
+                    translator.language
+                )
+            )
             backend.export_knowledge(selectedFile.toString())
         }
     }
@@ -765,8 +779,17 @@ ApplicationWindow {
     FileDialog {
         id: importBackupFileDialog
 
-        title: "Importera backup"
-        nameFilters: ["JSON-filer (*.json)"]
+        title: translator.text(
+            "filedialog.import_backup",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.json_files",
+                translator.language
+            )
+        ]
 
         onAccepted: {
             backend.import_knowledge(selectedFile.toString())
@@ -797,15 +820,17 @@ ApplicationWindow {
 
         // Replace the waiting bubble with the answer.
         function onReplyReady(
-            reply, 
+            reply,
             sources,
             additionalSources,
-            lessRelevantSources) {
+            lessRelevantSources
+        ) {
             root.finishPendingReply(
-                reply, 
-                sources || [],
-                additionalSources || [],
-                lessRelevantSources || [])
+                reply,
+                sources,
+                additionalSources,
+                lessRelevantSources
+            )
         }
 
         // Show the result of saving or importing knowledge.
@@ -852,7 +877,17 @@ ApplicationWindow {
 
         // Replace the waiting bubble with an error message.
         function onReplyFailed(message) {
-            root.finishPendingReply("Fel: " + message, [], [], [])
+            root.finishPendingReply(
+                translator.text(
+                    "status.error_prefix",
+                    translator.language
+                )
+                + " "
+                + message,
+                [],
+                [],
+                []
+            )
         }
 
         // Open knowledgeview for clicked entry
@@ -894,14 +929,26 @@ ApplicationWindow {
             root.isMailAnalyzing = analyzing
 
             if (analyzing) {
-                knowledgeDialog.setSaveStatus("Analyserar mejl…")
-                mailPreviewDialog.statusMessage = "Analyserar mejl…"
+                knowledgeDialog.setSaveStatus(
+                    translator.text(
+                        "mail_status.analyzing",
+                        translator.language
+                    )
+                )
+
+                mailPreviewDialog.statusMessage = translator.text(
+                    "mail_status.analyzing",
+                    translator.language
+                )
 
                 root.mailAnalysisIndex = chatModel.count
 
                 chatModel.append({
                     sender: "assistant",
-                    message: "Analyserar mejl…",
+                    message: translator.text(
+                        "mail_status.analyzing",
+                        translator.language
+                    ),
                     sources: [],
                     additionalSources: [],
                     lessRelevantSources: [],
@@ -915,7 +962,10 @@ ApplicationWindow {
                     && chatModel.get(root.mailAnalysisIndex).isPending) {
                 // Successful analysis updates the bubble in onMailReviewReady.
                 root.updateMailAnalysisBubble(
-                    "Mejlet kunde inte analyseras. Försök igen.",
+                    translator.text(
+                        "mail_status.analysis_failed",
+                        translator.language
+                    ),
                     false
                 )
                 root.mailAnalysisIndex = -1
@@ -931,9 +981,26 @@ ApplicationWindow {
             
 
             const reviewMessage = facts.length > 0
-                ? "Mejlanalysen är klar. " + facts.length
-                    + " förslag att granska."
-                : "Mejlanalysen är klar. Inga faktauppgifter föreslogs."
+                ? translator.text(
+                    "mail_status.analysis_done",
+                    translator.language
+                )
+                    + " "
+                    + facts.length
+                    + " "
+                    + translator.text(
+                        "mail_status.suggestions_to_review",
+                        translator.language
+                    )
+                : translator.text(
+                    "mail_status.analysis_done",
+                    translator.language
+                )
+                    + " "
+                    + translator.text(
+                        "mail_status.no_facts",
+                        translator.language
+                    )
 
             knowledgeDialog.setSaveStatus(reviewMessage)
             mailPreviewDialog.statusMessage = reviewMessage
@@ -941,8 +1008,24 @@ ApplicationWindow {
             mailReviewDialog.loadSuggestions(facts)
 
             root.updateMailAnalysisBubble(
-                "Analysen av mejlet ”" + source + "” är klar. "
-                    + facts.length + " förslag att granska.",
+                translator.text(
+                    "mail_status.analysis_of",
+                    translator.language
+                )
+                + " ”"
+                + source
+                + "” "
+                + translator.text(
+                    "mail_status.is_done",
+                    translator.language
+                )
+                + " "
+                + facts.length
+                + " "
+                + translator.text(
+                    "mail_status.suggestions_to_review",
+                    translator.language
+                ),
                 false
             )
 
@@ -968,7 +1051,10 @@ ApplicationWindow {
             }
 
             root.updateMailAnalysisBubble(
-                "Mejlgranskningen är avslutad.",
+                translator.text(
+                    "mail_status.review_finished",
+                    translator.language
+                ),
                 false
             )
             root.mailAnalysisIndex = -1
