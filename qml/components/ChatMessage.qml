@@ -25,6 +25,10 @@ Item {
 
     property bool canReviewMail: false
 
+    property bool canReviewDocument: false
+
+    signal documentReviewRequested()
+
     signal mailReviewRequested()
 
     // Helper function. 
@@ -120,7 +124,8 @@ Item {
                 : messageSize.implicitWidth + 28,
             chatMessage.width * 0.8,
             chatMessage.width - avatar.width - 12
-                - (chatMessage.canReviewMail ? 40 : 0)
+                - ((chatMessage.canReviewMail
+                    || chatMessage.canReviewDocument) ? 40 : 0)
         )
 
         
@@ -214,7 +219,9 @@ Item {
             padding: 0
             hoverEnabled: true
 
-            visible: chatMessage.canReviewMail && !chatMessage.isPending
+            visible: (chatMessage.canReviewMail
+                || chatMessage.canReviewDocument)
+                && !chatMessage.isPending
 
             Accessible.name: translator.text(
                 "chat_message.review_facts",
@@ -272,7 +279,13 @@ Item {
                 border.width: 1
             }
 
-            onClicked: chatMessage.mailReviewRequested()
+            onClicked: {
+                if (chatMessage.canReviewDocument) {
+                    chatMessage.documentReviewRequested()
+                } else {
+                    chatMessage.mailReviewRequested()
+                }
+            }
         }
 
         Button {

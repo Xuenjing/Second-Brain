@@ -22,6 +22,8 @@ Rectangle {
         var lessRelevantSources)
     signal mailReviewRequested()
 
+    signal documentReviewRequested()
+
     function scrollToBottom() {
         Qt.callLater(function() {
             chatList.forceLayout()
@@ -89,6 +91,7 @@ Rectangle {
             required property int sourceCount
             required property bool isPending
             required property bool canReviewMail
+            required property bool canReviewDocument
 
             width: ListView.view.width
             height: chatMessage.height
@@ -108,6 +111,11 @@ Rectangle {
                 isPending: messageDelegate.isPending
 
                 canReviewMail: messageDelegate.canReviewMail
+
+                canReviewDocument: messageDelegate.canReviewDocument
+
+                onDocumentReviewRequested:
+                    chatView.documentReviewRequested()
 
                 onMailReviewRequested: chatView.mailReviewRequested()
 
