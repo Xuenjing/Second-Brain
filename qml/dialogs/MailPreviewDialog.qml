@@ -28,7 +28,10 @@ Dialog {
     signal reviewRequested()
 
     modal: true
-    title: "Förhandsgranska mejl"
+    title: translator.text(
+        "mail_preview.title",
+        translator.language
+    )
 
     footer: Item {
         implicitHeight: 90
@@ -59,10 +62,16 @@ Dialog {
             anchors.bottom: parent.bottom
             anchors.margins: 12
 
-            Accessible.name: "Spara hela mejlet"
+            Accessible.name: translator.text(
+                "mail_preview.save_full",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Spara hela mejlet"
-
+            ToolTip.text: translator.text(
+                "mail_preview.save_full",
+                translator.language
+            )
+            
             // Draw the same floppy-disk icon.
             contentItem: Item {
                 Rectangle {
@@ -184,7 +193,10 @@ Dialog {
             anchors.bottom: parent.bottom
             anchors.margins: 12
 
-            text: "Granska förslag"
+            text: translator.text(
+                "mail_preview.review_suggestions",
+                translator.language
+            )
             height: 40
             leftPadding: 16
             rightPadding: 16
@@ -233,10 +245,16 @@ Dialog {
 
             opacity: enabled ? 1.0 : 0.5
 
-            Accessible.name: "Föreslå fakta med AI"
+            Accessible.name: translator.text(
+                "mail_preview.suggest_facts",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Föreslå fakta med AI"
-
+            ToolTip.text: translator.text(
+                "mail_preview.suggest_facts",
+                translator.language
+            )
+            
             contentItem: Item {
                 Image {
                     anchors.centerIn: parent
@@ -282,7 +300,12 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            text: "Förhandsgranska: " + mailPreviewDialog.sourceName
+            text: translator.text(
+                    "mail_preview.preview_prefix",
+                    translator.language
+                )
+                + " "
+                + mailPreviewDialog.sourceName
             color: mailPreviewDialog.textColor
             font.pixelSize: 18
             font.bold: true
@@ -301,9 +324,15 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            Accessible.name: "Stäng förhandsgranskningen"
+            Accessible.name: translator.text(
+                "mail_preview.close_preview",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng"
+            ToolTip.text: translator.text(
+                "common.close",
+                translator.language
+            )
 
             contentItem: Item {
                 Rectangle {
