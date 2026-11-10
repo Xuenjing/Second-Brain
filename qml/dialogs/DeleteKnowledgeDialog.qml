@@ -124,7 +124,7 @@ Dialog {
             anchors.left: parent.left
             anchors.right: parent.right
 
-            title: translator.text(
+            text: translator.text(
                 "delete_knowledge.confirm",
                 translator.language
             )

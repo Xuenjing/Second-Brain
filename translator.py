@@ -228,6 +228,69 @@ TRANSLATIONS = {
         "mail_status.analysis_of": "Analysen av mejlet",
         "mail_status.is_done": "är klar.",
 
+        # Document preview.
+        "document_preview.title": "Granska dokument",
+        "document_preview.edit_hint":
+            "Granska och redigera texten före sparande.",
+
+        # Document import errors.
+        "document_import.invalid_encoding":
+            "Textfilen kunde inte läsas. Spara den som UTF-8 och försök igen.",
+        "document_import.empty_file":
+            "Textfilen är tom.",
+        "document_import.read_failed":
+            "Filen kunde inte läsas. Kontrollera att den finns och går att öppna.",
+
+        # Document saving.
+        "document_save.empty_text": "Det finns ingen text att spara.",
+        "document_save.saved": "Dokumenttexten har sparats.",
+        "document_save.already_exists":
+            "Texten finns redan i kunskapsbasen.",
+        "document_save.failed":
+            "Dokumenttexten kunde inte sparas. Försök igen.",
+        "document_save.save_full": "Spara hela texten",
+        "document_analysis.failed":
+        "Dokumentet kunde inte analyseras. Försök igen.",
+        "document_analysis.busy":
+            "Vänta tills det pågående arbetet är klart.",
+        "document_analysis.review_pending":
+            "Granska och spara eller kasta dokumentförslagen först.",
+        "document_analysis.title": "Analysera dokument med AI?",
+        "document_analysis.warning": (
+            "AI-analysen kan ta flera minuter beroende på textens längd, "
+            "den laddade modellen och datorns prestanda. Du får granska "
+            "och redigera förslagen innan något sparas."
+        ),
+        "document_analysis.analyze": "Analysera dokument",
+        "document_preview.suggest_facts": "Föreslå fakta med AI",
+        
+        # Document review.
+        "document_review.original_text": "Text som analyserades",
+        "document_review.check_warning": (
+            "Kontrollera förslagen mot dokumenttexten. "
+            "AI:n kan missa eller misstolka information."
+        ),
+
+        "document_review.no_pending":
+            "Det finns inga dokumentförslag att spara.",
+        "document_review.invalid_selection":
+            "Välj minst en faktauppgift. Valda texter får inte vara tomma.",
+        "document_review.saved": (
+            "Sparade {count} nya kunskapsposter. "
+            "Eventuella dubbletter hoppades över."
+        ),
+        "document_review.save_failed": (
+            "Sparandet avbröts. {count} nya kunskapsposter hann sparas. "
+            "Granskningen finns kvar. Försök igen."
+        ),
+
+        "document_analysis.analyzing": "Analyserar dokument…",
+        "document_analysis.ready":
+            "Analysen är klar. Granska förslagen innan du sparar.",
+        "document_analysis.no_facts":
+            "Analysen är klar. Inga faktauppgifter föreslogs.",        
+        "document_review.finished": "Dokumentgranskningen är avslutad.",
+
     },
 
     "en": {
@@ -451,6 +514,70 @@ TRANSLATIONS = {
         "mail_status.analysis_of": "The analysis of email",
         "mail_status.is_done": "is complete.",
 
+        # Document preview.
+        "document_preview.title": "Review document",
+        "document_preview.edit_hint":
+            "Review and edit the text before saving.",
+
+        # Document import errors.
+        "document_import.invalid_encoding":
+            "The text file could not be read. Save it as UTF-8 and try again.",
+        "document_import.empty_file":
+            "The text file is empty.",
+        "document_import.read_failed":
+            "The file could not be read. Check that it exists and can be opened.",
+
+        # Document saving.
+        "document_save.empty_text": "There is no text to save.",
+        "document_save.saved": "The document text has been saved.",
+        "document_save.already_exists":
+            "The text already exists in the knowledge base.",
+        "document_save.failed":
+            "The document text could not be saved. Please try again.",
+        "document_save.save_full": "Save entire text",
+        "document_analysis.failed":
+            "The document could not be analyzed. Please try again.",
+        "document_analysis.busy":
+            "Wait until the current task has finished.",
+        "document_analysis.review_pending":
+            "Review and save or discard the document suggestions first.",
+        "document_analysis.title": "Analyze document with AI?",
+        "document_analysis.warning": (
+            "The AI analysis may take several minutes depending on the "
+            "text length, the loaded model and your computer's performance. "
+            "You can review and edit the suggestions before anything is saved."
+        ),
+        "document_analysis.analyze": "Analyze document",
+        "document_preview.suggest_facts": "Suggest facts with AI",
+        
+        # Document review.
+        "document_review.original_text": "Analyzed text",
+        "document_review.check_warning": (
+            "Check the suggestions against the document text. "
+            "The AI may miss or misinterpret information."
+        ),
+
+        "document_review.no_pending":
+            "There are no document suggestions to save.",
+        "document_review.invalid_selection":
+            "Select at least one fact. Selected passages cannot be empty.",
+        "document_review.saved": (
+            "Saved {count} new knowledge entries. "
+            "Any duplicates were skipped."
+        ),
+        "document_review.save_failed": (
+            "Saving was interrupted. {count} new knowledge entries "
+            "were saved before the error. Your review is still available. "
+            "Please try again."
+        ),
+
+        "document_analysis.analyzing": "Analyzing document…",
+        "document_analysis.ready":
+            "Analysis complete. Review the suggestions before saving.",
+        "document_analysis.no_facts":
+            "Analysis complete. No facts were suggested.",
+        "document_review.finished": "Document review is complete.",
+        
     },
 }
 

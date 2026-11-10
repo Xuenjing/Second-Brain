@@ -31,12 +31,13 @@ from database import (
 )
 from imports.document_importer import import_docx_to_database
 from imports.pdf_importer import import_pdf_to_database
-from imports.text_importer import import_txt_to_database
+from imports.text_importer import import_txt_to_database, read_txt_for_preview
 from imports.mail_importer import import_mail_to_database
 from imports.mail_parser import extract_mail_chunks
 from imports.mail_fact_extractor import extract_mail_facts
 from exporter import export_knowledge_to_json
 from json_importer import import_knowledge_from_json_file
+from imports.document_fact_extractor import extract_document_facts
 
 
 
@@ -187,13 +188,63 @@ class MailFactWorker(QThread):
             self.extractionFailed.emit(
                 "Mejlet kunde inte analyseras. Försök igen."
             )
-        
+
+class DocumentFactWorker(QThread):
+    """Suggest document facts without blocking the interface."""
+
+    reviewReady = Signal(str, list, str)
+    extractionFailed = Signal(str)
+
+    def __init__(
+        self,
+        llm: LocalLLMProvider,
+        document_text: str,
+        source: str,
+    ) -> None:
+        """Keep the loaded model and a snapshot of the reviewed text."""
+        super().__init__()
+        self.llm = llm
+        self.document_text = document_text
+        self.source = source
+
+    def run(self) -> None:
+        """Analyze the document without saving any knowledge."""
+        try:
+            facts = extract_document_facts(
+                self.document_text,
+                self.llm,
+            )
+        except Exception as error:
+            print(f"Document fact extraction failed: {error}")
+            self.extractionFailed.emit(
+                "document_analysis.failed"
+            )
+            return
+
+        self.reviewReady.emit(
+            self.document_text,
+            facts,
+            self.source,
+        )
+
 class Backend(QObject):
     """Handle communication between QML and application."""
 
     def __init__(self) -> None:
         """Initialize the database, backend and local language model."""
         super().__init__()
+
+        # Keep the source of the document currently being reviewed.
+        self.document_preview_source: str = ""
+
+        # Keep the document-analysis thread alive until it finishes.
+        self.document_worker: DocumentFactWorker | None = None
+
+        # Retain suggestions until the user saves or discards them.
+        self.document_review_text: str = ""
+        self.document_review_facts: list[str] = []
+        self.document_review_source: str = ""
+        self.document_review_pending: bool = False
 
         # Keep a reference to the background thread.
         self.thinker: Thinker | None = None
@@ -301,7 +352,30 @@ class Backend(QObject):
     knowledgeSourcesLoaded = Signal(list)
 
     # Send number of entries deleted.
-    knowledgeSourceDeleteResult = Signal(bool, str)    
+    knowledgeSourceDeleteResult = Signal(bool, str)  
+
+    # Send document text and its source filename for review.
+    documentPreviewReady = Signal(str, str)
+
+    # Send a translation key when document preview fails.
+    documentPreviewFailed = Signal(str)  
+
+    # Report whether reviewed document text was saved.
+    documentSaveResult = Signal(bool, str)
+
+    # Notify QML when document analysis starts or finishes.
+    documentAnalysisChanged = Signal(bool)
+
+    # Send document text, suggested facts and source for review.
+    documentReviewReady = Signal(str, list, str)
+
+    # Report analysis errors using translation keys.
+    documentAnalysisFailed = Signal(str)
+
+    # Notify QML when document review has ended.
+    documentReviewFinished = Signal()
+
+    documentFactsSaveResult = Signal(bool, str, int)
 
     @Slot(int)
     def load_model(self, model_index: str) -> None:
@@ -310,7 +384,7 @@ class Backend(QObject):
             Args:
                 model_index: Name of the model that will be loaded.
         """
-        if self.thinker is not None or self.mail_worker is not None:
+        if (self.thinker is not None or self.mail_worker is not None or self.document_worker is not None):
             self.modelLoadStatus.emit(
                 "Vänta tills det pågående arbetet är klart."
             )
@@ -448,7 +522,7 @@ class Backend(QObject):
         if not text or self.thinker is not None:
             return
 
-        if self.mail_worker is not None or self.model_loader is not None:
+        if (self.mail_worker is not None or self.model_loader is not None or self.document_worker is not None):
             self.replyFailed.emit(
                 "Modellen är upptagen. Vänta tills arbetet är klart."
             )
@@ -620,7 +694,7 @@ class Backend(QObject):
             return
 
         importers = {
-            ".txt": self.add_txt_knowledge,
+            ".txt": self.preview_txt,
             ".pdf": self.add_pdf_knowledge,
             ".docx": self.add_docx_knowledge,
             ".eml": self.preview_mail,
@@ -636,6 +710,289 @@ class Backend(QObject):
             return
 
         importer(file_url)
+
+    @Slot(str)
+    def preview_txt(self, file_url: str) -> None:
+        """Read a TXT file for preview without saving knowledge.
+
+        Args:
+            file_url: Local file URL received from QML.
+        """
+
+        if self.document_worker is not None:
+            self.documentPreviewFailed.emit(
+                "document_analysis.busy"
+            )
+            return
+
+        if self.document_review_pending:
+            self.documentPreviewFailed.emit(
+                "document_analysis.review_pending"
+            )
+            return
+
+        url = QUrl(file_url)
+
+        if not url.isLocalFile():
+            self.documentPreviewFailed.emit(
+                "document_import.read_failed"
+            )
+            return
+
+        path = Path(url.toLocalFile())
+
+        if path.suffix.lower() != ".txt":
+            self.documentPreviewFailed.emit(
+                "document_import.read_failed"
+            )
+            return
+
+        try:
+            text = read_txt_for_preview(str(path))
+        except ValueError as error:
+            self.documentPreviewFailed.emit(str(error))
+            return
+        except OSError as error:
+            print(f"Reading TXT preview failed: {error}")
+            self.documentPreviewFailed.emit(
+                "document_import.read_failed"
+            )
+            return
+
+        self.document_preview_source = path.name
+        self.documentPreviewReady.emit(text, path.name)
+
+    @Slot(str, str)
+    def analyze_previewed_document(
+        self,
+        text: str,
+        source: str,
+    ) -> None:
+        """Analyze reviewed document text using the loaded model."""
+        if (
+            not self.document_preview_source
+            or source != self.document_preview_source
+        ):
+            self.documentAnalysisFailed.emit(
+                "document_import.read_failed"
+            )
+            return
+
+        if not text.strip():
+            self.documentAnalysisFailed.emit(
+                "document_save.empty_text"
+            )
+            return
+
+        if (
+            self.thinker is not None
+            or self.model_loader is not None
+            or self.mail_worker is not None
+            or self.document_worker is not None
+        ):
+            self.documentAnalysisFailed.emit(
+                "document_analysis.busy"
+            )
+            return
+
+        if self.document_review_pending:
+            self.documentAnalysisFailed.emit(
+                "document_analysis.review_pending"
+            )
+            return
+
+        self.document_worker = DocumentFactWorker(
+            self.llm,
+            text,
+            source,
+        )
+
+        self.document_worker.reviewReady.connect(
+            self.handle_document_review
+        )
+        self.document_worker.extractionFailed.connect(
+            self.handle_document_analysis_error
+        )
+        self.document_worker.finished.connect(
+            self.finish_document_analysis
+        )
+
+        self.documentAnalysisChanged.emit(True)
+        self.document_worker.start()
+
+    @Slot(str, list, str)
+    def handle_document_review(
+        self,
+        text: str,
+        facts: list[str],
+        source: str,
+    ) -> None:
+        """Retain suggestions for manual review without saving them."""
+        self.document_review_text = text
+        self.document_review_facts = facts
+        self.document_review_source = source
+        self.document_review_pending = True
+
+        self.documentReviewReady.emit(text, facts, source)
+
+    @Slot(str)
+    def handle_document_analysis_error(self, message_key: str) -> None:
+        """Forward a translated-error key to the interface."""
+        self.documentAnalysisFailed.emit(message_key)
+
+    @Slot()
+    def finish_document_analysis(self) -> None:
+        """Release the worker after its thread has finished."""
+        if self.document_worker is not None:
+            self.document_worker.deleteLater()
+            self.document_worker = None
+
+        self.documentAnalysisChanged.emit(False)
+
+    @Slot(list)
+    def save_reviewed_document_facts(self, facts: list[str]) -> None:
+        """Save only the document facts selected and edited by the user."""
+        if self.document_worker is not None:
+            self.documentFactsSaveResult.emit(
+                False,
+                "document_analysis.busy",
+                0,
+            )
+            return
+
+        if not self.document_review_pending:
+            self.documentFactsSaveResult.emit(
+                False,
+                "document_review.no_pending",
+                0,
+            )
+            return
+
+        if not facts or any(
+            not isinstance(fact, str) or not fact.strip()
+            for fact in facts
+        ):
+            self.documentFactsSaveResult.emit(
+                False,
+                "document_review.invalid_selection",
+                0,
+            )
+            return
+
+        # Remove surrounding whitespace and exact duplicates.
+        reviewed_facts = list(
+            dict.fromkeys(fact.strip() for fact in facts)
+        )
+
+        added_count = 0
+
+        try:
+            for fact in reviewed_facts:
+                embedding = create_embedding(fact)
+
+                if add_knowledge(
+                    fact,
+                    embedding,
+                    source=self.document_review_source,
+                ):
+                    added_count += 1
+        except Exception as error:
+            print(f"Saving document facts failed: {error}")
+            self.documentFactsSaveResult.emit(
+                False,
+                "document_review.save_failed",
+                added_count,
+            )
+            return
+
+        self.discard_document_review()
+
+        self.documentFactsSaveResult.emit(
+            True,
+            "document_review.saved",
+            added_count,
+        )
+
+    @Slot()
+    def discard_document_review(self) -> None:
+        """Clear document suggestions without saving them."""
+        if self.document_worker is not None:
+            self.documentAnalysisFailed.emit(
+                "document_analysis.busy"
+            )
+            return
+
+        self.document_review_text = ""
+        self.document_review_facts = []
+        self.document_review_source = ""
+        self.document_review_pending = False
+
+        self.documentReviewFinished.emit()
+
+    @Slot(str, str)
+    def save_previewed_document(self, text: str, source: str) -> None:
+        """Save document text reviewed and edited by the user.
+
+        Args:
+            text: Current text from the preview dialog.
+            source: Filename associated with the preview.
+        """
+
+        if self.document_worker is not None:
+            self.documentSaveResult.emit(
+                False,
+                "document_analysis.busy"
+            )
+            return
+
+        if self.document_review_pending:
+            self.documentSaveResult.emit(
+                False,
+                "document_analysis.review_pending"
+            )
+            return
+
+        if (
+            not self.document_preview_source
+            or source != self.document_preview_source
+        ):
+            self.documentSaveResult.emit(
+                False,
+                "document_import.read_failed"
+            )
+            return
+
+        reviewed_text = text.strip()
+
+        if not reviewed_text:
+            self.documentSaveResult.emit(
+                False,
+                "document_save.empty_text"
+            )
+            return
+
+        try:
+            embedding = create_embedding(reviewed_text)
+
+            added = add_knowledge(
+                reviewed_text,
+                embedding,
+                source=self.document_preview_source
+            )
+        except Exception as error:
+            print(f"Saving reviewed document failed: {error}")
+            self.documentSaveResult.emit(
+                False,
+                "document_save.failed"
+            )
+            return
+
+        self.documentSaveResult.emit(
+            True,
+            "document_save.saved"
+            if added
+            else "document_save.already_exists"
+        )
 
     @Slot(str)
     def add_txt_knowledge(self, file_path: str) -> None:
@@ -787,6 +1144,7 @@ class Backend(QObject):
             self.thinker is not None
             or self.model_loader is not None
             or self.mail_worker is not None
+            or self.document_worker is not None
         ):
             self.knowledgeSaveResult.emit(
                 "Vänta tills det pågående arbetet är klart."
