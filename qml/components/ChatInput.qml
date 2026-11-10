@@ -24,7 +24,10 @@ Row {
 
         width: chatInput.width - sendButton.width - chatInput.spacing
 
-        placeholderText: "Skriv din fråga här"
+        placeholderText: translator.text(
+            "chat_input.placeholder",
+            translator.language
+        )
 
         color: chatInput.textColor
         placeholderTextColor: chatInput.secondaryTextColor
@@ -53,7 +56,10 @@ Row {
         hoverEnabled: true
 
         contentItem: Text {
-            text: cancelButton.text
+            text: translator.text(
+                "common.cancel",
+                translator.language
+            )
             color: "#FFFFFF"
             font.pixelSize: 14
             horizontalAlignment: Text.AlignHCenter
@@ -85,7 +91,10 @@ Row {
         enabled: !chatInput.isThinking
 
         contentItem: Text {
-            text: sendButton.text
+            text: translator.text(
+                "chat_input.send",
+                translator.language
+            )
             color: "#FFFFFF"
             font.pixelSize: 14
             font.bold: true
