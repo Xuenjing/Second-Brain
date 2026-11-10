@@ -148,6 +148,11 @@ TRANSLATIONS = {
         # Thinking
         "thinking.status": "Tänker…",
 
+        # Chatinput.
+
+        "chat_input.placeholder": "Skriv din fråga här",
+        "chat_input.send": "Skicka",
+
     },
 
     "en": {
@@ -288,6 +293,10 @@ TRANSLATIONS = {
 
         # Thinking
         "thinking.status": "Thinking…",
+
+        # Chat input.
+        "chat_input.placeholder": "Type your question here",
+        "chat_input.send": "Send",
 
     },
 }
