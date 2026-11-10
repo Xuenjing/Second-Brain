@@ -174,7 +174,6 @@ TRANSLATIONS = {
         "model_load.confirm": "Ladda modell",
 
         # Mail review.
-
         "mail_review.title_prefix": "Granska fakta:",
         "mail_review.close": "Stäng granskningen",
         "mail_review.close_keep": "Stäng och behåll förslagen",
@@ -193,6 +192,14 @@ TRANSLATIONS = {
             "AI:n föreslog inga faktauppgifter.",
         "mail_review.include_suggestion":
             "Ta med förslag",
+
+        # Mail preview.
+        "mail_preview.title": "Förhandsgranska mejl",
+        "mail_preview.save_full": "Spara hela mejlet",
+        "mail_preview.review_suggestions": "Granska förslag",
+        "mail_preview.suggest_facts": "Föreslå fakta med AI",
+        "mail_preview.preview_prefix": "Förhandsgranska:",
+        "mail_preview.close_preview": "Stäng förhandsgranskningen",
 
 
     },
@@ -381,6 +388,14 @@ TRANSLATIONS = {
             "The AI did not suggest any facts.",
         "mail_review.include_suggestion":
             "Include suggestion",
+
+        # Mail preview.
+        "mail_preview.title": "Preview email",
+        "mail_preview.save_full": "Save entire email",
+        "mail_preview.review_suggestions": "Review suggestions",
+        "mail_preview.suggest_facts": "Suggest facts with AI",
+        "mail_preview.preview_prefix": "Preview:",
+        "mail_preview.close_preview": "Close preview",
 
     },
 }
