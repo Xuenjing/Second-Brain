@@ -53,7 +53,10 @@ Rectangle {
 
         Label {
             width: parent.width
-            text: "Vad vill du veta?"
+            text: translator.text(
+                "chat_view.welcome",
+                translator.language
+            )
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: 22
             font.bold: true

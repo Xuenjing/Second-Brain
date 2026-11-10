@@ -149,9 +149,20 @@ TRANSLATIONS = {
         "thinking.status": "Tänker…",
 
         # Chatinput.
-
         "chat_input.placeholder": "Skriv din fråga här",
         "chat_input.send": "Skicka",
+
+        # Chatview.
+        "chat_view.welcome": "Vad vill du veta?",
+
+        # Chat message.
+        "chat_message.you": "Du",
+        "chat_message.review_facts": "Granska föreslagna fakta",
+        "chat_message.source": "källa",
+        "chat_message.sources": "källor",
+        "chat_message.entry": "post",
+        "chat_message.entries": "poster",
+        "chat_message.click_for_details": "Klicka för detaljer",
 
     },
 
@@ -297,6 +308,18 @@ TRANSLATIONS = {
         # Chat input.
         "chat_input.placeholder": "Type your question here",
         "chat_input.send": "Send",
+
+        # Chatview.
+        "chat_view.welcome": "What would you like to know?",
+
+        # Chat message.
+        "chat_message.you": "You",
+        "chat_message.review_facts": "Review suggested facts",
+        "chat_message.source": "source",
+        "chat_message.sources": "sources",
+        "chat_message.entry": "entry",
+        "chat_message.entries": "entries",
+        "chat_message.click_for_details": "Click for details",
 
     },
 }

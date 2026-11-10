@@ -88,7 +88,10 @@ Item {
 
             Text {
                 anchors.centerIn: parent
-                text: "Du"
+                text: translator.text(
+                    "chat_message.you",
+                    translator.language
+                )
                 color: "#F1F5F9"
                 font.pixelSize: 12
                 font.bold: true
@@ -213,9 +216,15 @@ Item {
 
             visible: chatMessage.canReviewMail && !chatMessage.isPending
 
-            Accessible.name: "Granska föreslagna fakta"
+            Accessible.name: translator.text(
+                "chat_message.review_facts",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Granska föreslagna fakta"
+            ToolTip.text: translator.text(
+                "chat_message.review_facts",
+                translator.language
+            )
 
             // Draw an eye icon.
             contentItem: Item {
@@ -353,13 +362,22 @@ Item {
 
                 Text {
                     text: sourcePreview.uniqueSourcesList.length
-                        + (sourcePreview.uniqueSourcesList.length === 1
-                            ? " källa, "
-                            : " källor, ")
+                        + " "
+                        + translator.text(
+                            sourcePreview.uniqueSourcesList.length === 1
+                                ? "chat_message.source"
+                                : "chat_message.sources",
+                            translator.language
+                        )
+                        + ", "
                         + chatMessage.sourceCount
-                        + (chatMessage.sourceCount === 1
-                            ? " post"
-                            : " poster")
+                        + " "
+                        + translator.text(
+                            chatMessage.sourceCount === 1
+                                ? "chat_message.entry"
+                                : "chat_message.entries",
+                            translator.language
+                        )
 
                     color: chatMessage.textColor
                     font.pixelSize: 12
@@ -395,7 +413,10 @@ Item {
                 }
 
                 Text {
-                    text: "Klicka för detaljer"
+                    text: translator.text(
+                        "chat_message.click_for_details",
+                        translator.language
+                    )
                     color: chatMessage.secondaryTextColor
                     font.pixelSize: 10
                     font.italic: true
