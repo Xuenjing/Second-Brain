@@ -124,7 +124,10 @@ Dialog {
             anchors.left: parent.left
             anchors.right: parent.right
 
-            text: "Vill du ta bort den här kunskapsposten?"
+            title: translator.text(
+                "delete_knowledge.confirm",
+                translator.language
+            )
             color: deleteKnowledgeDialog.textColor
             wrapMode: Text.WordWrap
         }

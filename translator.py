@@ -210,6 +210,24 @@ TRANSLATIONS = {
         ),
         "mail_analysis.analyze": "Analysera mejl",
 
+        # Main QML.
+        "filedialog.select_mail": "Välj ett mejl",
+        "filedialog.mail_files": "Mejlfiler (*.eml *.msg)",
+        "filedialog.import_backup": "Importera backup",
+        "status.exporting": "Exporterar…",
+        "status.error_prefix": "Fel:",
+        "mail_status.analyzing": "Analyserar mejl…",
+        "mail_status.analysis_failed":
+            "Mejlet kunde inte analyseras. Försök igen.",
+        "mail_status.analysis_done": "Mejlanalysen är klar.",
+        "mail_status.suggestions_to_review": "förslag att granska.",
+        "mail_status.no_facts":
+            "Inga faktauppgifter föreslogs.",
+        "mail_status.review_finished":
+            "Mejlgranskningen är avslutad.",
+        "mail_status.analysis_of": "Analysen av mejlet",
+        "mail_status.is_done": "är klar.",
+
     },
 
     "en": {
@@ -414,6 +432,24 @@ TRANSLATIONS = {
             "anything is saved."
         ),
         "mail_analysis.analyze": "Analyze email",
+
+        # Main QML.
+        "filedialog.select_mail": "Select an email",
+        "filedialog.mail_files": "Email files (*.eml *.msg)",
+        "filedialog.import_backup": "Import backup",
+        "status.exporting": "Exporting…",
+        "status.error_prefix": "Error:",
+        "mail_status.analyzing": "Analyzing email…",
+        "mail_status.analysis_failed":
+            "The email could not be analyzed. Please try again.",
+        "mail_status.analysis_done": "Email analysis is complete.",
+        "mail_status.suggestions_to_review": "suggestions to review.",
+        "mail_status.no_facts":
+            "No facts were suggested.",
+        "mail_status.review_finished":
+            "Email review is complete.",
+        "mail_status.analysis_of": "The analysis of email",
+        "mail_status.is_done": "is complete.",
 
     },
 }
