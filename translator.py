@@ -458,6 +458,9 @@ TRANSLATIONS = {
             "PDF-filen kunde inte hittas.",
         "pdf_parser.invalid_file_type":
             "Filen måste vara en PDF-fil.",
+        "pdf_parser.no_text":
+            "Ingen läsbar text hittades i PDF-filen. "
+            "Filen kan innehålla skannade bilder.",
 
         # Mail parser.
         "mail_parser.file_not_found":
@@ -942,6 +945,9 @@ TRANSLATIONS = {
             "The PDF file could not be found.",
         "pdf_parser.invalid_file_type":
             "The file must be a PDF file.",
+        "pdf_parser.no_text":
+            "No readable text was found in the PDF file. "
+            "The file may contain scanned images.",
 
         # Mail parser.
         "mail_parser.file_not_found":
