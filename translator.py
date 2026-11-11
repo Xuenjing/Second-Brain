@@ -291,6 +291,135 @@ TRANSLATIONS = {
             "Analysen är klar. Inga faktauppgifter föreslogs.",        
         "document_review.finished": "Dokumentgranskningen är avslutad.",
 
+        # Backend - model
+        "backend.model.busy":
+            "Vänta tills det pågående arbetet är klart.",
+        "backend.model.loading":
+            "Laddar modell: {model}",
+        "backend.model.loaded":
+            "Modellen har laddats: {model}",
+
+        # Backend - RAG
+        "backend.rag.top_k_min":
+            "Top-K måste vara minst 1.",
+        "backend.rag.threshold_range":
+            "Likhetströskeln måste vara mellan 0.0 och 1.0.",
+        "backend.rag.updated":
+            "RAG-inställningarna har uppdaterats.",
+
+        # Backend - question processing
+        "backend.reply.busy":
+            "Modellen är upptagen. Vänta tills arbetet är klart.",
+
+        # Backend - knowledge editing
+        "backend.knowledge.empty_text":
+            "Texten får inte vara tom.",
+        "backend.knowledge.duplicate":
+            "Det finns redan en post med samma text.",
+        "backend.knowledge.updated":
+            "Kunskapsposten har uppdaterats.",
+        "backend.knowledge.not_found":
+            "Kunskapsposten kunde inte hittas.",
+        "backend.knowledge.deleted":
+            "Kunskapsposten har tagits bort.",
+
+        # Backend - source deletion
+        "backend.source_delete.none":
+            "Inga kunskapsposter kunde tas bort.",
+        "backend.source_delete.success":
+            "{count} kunskapsposter togs bort.",
+
+        # Backend - manual knowledge
+        "backend.manual.empty":
+            "Ingen kunskap lades till.",
+        "backend.manual.added":
+            "Kunskap har lagts till.",
+        "backend.manual.no_new":
+            "Ingen ny kunskap lades till.",
+
+        # Backend - dropped documents
+        "backend.drop.local_only":
+            "Släpp en lokal fil från datorn.",
+        "backend.drop.not_found":
+            "Filen kunde inte hittas. Mappar kan inte importeras.",
+        "backend.drop.unsupported":
+            "Filtypen stöds inte. Välj TXT, PDF, DOCX, EML eller MSG.",
+
+        # Backend - document import
+        "backend.import.file_missing":
+            "Den valda filen finns inte.",
+        "backend.import.none_added":
+            "Ingen ny kunskap lades till.",
+
+        "backend.import.txt_success":
+            "Importerade {count} kunskapsposter från textfil.",
+        "backend.import.docx_success":
+            "Importerade {count} kunskapsposter från DOCX-fil.",
+        "backend.import.pdf_success":
+            "Importerade {count} kunskapsposter från PDF-fil.",
+
+        # Backend - mail
+        "backend.mail.empty_save":
+            "Det finns inget mejl att spara.",
+        "backend.mail.save_failed":
+            "Mejlet kunde inte sparas. Försök igen.",
+        "backend.mail.saved":
+            "Mejlet har sparats.",
+        "backend.mail.duplicate":
+            "Mejlet finns redan i kunskapsbasen.",
+
+        "backend.mail.empty_analysis":
+            "Det finns inget mejl att analysera.",
+        "backend.mail.busy":
+            "Vänta tills det pågående arbetet är klart.",
+        "backend.mail.review_pending":
+            "Granska eller kasta de tidigare förslagen först.",
+        "backend.mail.analyzing":
+            "Analyserar mejlet…",
+        "backend.mail.analysis_ready":
+            "Mejlanalysen är klar. Granska förslagen innan du sparar.",
+        "backend.mail.analysis_failed":
+            "Mejlet kunde inte analyseras. Försök igen.",
+
+        "backend.mail.no_review":
+            "Det finns inga mejlförslag att granska.",
+        "backend.mail.no_facts_to_save":
+            "Det finns inga mejlförslag att spara.",
+        "backend.mail.invalid_selection":
+            "Välj minst en faktauppgift. Texten får inte vara tom.",
+
+        "backend.mail.fact_save_failed":
+            "Sparandet avbröts. {count} nya kunskapsposter hann sparas. Försök igen.",
+        "backend.mail.fact_save_success":
+            "Sparade {count} nya kunskapsposter. Eventuella dubbletter hoppades över.",
+
+        "backend.mail.file_missing":
+            "Den valda filen finns inte.",
+        "backend.mail.read_failed":
+            "Filen kunde inte läsas.",
+        "backend.mail.none_added":
+            "Ingen ny kunskap lades till.",
+        "backend.mail.import_success":
+            "Importerade {count} kunskapsposter från mejlfil.",
+
+        # Backend - answer generation
+        "backend.answer.not_enough_info":
+            "Det finns inte tillräcklig information i kunskapsbasen.",
+        "backend.answer.failed":
+            "Svaret kunde inte skapas. Försök igen.",
+
+        # Backend - model loading
+        "backend.model.load_failed":
+            "Modellen kunde inte laddas.",
+
+        # Backend - backup
+        "backend.backup.export_failed":
+            "Kunskapsbasen kunde inte exporteras.",
+        "backend.backup.export_success":
+            "Exporterade {count} kunskapsposter.",
+        "backend.backup.import_success":
+            "Importerade {imported} poster. Hoppade över {skipped} poster.",
+
     },
 
     "en": {
@@ -577,9 +706,145 @@ TRANSLATIONS = {
         "document_analysis.no_facts":
             "Analysis complete. No facts were suggested.",
         "document_review.finished": "Document review is complete.",
+
+        # Backend - model
+        "backend.model.busy":
+            "Wait until the current task has finished.",
+        "backend.model.loading":
+            "Loading model: {model}",
+        "backend.model.loaded":
+            "Model loaded: {model}",
+
+        # Backend - RAG
+        "backend.rag.top_k_min":
+            "Top-K must be at least 1.",
+        "backend.rag.threshold_range":
+            "The similarity threshold must be between 0.0 and 1.0.",
+        "backend.rag.updated":
+            "RAG settings have been updated.",
+
+        # Backend - question processing
+        "backend.reply.busy":
+            "The model is busy. Wait until the current task has finished.",
+
+        # Backend - knowledge editing
+        "backend.knowledge.empty_text":
+            "The text cannot be empty.",
+        "backend.knowledge.duplicate":
+            "An entry with the same text already exists.",
+        "backend.knowledge.updated":
+            "The knowledge entry has been updated.",
+        "backend.knowledge.not_found":
+            "The knowledge entry could not be found.",
+        "backend.knowledge.deleted":
+            "The knowledge entry has been deleted.",
+
+        # Backend - source deletion
+        "backend.source_delete.none":
+            "No knowledge entries could be deleted.",
+        "backend.source_delete.success":
+            "{count} knowledge entries were deleted.",
+
+        # Backend - manual knowledge
+        "backend.manual.empty":
+            "No knowledge was added.",
+        "backend.manual.added":
+            "Knowledge added.",
+        "backend.manual.no_new":
+            "No new knowledge was added.",
+
+        # Backend - dropped documents
+        "backend.drop.local_only":
+            "Drop a local file from your computer.",
+        "backend.drop.not_found":
+            "The file could not be found. Folders cannot be imported.",
+        "backend.drop.unsupported":
+            "The file type is not supported. Choose TXT, PDF, DOCX, EML, or MSG.",
+
+        # Backend - document import
+        "backend.import.file_missing":
+            "The selected file does not exist.",
+        "backend.import.none_added":
+            "No new knowledge was added.",
+
+        "backend.import.txt_success":
+            "Imported {count} knowledge entries from text file.",
+        "backend.import.docx_success":
+            "Imported {count} knowledge entries from DOCX file.",
+        "backend.import.pdf_success":
+            "Imported {count} knowledge entries from PDF file.",
+
+        # Backend - mail
+        "backend.mail.empty_save":
+            "There is no email to save.",
+        "backend.mail.save_failed":
+            "The email could not be saved. Please try again.",
+        "backend.mail.saved":
+            "The email has been saved.",
+        "backend.mail.duplicate":
+            "The email already exists in the knowledge base.",
+
+        "backend.mail.empty_analysis":
+            "There is no email to analyze.",
+        "backend.mail.busy":
+            "Wait until the current task has finished.",
+        "backend.mail.review_pending":
+            "Review or discard the previous suggestions first.",
+        "backend.mail.analyzing":
+            "Analyzing the email…",
+        "backend.mail.analysis_ready":
+            "Email analysis is complete. Review the suggestions before saving.",
+        "backend.mail.analysis_failed":
+            "The email could not be analyzed. Please try again.",
+
+        "backend.mail.no_review":
+            "There are no email suggestions to review.",
+        "backend.mail.no_facts_to_save":
+            "There are no email suggestions to save.",
+        "backend.mail.invalid_selection":
+            "Select at least one fact. The text cannot be empty.",
+
+        "backend.mail.fact_save_failed":
+            "Saving was interrupted. {count} new knowledge entries were saved before the error. Please try again.",
+        "backend.mail.fact_save_success":
+            "Saved {count} new knowledge entries. Any duplicates were skipped.",
+
+        "backend.mail.file_missing":
+            "The selected file does not exist.",
+        "backend.mail.read_failed":
+            "The file could not be read.",
+        "backend.mail.none_added":
+            "No new knowledge was added.",
+        "backend.mail.import_success":
+            "Imported {count} knowledge entries from email file.",
+
+        # Backend - answer generation
+        "backend.answer.not_enough_info":
+            "There is not enough information in the knowledge base.",
+        "backend.answer.failed":
+            "The answer could not be generated. Please try again.",
+
+        # Backend - model loading
+        "backend.model.load_failed":
+            "The model could not be loaded.",
+
+        # Backend - backup
+        "backend.backup.export_failed":
+            "The knowledge base could not be exported.",
+        "backend.backup.export_success":
+            "Exported {count} knowledge entries.",
+        "backend.backup.import_success":
+            "Imported {imported} entries. Skipped {skipped} entries.",
         
     },
 }
+
+def translate(key: str, language: str) -> str:
+        """Helper function to make Python able to use the dictionary."""
+        return TRANSLATIONS.get(
+            language,
+            TRANSLATIONS["sv"]
+        ).get(key, key)
 
 
 class Translator(QObject):
@@ -618,11 +883,11 @@ class Translator(QObject):
 
         self.languageChanged.emit()
 
+
     @Slot(str, str, result=str)
     def text(self, key:str, language:str) -> str:
-        return TRANSLATIONS.get(
-            language,
-            TRANSLATIONS["sv"]
-        ).get(key, key)
+        return translate(key, language)
 
+
+    
     

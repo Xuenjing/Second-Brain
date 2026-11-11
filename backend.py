@@ -38,6 +38,7 @@ from imports.mail_fact_extractor import extract_mail_facts
 from exporter import export_knowledge_to_json
 from json_importer import import_knowledge_from_json_file
 from imports.document_fact_extractor import extract_document_facts
+from translator import translate
 
 
 
@@ -82,7 +83,7 @@ class Thinker(QThread):
 
             if not used_sources:
                 self.answerReady.emit(
-                    "Det finns inte tillräcklig information i kunskapsbasen.",
+                    "backend.answer.not_enough_info",
                     [],
                     additional_sources,
                     less_relevant_sources
@@ -123,7 +124,7 @@ ANSWER:
         except Exception as error:
             print(f"Answer generation failed: {error}")
             self.answerFailed.emit(
-                "Svaret kunde inte skapas. Försök igen."
+                "backend.answer.failed"
             )
 
 class ModelLoader(QThread):
@@ -143,7 +144,7 @@ class ModelLoader(QThread):
         except Exception as error:
             print(f"Model loading failed: {error}")
             self.modelLoadFailed.emit(
-                "Modellen kunde inte laddas."
+                "backend.model.load_failed"
             )
 
 class MailFactWorker(QThread):
@@ -186,7 +187,7 @@ class MailFactWorker(QThread):
         except Exception as error:
             print(f"Email fact extraction failed: {error}")
             self.extractionFailed.emit(
-                "Mejlet kunde inte analyseras. Försök igen."
+                "backend.mail.analysis_failed"
             )
 
 class DocumentFactWorker(QThread):
@@ -296,6 +297,23 @@ class Backend(QObject):
         # more demanding model
         # self.llm = LocalLLMProvider("Qwen/Qwen3-4B-Instruct-2507")
 
+
+    def _language(self) -> str:
+        """Return the currently selected interface language."""
+        return self.settings.value(
+            "ui/language",
+            "sv",
+            type=str,
+        )
+
+
+    def _text(self, key:str) -> str:
+        """Return translated text for the current interface language."""
+        return translate(
+            key,
+            self._language(),
+        )
+
     # Signal from Python to QML with the text to display.
     replyReady = Signal(str, list, list, list)
 
@@ -377,6 +395,7 @@ class Backend(QObject):
 
     documentFactsSaveResult = Signal(bool, str, int)
 
+
     @Slot(int)
     def load_model(self, model_index: str) -> None:
         """Load the language model selected from the interface.
@@ -386,7 +405,7 @@ class Backend(QObject):
         """
         if (self.thinker is not None or self.mail_worker is not None or self.document_worker is not None):
             self.modelLoadStatus.emit(
-                "Vänta tills det pågående arbetet är klart."
+                self._text("backend.model.busy")
             )
             return
 
@@ -427,7 +446,11 @@ class Backend(QObject):
         print(F"Requested model: {model_name}")
 
         self.modelLoadingChanged.emit(True)
-        self.modelLoadStatus.emit(f"Laddar modell: {model_name}")
+        self.modelLoadStatus.emit(
+            self._text("backend.model.loading").format(
+                model=model_name
+            )
+        )
 
         self.model_loader.start()
 
@@ -437,12 +460,18 @@ class Backend(QObject):
         """Replace the current language model after successful loading."""
 
         self.llm = llm
-        self.modelLoadStatus.emit(f"Modellen har laddats: {self.llm.model_name}")
+        self.modelLoadStatus.emit(
+            self._text("backend.model.loaded").format(
+                model=self.llm.model_name
+            )
+        )
         print(f"Model loaded {self.llm.model_name}")
 
     @Slot(str)
-    def handle_model_load_error(self, message: str) -> None:
+    def handle_model_load_error(self, message_key: str) -> None:
         """Handle errors that occur while loading a language model."""
+
+        message = self._text(message_key)
 
         self.modelLoadStatus.emit(message)
         print(message)
@@ -478,13 +507,13 @@ class Backend(QObject):
         if top_k < 1:
             self.ragSettingsResult.emit(
                 False,
-                "Top-K måste vara minst 1."
+                self._text("backend.rag.top_k_min")
             )
             return
         if not 0.0 <= similarity_threshold <= 1.0:
             self.ragSettingsResult.emit(
                 False,
-                "Threshold måste vara mellan 0.0 och 1.0"
+                self._text("backend.rag.threshold_range")
             )
             return
 
@@ -505,7 +534,7 @@ class Backend(QObject):
 
         self.ragSettingsResult.emit(
             True,
-            "RAG-inställningarna har uppdaterats."
+            self._text("backend.rag.updated")
         )
         
 
@@ -524,7 +553,7 @@ class Backend(QObject):
 
         if (self.mail_worker is not None or self.model_loader is not None or self.document_worker is not None):
             self.replyFailed.emit(
-                "Modellen är upptagen. Vänta tills arbetet är klart."
+                self._text("backend.reply.busy")
             )
             return
 
@@ -557,16 +586,35 @@ class Backend(QObject):
         Args:
             answer: generated answer to display in QML interface.
         """
-        self.replyReady.emit(answer, used_sources, additional_sources, less_relevant_sources)
+    def handle_answer(
+        self,
+        answer: str,
+        used_sources: list,
+        additional_sources: list,
+        less_relevant_sources: list,
+    ) -> None:
+        """Send the answer to QML."""
+
+        if not used_sources and answer == "backend.answer.not_enough_info":
+            answer = self._text(answer)
+
+        self.replyReady.emit(
+            answer,
+            used_sources,
+            additional_sources,
+            less_relevant_sources
+        )
 
     @Slot(str)
-    def handle_error(self, message: str) -> None:
+    def handle_error(self, message_key: str) -> None:
         """Send the error message to QML.
         
         Args:
             message: error message to display in QML interface.
         """
-        self.replyFailed.emit(message)
+        self.replyFailed.emit(
+            self._text(message_key)
+        )
 
     @Slot()
     def finish_thinking(self) -> None:
@@ -589,7 +637,8 @@ class Backend(QObject):
         # Reject empty text.
         if not new_text:
             self.knowledgeEditResult.emit(
-                False, "Texten får inte vara tom."
+                False,
+                self._text("backend.knowledge.empty_text")
             )
             return
 
@@ -602,17 +651,20 @@ class Backend(QObject):
             )
         except sqlite3.IntegrityError:
             self.knowledgeEditResult.emit(
-                False, "Det finns redan en post med samma text."
+                False,
+                self._text("backend.knowledge.duplicate")
             )
             return
 
         if updated:
             self.knowledgeEditResult.emit(
-                True, "Kunskapsposten har uppdaterats."
+                True,
+                self._text("backend.knowledge.updated")
             )
         else:
             self.knowledgeEditResult.emit(
-                False, "Kunskapsposten kunde inte hittas."
+                False,
+                self._text("backend.knowledge.not_found")
             )
 
     @Slot(int)
@@ -627,11 +679,13 @@ class Backend(QObject):
 
         if deleted:
             self.knowledgeDeleteResult.emit(
-                True, "Kunskapsposten har tagits bort."
+                True,
+                self._text("backend.knowledge.deleted")
             )
         else:
             self.knowledgeDeleteResult.emit(
-                False, "Kunskapsposten kunde inte hittas."
+                False,
+                self._text("backend.knowledge.not_found")
             )
 
 
@@ -642,10 +696,20 @@ class Backend(QObject):
         deleted_count = delete_knowledge_by_source(source)
 
         if deleted_count == 0:
-            self.knowledgeSourceDeleteResult.emit(False, "Inga kunskapsposter kunde tas bort.")
+            self.knowledgeSourceDeleteResult.emit(
+                False,
+                self._text("backend.source_delete.none")
+            )
             return
 
-        self.knowledgeSourceDeleteResult.emit(True, f"{deleted_count} kunskapsposter togs bort.")
+        self.knowledgeSourceDeleteResult.emit(
+            True,
+            self._text(
+                "backend.source_delete.success"
+            ).format(
+                count=deleted_count
+            )
+        )
             
     
     @Slot(str)
@@ -658,7 +722,9 @@ class Backend(QObject):
         """
 
         if not text.strip():
-            self.knowledgeSaveResult.emit("No knowledge was added.")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.manual.empty")
+            )
             return
 
         embedding = create_embedding(text)
@@ -670,9 +736,13 @@ class Backend(QObject):
         )
 
         if added:
-            self.knowledgeSaveResult.emit("Knowledge added.")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.manual.added")
+            )
         else:
-            self.knowledgeSaveResult.emit("No new knowledge was added.")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.manual.no_new")
+            )
 
     @Slot(str)
     def import_dropped_document(self, file_url: str) -> None:
@@ -681,7 +751,7 @@ class Backend(QObject):
 
         if not url.isLocalFile():
             self.knowledgeSaveResult.emit(
-                "Släpp en lokal fil från datorn."
+                self._text("backend.drop.local_only")
             )
             return
 
@@ -689,7 +759,7 @@ class Backend(QObject):
 
         if not path.is_file():
             self.knowledgeSaveResult.emit(
-                "Filen kunde inte hittas. Mappar kan inte importeras."
+                self._text("backend.drop.not_found")
             )
             return
 
@@ -705,7 +775,7 @@ class Backend(QObject):
 
         if importer is None:
             self.knowledgeSaveResult.emit(
-                "Filtypen stöds inte. Välj TXT, PDF, DOCX, EML eller MSG."
+                self._text("backend.drop.unsupported")
             )
             return
 
@@ -1008,17 +1078,25 @@ class Backend(QObject):
         try:
             added_count = import_txt_to_database(local_path)
         except FileNotFoundError:
-            self.knowledgeSaveResult.emit("The selected file does not exist")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.import.file_missing")
+            )
             return
         except ValueError as error:
             self.knowledgeSaveResult.emit(str(error))
             return
         
         if added_count == 0:
-            self.knowledgeSaveResult.emit("No new knowledge was added.")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.import.none_added")
+            )
         else:
             self.knowledgeSaveResult.emit(
-                f"Imported {added_count} knowledge entries from text file."
+                self._text(
+                    "backend.import.txt_success"
+                ).format(
+                    count=added_count
+                )
             )
 
 
@@ -1039,9 +1117,17 @@ class Backend(QObject):
             return
 
         if added_count == 0:
-            self.knowledgeSaveResult.emit("No new knowledge was added.")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.import.none_added")
+            )
         else:
-            self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from docx file.")
+            self.knowledgeSaveResult.emit(
+                self._text(
+                    "backend.import.docx_success"
+                ).format(
+                    count=added_count
+                )
+            )
 
 
     @Slot(str)
@@ -1061,9 +1147,17 @@ class Backend(QObject):
             return
 
         if added_count == 0:
-            self.knowledgeSaveResult.emit("No new knowledge was added")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.import.none_added")
+            )
         else:
-            self.knowledgeSaveResult.emit(f"Imported {added_count} knowledge entries from pdf file.")
+            self.knowledgeSaveResult.emit(
+                self._text(
+                    "backend.import.pdf_success"
+                ).format(
+                    count=added_count
+                )
+            )
 
     @Slot(str)
     def preview_mail(self, file_path: str) -> None:
@@ -1101,7 +1195,7 @@ class Backend(QObject):
         """
         if not email_text.strip():
             self.knowledgeSaveResult.emit(
-                "Det finns inget mejl att spara."
+                self._text("backend.mail.empty_save")
             )
             return
 
@@ -1116,15 +1210,17 @@ class Backend(QObject):
         except Exception as error:
             print(f"Saving email failed: {error}")
             self.knowledgeSaveResult.emit(
-                "Mejlet kunde inte sparas. Försök igen."
+                self._text("backend.mail.save_failed")
             )
             return
 
         if added:
-            self.knowledgeSaveResult.emit("Mejlet har sparats.")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.mail.saved")
+            )
         else:
             self.knowledgeSaveResult.emit(
-                "Mejlet finns redan i kunskapsbasen."
+                self._text("backend.mail.duplicate")
             )
 
     @Slot(str)
@@ -1136,7 +1232,7 @@ class Backend(QObject):
         """
         if not email_text.strip():
             self.knowledgeSaveResult.emit(
-                "Det finns inget mejl att analysera."
+                self._text("backend.mail.empty_analysis")
             )
             return
 
@@ -1147,13 +1243,13 @@ class Backend(QObject):
             or self.document_worker is not None
         ):
             self.knowledgeSaveResult.emit(
-                "Vänta tills det pågående arbetet är klart."
+                self._text("backend.mail.busy")
             )
             return
 
         if self.mail_review_pending:
             self.knowledgeSaveResult.emit(
-                "Granska eller kasta de tidigare förslagen först."
+                self._text("backend.mail.review_pending")
             )
             return
 
@@ -1167,7 +1263,9 @@ class Backend(QObject):
         self.mail_worker.extractionFailed.connect(self.handle_mail_error)
         self.mail_worker.finished.connect(self.finish_mail_analysis)
 
-        self.knowledgeSaveResult.emit("Analyserar mejlet…")
+        self.knowledgeSaveResult.emit(
+            self._text("backend.mail.analyzing")
+        )
         self.mailAnalysisChanged.emit(True)
         self.mail_worker.start()
 
@@ -1191,8 +1289,8 @@ class Backend(QObject):
         self.mail_review_pending = True
 
         self.knowledgeSaveResult.emit(
-        "Mejlanalysen är klar. Granska förslagen innan du sparar."
-    )
+            self._text("backend.mail.analysis_ready")
+        )
 
         self.mailReviewReady.emit(email_text, facts, source)
 
@@ -1201,7 +1299,7 @@ class Backend(QObject):
         """Send pending email suggestions to the interface again."""
         if not self.mail_review_pending:
             self.knowledgeSaveResult.emit(
-                "Det finns inga mejlförslag att granska."
+                self._text("backend.mail.no_review")
             )
             return
 
@@ -1212,13 +1310,15 @@ class Backend(QObject):
         )
 
     @Slot(str)
-    def handle_mail_error(self, message: str) -> None:
+    def handle_mail_error(self, message_key: str) -> None:
         """Display an email-analysis error.
 
         Args:
-            message: Error message to display.
+            message_key: Error message to display.
         """
-        self.knowledgeSaveResult.emit(message)
+        self.knowledgeSaveResult.emit(
+            self._text(message_key)
+        )
 
 
     @Slot()
@@ -1239,7 +1339,7 @@ class Backend(QObject):
         """
         if not self.mail_review_pending:
             self.knowledgeSaveResult.emit(
-                "Det finns inga mejlförslag att spara."
+                self._text("backend.mail.no_facts_to_save")
             )
             return
 
@@ -1248,7 +1348,7 @@ class Backend(QObject):
             for fact in facts
         ):
             self.knowledgeSaveResult.emit(
-                "Välj minst en faktauppgift. Texten får inte vara tom."
+                self._text("backend.mail.invalid_selection")
             )
             return
 
@@ -1273,16 +1373,22 @@ class Backend(QObject):
         except Exception as error:
             print(f"Saving email facts failed: {error}")
             self.knowledgeSaveResult.emit(
-                f"Sparandet avbröts. {added_count} nya "
-                "kunskapsposter hann sparas. Försök igen."
+                self._text(
+                    "backend.mail.fact_save_failed"
+                ).format(
+                    count=added_count
+                )
             )
             return
 
         self.discard_mail_review()
 
         self.knowledgeSaveResult.emit(
-            f"Sparade {added_count} nya kunskapsposter. "
-            "Eventuella dubbletter hoppades över."
+            self._text(
+                "backend.mail.fact_save_success"
+            ).format(
+                count=added_count
+            )
         )
 
 
@@ -1313,7 +1419,7 @@ class Backend(QObject):
             added_count = import_mail_to_database(local_path)
         except FileNotFoundError:
             self.knowledgeSaveResult.emit(
-                "The selected file does not exist."
+                self._text("backend.mail.file_missing")
             )
             return
         except ValueError as error:
@@ -1321,15 +1427,21 @@ class Backend(QObject):
             return
         except OSError:
             self.knowledgeSaveResult.emit(
-                "The file could not be read."
+                self._text("backend.mail.read_failed")
             )
             return
 
         if added_count == 0:
-            self.knowledgeSaveResult.emit("No new knowledge was added.")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.mail.none_added")
+            )
         else:
             self.knowledgeSaveResult.emit(
-                f"Imported {added_count} knowledge entries from EML file."
+                self._text(
+                    "backend.mail.import_success"
+                ).format(
+                    count=added_count
+                )
             )
 
 
@@ -1470,7 +1582,7 @@ class Backend(QObject):
         if item is None:
             print(f"Knowledge entry not found: {knowledge_id}")
             self.knowledgeSaveResult.emit(
-                "Kunskapsposten kunde inte hittas."
+                self._text("backend.knowledge.not_found")
             )
             return
 
@@ -1499,11 +1611,17 @@ class Backend(QObject):
         try:
             exported_count = export_knowledge_to_json(local_path)
         except OSError:
-            self.exportResult.emit("The knowledge could not be exported.")
+            self.exportResult.emit(
+                self._text("backend.backup.export_failed")
+            )
             return
 
         self.exportResult.emit(
-            f"Exported {exported_count} knowledge entries."
+            self._text(
+                "backend.backup.export_success"
+            ).format(
+                count=exported_count
+            )
         )
 
 
@@ -1527,6 +1645,10 @@ class Backend(QObject):
             return
 
         self.importResult.emit(
-            f"Importerade {imported_count} poster. "
-            f"Hoppade över {skipped_count} poster."
+            self._text(
+                "backend.backup.import_success"
+            ).format(
+                imported=imported_count,
+                skipped=skipped_count,
+            )
         )
