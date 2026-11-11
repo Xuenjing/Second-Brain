@@ -248,7 +248,20 @@ TRANSLATIONS = {
             "Texten finns redan i kunskapsbasen.",
         "document_save.failed":
             "Dokumenttexten kunde inte sparas. Försök igen.",
-        "document_save.save_full": "Spara hela texten",
+        "document_save.save_full": "Spara som en post",
+        "document_save.single_tooltip":
+            "Spara hela texten som en kunskapspost",
+        "document_save.save_chunks": "Spara uppdelat",
+        "document_save.chunks_tooltip":
+            "Spara varje stycke som en egen post",
+        "document_save.chunks_saved": (
+            "Sparade {count} nya kunskapsposter. "
+            "Eventuella dubbletter hoppades över."
+        ),
+        "document_save.chunks_failed": (
+            "Sparandet avbröts. {count} nya kunskapsposter hann sparas. "
+            "Texten finns kvar. Försök igen."
+        ),
         "document_analysis.failed":
         "Dokumentet kunde inte analyseras. Försök igen.",
         "document_analysis.busy":
@@ -717,7 +730,21 @@ TRANSLATIONS = {
             "The text already exists in the knowledge base.",
         "document_save.failed":
             "The document text could not be saved. Please try again.",
-        "document_save.save_full": "Save entire text",
+        "document_save.save_full": "Save as one entry",
+        "document_save.single_tooltip":
+            "Save the entire text as one knowledge entry",
+        "document_save.save_chunks": "Save in chunks",
+        "document_save.chunks_tooltip":
+            "Save each paragraph as a separate entry",
+        "document_save.chunks_saved": (
+            "Saved {count} new knowledge entries. "
+            "Any duplicates were skipped."
+        ),
+        "document_save.chunks_failed": (
+            "Saving was interrupted. {count} new knowledge entries "
+            "were saved before the error. Your text is still available. "
+            "Please try again."
+        ),
         "document_analysis.failed":
             "The document could not be analyzed. Please try again.",
         "document_analysis.busy":

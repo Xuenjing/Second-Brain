@@ -1,5 +1,14 @@
 from pathlib import Path
 
+def split_txt_text(text: str) -> list[str]:
+    """Split text into paragraph chunks while preserving sentence wording."""
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    return [
+        chunk.strip()
+        for chunk in text.split("\n\n")
+        if chunk.strip()
+    ]
 
 def extract_txt_chunks(file_path: str) -> list[str]:
     """Extract text chunks from a UTF-8 txt file.
@@ -45,10 +54,5 @@ def extract_txt_chunks(file_path: str) -> list[str]:
             "text_parser.empty_file"
         )
 
-    chunks = [
-        chunk.strip()
-        for chunk in text.split("\n\n")
-        if chunk.strip()
-    ]
-
+    chunks = split_txt_text(text)
     return chunks
