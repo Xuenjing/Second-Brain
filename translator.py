@@ -420,6 +420,60 @@ TRANSLATIONS = {
         "backend.backup.import_success":
             "Importerade {imported} poster. Hoppade över {skipped} poster.",
 
+        # Text parser.
+        "text_parser.file_not_found":
+            "Textfilen kunde inte hittas.",
+        "text_parser.invalid_file_type":
+            "Filen måste vara en TXT-fil.",
+        "text_parser.invalid_encoding":
+            "Textfilen kunde inte läsas som UTF-8.",
+        "text_parser.read_failed":
+            "Textfilen kunde inte läsas.",
+        "text_parser.empty_file":
+            "Textfilen är tom.",
+
+        # Document parser.
+        "document_parser.file_not_found":
+            "DOCX-filen kunde inte hittas.",
+        "document_parser.invalid_file_type":
+            "Filen måste vara en DOCX-fil.",
+        "document_parser.invalid_document":
+            "Filen är inte ett giltigt DOCX-dokument.",
+
+        # PDF parser.
+        "pdf_parser.file_not_found":
+            "PDF-filen kunde inte hittas.",
+        "pdf_parser.invalid_file_type":
+            "Filen måste vara en PDF-fil.",
+
+        # Mail parser.
+        "mail_parser.file_not_found":
+            "Mejlfilen kunde inte hittas.",
+        "mail_parser.invalid_file_type":
+            "Filen måste vara en EML- eller MSG-fil.",
+        "mail_parser.empty_email":
+            "Mejlet innehåller ingen text.",
+        "mail_parser.read_failed":
+            "Mejlfilen kunde inte läsas.",
+        "mail_parser.no_body":
+            "Ingen vanlig text eller HTML hittades i mejlet.",
+        "mail_parser.decode_failed":
+            "Mejltexten kunde inte avkodas.",
+        "mail_parser.msg_read_failed":
+            "MSG-filen kunde inte läsas.",
+
+        # JSON importer.
+        "json_importer.file_not_found":
+            "Den valda backupfilen finns inte.",
+        "json_importer.invalid_json":
+            "Den valda filen innehåller inte giltig JSON.",
+        "json_importer.invalid_root":
+            "Backupfilen måste innehålla en lista med kunskapsposter.",
+        "json_importer.invalid_entry":
+            "Varje kunskapspost måste vara ett JSON-objekt.",
+        "json_importer.missing_fields":
+            "En eller flera kunskapsposter saknar obligatoriska fält.",
+
     },
 
     "en": {
@@ -835,6 +889,60 @@ TRANSLATIONS = {
             "Exported {count} knowledge entries.",
         "backend.backup.import_success":
             "Imported {imported} entries. Skipped {skipped} entries.",
+
+        # Text parser.
+        "text_parser.file_not_found":
+            "The text file could not be found.",
+        "text_parser.invalid_file_type":
+            "The file must be a TXT file.",
+        "text_parser.invalid_encoding":
+            "The text file could not be read as UTF-8.",
+        "text_parser.read_failed":
+            "The text file could not be read.",
+        "text_parser.empty_file":
+            "The text file is empty.",
+
+        # Document parser.
+        "document_parser.file_not_found":
+            "The DOCX file could not be found.",
+        "document_parser.invalid_file_type":
+            "The file must be a DOCX file.",
+        "document_parser.invalid_document":
+            "The file is not a valid DOCX document.",
+
+        # PDF parser.
+        "pdf_parser.file_not_found":
+            "The PDF file could not be found.",
+        "pdf_parser.invalid_file_type":
+            "The file must be a PDF file.",
+
+        # Mail parser.
+        "mail_parser.file_not_found":
+            "The email file could not be found.",
+        "mail_parser.invalid_file_type":
+            "The file must be an EML or MSG file.",
+        "mail_parser.empty_email":
+            "The email contains no text.",
+        "mail_parser.read_failed":
+            "The email file could not be read.",
+        "mail_parser.no_body":
+            "No plain text or HTML was found in the email.",
+        "mail_parser.decode_failed":
+            "The email text could not be decoded.",
+        "mail_parser.msg_read_failed":
+            "The MSG file could not be read.",
+
+        # JSON importer.
+        "json_importer.file_not_found":
+            "The selected backup file does not exist.",
+        "json_importer.invalid_json":
+            "The selected file does not contain valid JSON.",
+        "json_importer.invalid_root":
+            "The backup file must contain a list of knowledge entries.",
+        "json_importer.invalid_entry":
+            "Each knowledge entry must be a JSON object.",
+        "json_importer.missing_fields":
+            "One or more knowledge entries are missing required fields.",
         
     },
 }

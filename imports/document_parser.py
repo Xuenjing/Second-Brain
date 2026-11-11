@@ -24,14 +24,20 @@ def extract_docx_chunks(file_path: str) -> list[str]:
 
     # Safeguards.
     if not path.exists():
-        raise FileNotFoundError(f"File not found: {path}")
+        raise FileNotFoundError(
+            "document_parser.file_not_found"
+        )
     if path.suffix.lower() != ".docx":
-        raise ValueError("File must be a docx file")
+        raise ValueError(
+            "document_parser.invalid_file_type"
+        )
 
     try:
         document = Document(path)
     except BadZipFile as error:
-        raise ValueError("The file is not a valid docx document.") from error
+        raise ValueError(
+            "document_parser.invalid_document"
+        ) from error
 
     chunks = []
 
