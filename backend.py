@@ -31,6 +31,7 @@ from database import (
 )
 from imports.document_importer import import_docx_to_database
 from imports.pdf_importer import import_pdf_to_database
+from imports.pdf_parser import read_pdf_for_preview, split_pdf_text
 from imports.text_importer import import_txt_to_database, read_txt_for_preview
 from imports.text_parser import split_txt_text
 from imports.mail_importer import import_mail_to_database
@@ -767,7 +768,7 @@ class Backend(QObject):
 
         importers = {
             ".txt": self.preview_txt,
-            ".pdf": self.add_pdf_knowledge,
+            ".pdf": self.preview_pdf,
             ".docx": self.add_docx_knowledge,
             ".eml": self.preview_mail,
             ".msg": self.preview_mail,
@@ -829,6 +830,65 @@ class Backend(QObject):
             self.documentPreviewFailed.emit(
                 "document_import.read_failed"
             )
+            return
+
+        self.document_preview_source = path.name
+        self.documentPreviewReady.emit(text, path.name)
+
+    @Slot(str)
+    def preview_pdf(self, file_url: str) -> None:
+        """Read a PDF file for preview without saving knowledge.
+
+        Args:
+            file_url: Local file URL received from QML.
+        """
+        if self.document_worker is not None:
+            self.documentPreviewFailed.emit(
+                "document_analysis.busy"
+            )
+            return
+
+        if self.document_review_pending:
+            self.documentPreviewFailed.emit(
+                "document_analysis.review_pending"
+            )
+            return
+
+        url = QUrl(file_url)
+
+        if not url.isLocalFile():
+            self.documentPreviewFailed.emit(
+                "document_import.read_failed"
+            )
+            return
+
+        path = Path(url.toLocalFile())
+
+        if path.suffix.lower() != ".pdf":
+            self.documentPreviewFailed.emit(
+                "pdf_parser.invalid_file_type"
+            )
+            return
+
+        try:
+            text = read_pdf_for_preview(str(path))
+        except FileNotFoundError:
+            self.documentPreviewFailed.emit(
+                "pdf_parser.file_not_found"
+            )
+            return
+        except Exception as error:
+            print(f"Reading PDF preview failed: {error}")
+
+            error_key = "document_import.read_failed"
+
+            if (
+                isinstance(error, ValueError)
+                and str(error) == "pdf_parser.no_text"
+            ):
+                error_key = "pdf_parser.no_text"
+
+            self.documentPreviewFailed.emit(error_key)
             return
 
         self.document_preview_source = path.name
@@ -1025,7 +1085,10 @@ class Backend(QObject):
             )
             return
 
-        chunks = split_txt_text(text)
+        if Path(source).suffix.lower() == ".pdf":
+            chunks = split_pdf_text(text)
+        else:
+            chunks = split_txt_text(text)
 
         if not chunks:
             self.documentChunksSaveResult.emit(

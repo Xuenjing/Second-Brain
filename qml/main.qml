@@ -637,7 +637,7 @@ ApplicationWindow {
         // Send the selected file URL to python.
         onAccepted: {
             knowledgeDialog.clearSaveStatus()
-            backend.add_pdf_knowledge(selectedFile)
+            backend.preview_pdf(selectedFile.toString())
         }
     }
 
