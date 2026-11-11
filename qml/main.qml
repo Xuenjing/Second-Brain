@@ -755,6 +755,10 @@ ApplicationWindow {
             backend.save_previewed_document(text, source)
         }
 
+        onSaveChunksRequested: function(text, source) {
+            backend.save_previewed_document_chunks(text, source)
+        }
+
         onAnalyzeRequested: function(text, source) {
             documentAnalysisDialog.documentText = text
             documentAnalysisDialog.sourceName = source
@@ -950,6 +954,15 @@ ApplicationWindow {
             documentPreviewDialog.statusKey = messageKey
 
             if (success && knowledgeViewDialog.visible) {
+                knowledgeViewDialog.requestRefresh()
+            }
+        }
+
+        function onDocumentChunksSaveResult(success, messageKey, count) {
+            documentPreviewDialog.statusCount = count
+            documentPreviewDialog.statusKey = messageKey
+
+            if ((success || count > 0) && knowledgeViewDialog.visible) {
                 knowledgeViewDialog.requestRefresh()
             }
         }

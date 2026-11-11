@@ -32,6 +32,7 @@ from database import (
 from imports.document_importer import import_docx_to_database
 from imports.pdf_importer import import_pdf_to_database
 from imports.text_importer import import_txt_to_database, read_txt_for_preview
+from imports.text_parser import split_txt_text
 from imports.mail_importer import import_mail_to_database
 from imports.mail_parser import extract_mail_chunks
 from imports.mail_fact_extractor import extract_mail_facts
@@ -380,6 +381,7 @@ class Backend(QObject):
 
     # Report whether reviewed document text was saved.
     documentSaveResult = Signal(bool, str)
+    documentChunksSaveResult = Signal(bool, str, int)
 
     # Notify QML when document analysis starts or finishes.
     documentAnalysisChanged = Signal(bool)
@@ -998,6 +1000,66 @@ class Backend(QObject):
         self.document_review_pending = False
 
         self.documentReviewFinished.emit()
+
+    @Slot(str, str)
+    def save_previewed_document_chunks(self, text: str, source: str) -> None:
+        """Save reviewed document text as paragraph-based knowledge entries."""
+        if self.document_worker is not None:
+            self.documentChunksSaveResult.emit(
+                False, "document_analysis.busy", 0
+            )
+            return
+
+        if self.document_review_pending:
+            self.documentChunksSaveResult.emit(
+                False, "document_analysis.review_pending", 0
+            )
+            return
+
+        if (
+            not self.document_preview_source
+            or source != self.document_preview_source
+        ):
+            self.documentChunksSaveResult.emit(
+                False, "document_import.read_failed", 0
+            )
+            return
+
+        chunks = split_txt_text(text)
+
+        if not chunks:
+            self.documentChunksSaveResult.emit(
+                False, "document_save.empty_text", 0
+            )
+            return
+
+        added_count = 0
+
+        try:
+            for chunk in chunks:
+                embedding = create_embedding(chunk)
+
+                if add_knowledge(
+                    chunk,
+                    embedding,
+                    source=source,
+                ):
+                    added_count += 1
+
+        except Exception as error:
+            print(f"Saving document chunks failed: {error}")
+            self.documentChunksSaveResult.emit(
+                False,
+                "document_save.chunks_failed",
+                added_count,
+            )
+            return
+
+        self.documentChunksSaveResult.emit(
+            True,
+            "document_save.chunks_saved",
+            added_count,
+        )
 
     @Slot(str, str)
     def save_previewed_document(self, text: str, source: str) -> None:

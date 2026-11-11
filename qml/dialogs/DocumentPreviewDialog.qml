@@ -11,6 +11,7 @@ Dialog {
     property string statusKey: ""
 
     signal saveRequested(string text, string source)
+    signal saveChunksRequested(string text, string source)
     signal analyzeRequested(string text, string source)
 
     property color surfaceColor
@@ -172,6 +173,103 @@ Dialog {
         }
 
         Button {
+            id: saveDocumentChunksButton
+
+            width: 40
+            height: 40
+            padding: 0
+            hoverEnabled: true
+
+            anchors.right: saveDocumentButton.left
+            anchors.rightMargin: 12
+            anchors.verticalCenter: saveDocumentButton.verticalCenter
+
+            enabled: !documentPreviewDialog.isAnalyzing
+                && !documentPreviewDialog.reviewPending
+            opacity: enabled ? 1.0 : 0.5
+
+            Accessible.name: translator.text(
+                "document_save.save_chunks",
+                translator.language
+            )
+            ToolTip.visible: hovered
+            ToolTip.text: translator.text(
+                "document_save.chunks_tooltip",
+                translator.language
+            )
+
+            // Draw two overlapping document sheets.
+            contentItem: Item {
+                Item {
+                    anchors.centerIn: parent
+                    width: 26
+                    height: 26
+
+                    Rectangle {
+                        x: 3
+                        y: 2
+                        width: 15
+                        height: 19
+                        radius: 2
+                        color: documentPreviewDialog.surfaceColor
+                        border.color: documentPreviewDialog.accentColor
+                        border.width: 2
+                    }
+
+                    Rectangle {
+                        x: 9
+                        y: 7
+                        width: 15
+                        height: 19
+                        radius: 2
+                        color: documentPreviewDialog.surfaceColor
+                        border.color: documentPreviewDialog.accentColor
+                        border.width: 2
+
+                        Repeater {
+                            model: 3
+
+                            Rectangle {
+                                required property int index
+
+                                x: 4
+                                y: 5 + index * 4
+                                width: 7
+                                height: 1
+                                color: documentPreviewDialog.accentColor
+                            }
+                        }
+                    }
+                }
+            }
+
+            background: Rectangle {
+                radius: 8
+                color: saveDocumentChunksButton.down
+                    ? documentPreviewDialog.pressedColor
+                    : saveDocumentChunksButton.hovered
+                        ? documentPreviewDialog.hoverColor
+                        : documentPreviewDialog.surfaceColor
+                border.color: documentPreviewDialog.accentColor
+                border.width: 1
+            }
+
+            onClicked: {
+                if (!documentPreviewDialog.documentText.trim()) {
+                    documentPreviewDialog.statusKey =
+                        "document_save.empty_text"
+                    return
+                }
+
+                documentPreviewDialog.statusKey = ""
+                documentPreviewDialog.saveChunksRequested(
+                    documentPreviewDialog.documentText,
+                    documentPreviewDialog.sourceName
+                )
+            }
+        }
+
+        Button {
             id: saveDocumentButton
 
             width: 40
@@ -183,9 +281,9 @@ Dialog {
                 && !documentPreviewDialog.reviewPending
             opacity: enabled ? 1.0 : 0.5
 
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.margins: 12
+            anchors.right: analyzeDocumentButton.left
+            anchors.rightMargin: 12
+            anchors.verticalCenter: analyzeDocumentButton.verticalCenter
 
             Accessible.name: translator.text(
                 "document_save.save_full",
@@ -193,7 +291,7 @@ Dialog {
             )
             ToolTip.visible: hovered
             ToolTip.text: translator.text(
-                "document_save.save_full",
+                "document_save.single_tooltip",
                 translator.language
             )
             
@@ -357,9 +455,9 @@ Dialog {
         Button {
             id: analyzeDocumentButton
 
-            anchors.right: saveDocumentButton.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: saveDocumentButton.verticalCenter
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: 12
 
             width: 40
             height: 40
