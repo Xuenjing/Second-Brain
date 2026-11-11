@@ -21,19 +21,29 @@ def extract_txt_chunks(file_path: str) -> list[str]:
     path = Path(file_path)
 
     if not path.exists():
-        raise FileNotFoundError(f"File not found: {path}")
+        raise FileNotFoundError(
+            "text_parser.file_not_found"
+        )
     if path.suffix.lower() != ".txt":
-        raise ValueError("File must be a txt file.")
+        raise ValueError(
+            "text_parser.invalid_file_type"
+        )
 
     try:
         text = path.read_text(encoding="utf-8")
-    except UnicodeEncodeError as error:
-        raise ValueError("The file could not be read as UTF-8") from error
+    except UnicodeDecodeError as error:
+        raise ValueError(
+            "text_parser.invalid_encoding"
+        ) from error
     except OSError as error:
-        raise ValueError("The file could not be read.") from error
+        raise ValueError(
+            "text_parser.read_failed"
+        ) from error
 
     if not text.strip():
-        raise ValueError("The file is empty.")
+        raise ValueError(
+            "text_parser.empty_file"
+        )
 
     chunks = [
         chunk.strip()

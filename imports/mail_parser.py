@@ -89,7 +89,9 @@ def extract_mail_chunks(file_path: str) -> list[str]:
     path = Path(file_path)
 
     if not path.is_file():
-        raise FileNotFoundError(f"File not found: {path}")
+        raise FileNotFoundError(
+            "mail_parser.file_not_found"
+        )
 
     extension = path.suffix.lower()
 
@@ -98,10 +100,14 @@ def extract_mail_chunks(file_path: str) -> list[str]:
     elif extension == ".msg":
         subject, text = read_msg(path)
     else:
-        raise ValueError("File must be an EML or MSG file.")
+        raise ValueError(
+            "mail_parser.invalid_file_type"
+        )
 
     if not text.strip():
-        raise ValueError("The email text is empty.")
+        raise ValueError(
+            "mail_parser.empty_email"
+        )
 
     # Include the subject with the email text.
     text = text.strip()
@@ -133,19 +139,23 @@ def read_eml(path: Path) -> tuple[str, str]:
         with path.open("rb") as file:
             message = BytesParser(policy=policy.default).parse(file)
     except OSError as error:
-        raise ValueError("The file could not be read.") from error
+        raise ValueError(
+            "mail_parser.read_failed"
+        ) from error
 
     # Prefer plain text, fall back to HTML, and ignore attachments.
     body = message.get_body(preferencelist=("plain", "html"))
 
     if body is None:
-        raise ValueError("No plain text or HTML was found in the email.")
+        raise ValueError(
+            "mail_parser.no_body"
+        )
 
     try:
         text = body.get_content()
     except (UnicodeError, LookupError) as error:
         raise ValueError(
-            "The email text could not be decoded."
+            "mail_parser.decode_failed"
         ) from error
 
     if body.get_content_type() == "text/html":
@@ -175,7 +185,7 @@ def read_msg(path: Path) -> tuple[str, str]:
             text = message.body or ""
     except Exception as error:
         raise ValueError(
-            "The MSG file could not be read."
+            "mail_parser.msg_read_failed"
         ) from error
 
     return subject, text

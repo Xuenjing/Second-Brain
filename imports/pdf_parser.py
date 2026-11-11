@@ -48,9 +48,13 @@ def extract_pdf_chunks(file_path: str) -> list[str]:
     path = Path(file_path)
 
     if not path.exists():
-        raise FileNotFoundError(f"File not found: {path}")
+        raise FileNotFoundError(
+            "pdf_parser.file_not_found"
+        )
     if path.suffix.lower() != ".pdf":
-        raise ValueError("File must be a PDF file.")
+        raise ValueError(
+            "pdf_parser.invalid_file_type"
+        )
     
     reader = PdfReader(path)
 

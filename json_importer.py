@@ -22,23 +22,31 @@ def load_knowledge_from_json(file_path: str) -> list[dict]:
     path = Path(file_path)
 
     if not path.exists():
-        raise FileNotFoundError("The selected backup file does not exist.")
+        raise FileNotFoundError(
+            "json_importer.file_not_found"
+        )
 
     try:
         with path.open("r", encoding="utf-8") as file:
             data = json.load(file)
 
     except json.JSONDecodeError as error:
-        raise ValueError("The selected file is not a valid JSON") from error
+        raise ValueError(
+            "json_importer.invalid_json"
+        ) from error
 
     if not isinstance(data, list):
-        raise ValueError("The backup file must contain a list of knwoledge entries.")
+        raise ValueError(
+            "json_importer.invalid_root"
+        )
 
     validated_entries = []
 
     for item in data:
         if not isinstance(item, dict):
-            raise ValueError("Each knowledge entry must be a JSON object.")
+            raise ValueError(
+                "json_importer.invalid_entry"
+            )
 
         required_fields = {
             "text",
@@ -47,7 +55,9 @@ def load_knowledge_from_json(file_path: str) -> list[dict]:
         }
 
         if not required_fields.issubset(item):
-            raise ValueError("One or more knowledge entries missing required fields")
+            raise ValueError(
+                "json_importer.missing_fields"
+            )
 
         validated_entries.append({
             "text": item["text"],
