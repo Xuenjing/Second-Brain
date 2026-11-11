@@ -1083,7 +1083,9 @@ class Backend(QObject):
             )
             return
         except ValueError as error:
-            self.knowledgeSaveResult.emit(str(error))
+            self.knowledgeSaveResult.emit(
+                self._text(str(error))
+            )
             return
         
         if added_count == 0:
@@ -1113,7 +1115,9 @@ class Backend(QObject):
         try:
             added_count = import_docx_to_database(local_path)
         except (FileNotFoundError, ValueError) as error:
-            self.knowledgeSaveResult.emit(str(error))
+            self.knowledgeSaveResult.emit(
+                self._text(str(error))
+            )
             return
 
         if added_count == 0:
@@ -1143,7 +1147,9 @@ class Backend(QObject):
         try:
             added_count = import_pdf_to_database(local_path)
         except (FileNotFoundError, ValueError) as error:
-            self.knowledgeSaveResult.emit(str(error))
+            self.knowledgeSaveResult.emit(
+                self._text(str(error))
+            )
             return
 
         if added_count == 0:
@@ -1175,7 +1181,9 @@ class Backend(QObject):
         try:
             chunks = extract_mail_chunks(local_path)
         except (FileNotFoundError, ValueError, OSError) as error:
-            self.knowledgeSaveResult.emit(str(error))
+            self.knowledgeSaveResult.emit(
+                self._text(str(error))
+            )
             return
 
         self.mail_text = "\n\n".join(chunks)
@@ -1423,7 +1431,9 @@ class Backend(QObject):
             )
             return
         except ValueError as error:
-            self.knowledgeSaveResult.emit(str(error))
+            self.knowledgeSaveResult.emit(
+                self._text(str(error))
+            )
             return
         except OSError:
             self.knowledgeSaveResult.emit(
@@ -1641,7 +1651,9 @@ class Backend(QObject):
             )
 
         except (FileNotFoundError, ValueError) as error:
-            self.importResult.emit(str(error))
+            self.importResult.emit(
+                self._text(str(error))
+            )
             return
 
         self.importResult.emit(
