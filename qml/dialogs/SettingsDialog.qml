@@ -269,28 +269,135 @@ Dialog {
                 }
             }
 
-            // LANGUAGE SETTINGS
+            // Language settings.
             Row {
                 spacing: 12
 
                 Label {
+                    anchors.verticalCenter: parent.verticalCenter
+
                     text: translator.text(
                         "settings.language",
                         translator.language
                     )
 
                     color: settingsDialog.textColor
-                    anchors.verticalCenter: parent.verticalCenter
+                    font.pixelSize: 14
                 }
 
                 ComboBox {
                     id: languageComboBox
 
-                    // Display options for the user.
-                    model: ["Svenska", "English"]
+                    width: 180
+                    height: 40
+                    leftPadding: 12
+                    rightPadding: 36
+                    hoverEnabled: true
 
-                    // If sv: select first option, else the second.
+                    model: ["Svenska", "English"]
                     currentIndex: translator.language === "sv" ? 0 : 1
+
+                    Accessible.name: translator.text(
+                        "settings.language",
+                        translator.language
+                    )
+
+                    contentItem: Text {
+                        text: languageComboBox.displayText
+                        color: settingsDialog.textColor
+                        font.pixelSize: 14
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                    }
+
+                    indicator: Text {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        text: "▾"
+                        font.pixelSize: 18
+                        color: settingsDialog.accentColor
+                    }
+
+                    background: Rectangle {
+                        radius: 8
+
+                        color: languageComboBox.down
+                            ? settingsDialog.pressedColor
+                            : languageComboBox.hovered
+                                ? settingsDialog.hoverColor
+                                : settingsDialog.surfaceColor
+
+                        border.color: languageComboBox.activeFocus
+                            || languageComboBox.popup.visible
+                            ? settingsDialog.accentColor
+                            : settingsDialog.borderColor
+
+                        border.width: 1
+                    }
+
+                    delegate: ItemDelegate {
+                        id: languageOption
+
+                        required property int index
+                        required property string modelData
+
+                        width: languageComboBox.width - 8
+                        height: 38
+
+                        highlighted:
+                            languageComboBox.highlightedIndex === index
+
+                        contentItem: Text {
+                            text: languageOption.modelData
+                            color: settingsDialog.textColor
+                            font.pixelSize: 14
+                            font.bold: languageOption.index
+                                === languageComboBox.currentIndex
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            radius: 6
+
+                            color: languageOption.highlighted
+                                ? settingsDialog.hoverColor
+                                : "transparent"
+
+                            border.width: languageOption.index
+                                === languageComboBox.currentIndex ? 1 : 0
+                            border.color: settingsDialog.accentColor
+                        }
+                    }
+
+                    popup: Popup {
+                        y: languageComboBox.height + 4
+                        width: languageComboBox.width
+                        padding: 4
+
+                        implicitHeight: contentItem.implicitHeight
+                            + topPadding + bottomPadding
+
+                        contentItem: ListView {
+                            clip: true
+                            implicitHeight: contentHeight
+
+                            model: languageComboBox.popup.visible
+                                ? languageComboBox.delegateModel
+                                : null
+
+                            currentIndex:
+                                languageComboBox.highlightedIndex
+                        }
+
+                        background: Rectangle {
+                            radius: 8
+                            color: settingsDialog.surfaceColor
+                            border.color: settingsDialog.borderColor
+                            border.width: 1
+                        }
+                    }
 
                     onActivated: {
                         if (currentIndex === 0) {
@@ -326,6 +433,8 @@ Dialog {
                     )
                     color: settingsDialog.textColor
                     font.pixelSize: 14
+                    height: 40
+                    verticalAlignment: Text.AlignVCenter
                 }
 
             Item {
@@ -335,8 +444,8 @@ Dialog {
                 property int from: 1
                 property int to: 20
 
-                width: 140
-                height: 42
+                width: 180
+                height: 40
 
                 Rectangle {
                     anchors.fill: parent
@@ -438,22 +547,35 @@ Dialog {
                     )
                     color: settingsDialog.textColor
                     font.pixelSize: 14
+                    height: 40
+                    verticalAlignment: Text.AlignVCenter
                 }
 
                 TextField {
                     id: thresholdInput
 
-                    width: 120
+                    width: 180
+                    height: 40
                     text: "0.82"
+
                     color: settingsDialog.textColor
+                    font.pixelSize: 14
+                    leftPadding: 12
+                    rightPadding: 12
+                    verticalAlignment: TextInput.AlignVCenter
+                    hoverEnabled: true
+
+                    selectionColor: settingsDialog.accentColor
+                    selectedTextColor: settingsDialog.surfaceColor
 
                     background: Rectangle {
-                        radius: 6
+                        radius: 8
                         color: settingsDialog.surfaceColor
 
                         border.color: thresholdInput.activeFocus
-                            ? settingsDialog.accentColor
-                            : settingsDialog.borderColor
+                            || thresholdInput.hovered
+                                ? settingsDialog.accentColor
+                                : settingsDialog.borderColor
 
                         border.width: 1
                     }

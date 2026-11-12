@@ -4,7 +4,10 @@ import QtQuick.Controls
 Dialog {
     id: deleteSourceDialog
 
-    title: "Ta bort källa"
+    title: translator.text(
+    "delete_source.title",
+    translator.language
+    )
 
     property string sourceName: ""
     property int entryCount: 0
@@ -55,7 +58,10 @@ Dialog {
         Label {
             width: parent.width
 
-            text: "Vill du ta bort alla kunskapsposter från den här källan?"
+            text: translator.text(
+                "delete_source.confirm",
+                translator.language
+            )
 
             color: deleteSourceDialog.textColor
             wrapMode: Text.WordWrap
@@ -74,8 +80,12 @@ Dialog {
         Label {
             width: parent.width
 
-            text: deleteSourceDialog.entryCount
-                + " kunskapsposter kommer att tas bort."
+            text: translator.text(
+                    "delete_source.entries",
+                    translator.language
+                )
+                + " "
+                + deleteSourceDialog.entryCount
 
             color: deleteSourceDialog.secondaryTextColor
             font.pixelSize: 12
@@ -85,7 +95,10 @@ Dialog {
         Label {
             width: parent.width
 
-            text: "Detta går inte att ångra."
+            text: translator.text(
+                "delete_source.warning",
+                translator.language
+            )
 
             color: deleteSourceDialog.dangerColor
             wrapMode: Text.WordWrap
@@ -104,7 +117,10 @@ Dialog {
             Button {
                 id: confirmDeleteButton
 
-                text: "Ta bort alla"
+            text: translator.text(
+                "delete_source.all",
+                translator.language
+            )
                 width: 120
                 height: 40
                 hoverEnabled: true
@@ -140,7 +156,10 @@ Dialog {
             Button {
                 id: cancelDeleteButton
 
-                text: "Avbryt"
+                text: translator.text(
+                    "common.cancel",
+                    translator.language
+                )
                 width: 100
                 height: 40
                 hoverEnabled: true

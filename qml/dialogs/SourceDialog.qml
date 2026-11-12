@@ -21,7 +21,10 @@ Dialog {
     signal knowledgeEntryRequested(int id)
 
     modal: true
-    title: "Källor"
+    title: translator.text(
+        "source_dialog.title",
+        translator.language
+    )
 
     ListModel {
         id: visibleSourcesModel
@@ -147,9 +150,15 @@ Dialog {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
-            Accessible.name: "Stäng"
+            Accessible.name: translator.text(
+                "common.close",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng"
+            ToolTip.text: translator.text(
+                "common.close",
+                translator.language
+            )
 
             contentItem: Item {
                 Rectangle {
@@ -199,16 +208,45 @@ Dialog {
             width: parent.width
 
             text: searchField.text.trim() !== ""
-                ? "Visar "
+                ? translator.text(
+                    "source_dialog.showing",
+                    translator.language
+                )
+                    + " "
                     + filteredSourcesModel.count
-                    + " av "
+                    + " "
+                    + translator.text(
+                        "source_dialog.of",
+                        translator.language
+                    )
+                    + " "
                     + visibleSourcesModel.count
-                    + " källposter"
+                    + " "
+                    + translator.text(
+                        "source_dialog.source_entries",
+                        translator.language
+                    )
                 : visibleSourcesModel.count === 1
-                    ? "Visar 1 källpost"
-                    : "Visar "
+                    ? translator.text(
+                        "source_dialog.showing",
+                        translator.language
+                    )
+                        + " 1 "
+                        + translator.text(
+                            "source_dialog.source_entry",
+                            translator.language
+                        )
+                    : translator.text(
+                        "source_dialog.showing",
+                        translator.language
+                    )
+                        + " "
                         + visibleSourcesModel.count
-                        + " källposter"
+                        + " "
+                        + translator.text(
+                            "source_dialog.source_entries",
+                            translator.language
+                        )
 
             color: sourceDialog.secondaryTextColor
             font.pixelSize: 12
@@ -220,7 +258,10 @@ Dialog {
             width: parent.width - 16
             height: 40
 
-            placeholderText: "Sök bland källor..."
+            placeholderText: translator.text(
+                "source_dialog.search",
+                translator.language
+            )
 
             color: sourceDialog.textColor
             placeholderTextColor: sourceDialog.secondaryTextColor
@@ -333,7 +374,12 @@ Dialog {
                     }
 
                     Text {
-                        text: "Score: " + sourceItem.score.toFixed(3)
+                        text: translator.text(
+                                "source_dialog.score",
+                                translator.language
+                            )
+                            + ": "
+                            + sourceItem.score.toFixed(3)
                         color: sourceDialog.secondaryTextColor
                         font.pixelSize: 11
                     }
@@ -346,7 +392,10 @@ Dialog {
                 visible: searchField.text.trim() !== ""
                     && filteredSourcesModel.count === 0
 
-                text: "Inga källor matchar sökningen."
+                text: translator.text(
+                    "source_dialog.no_search_results",
+                    translator.language
+                )
                 color: sourceDialog.secondaryTextColor
                 font.pixelSize: 13
             }
@@ -365,8 +414,14 @@ Dialog {
             visible: sourceDialog.hasAdditionalSources()
 
             text: sourceDialog.showAdditionalSources
-                ? "Visa endast använda källor"
-                : "Visa fler relevanta källor"
+                ? translator.text(
+                    "source_dialog.show_used_only",
+                    translator.language
+                )
+                : translator.text(
+                    "source_dialog.show_more_relevant",
+                    translator.language
+                )
 
             contentItem: Text {
                 text: showMoreButton.text

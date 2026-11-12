@@ -25,6 +25,10 @@ Item {
 
     property bool canReviewMail: false
 
+    property bool canReviewDocument: false
+
+    signal documentReviewRequested()
+
     signal mailReviewRequested()
 
     // Helper function. 
@@ -88,7 +92,10 @@ Item {
 
             Text {
                 anchors.centerIn: parent
-                text: "Du"
+                text: translator.text(
+                    "chat_message.you",
+                    translator.language
+                )
                 color: "#F1F5F9"
                 font.pixelSize: 12
                 font.bold: true
@@ -117,7 +124,8 @@ Item {
                 : messageSize.implicitWidth + 28,
             chatMessage.width * 0.8,
             chatMessage.width - avatar.width - 12
-                - (chatMessage.canReviewMail ? 40 : 0)
+                - ((chatMessage.canReviewMail
+                    || chatMessage.canReviewDocument) ? 40 : 0)
         )
 
         
@@ -211,11 +219,19 @@ Item {
             padding: 0
             hoverEnabled: true
 
-            visible: chatMessage.canReviewMail && !chatMessage.isPending
+            visible: (chatMessage.canReviewMail
+                || chatMessage.canReviewDocument)
+                && !chatMessage.isPending
 
-            Accessible.name: "Granska föreslagna fakta"
+            Accessible.name: translator.text(
+                "chat_message.review_facts",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Granska föreslagna fakta"
+            ToolTip.text: translator.text(
+                "chat_message.review_facts",
+                translator.language
+            )
 
             // Draw an eye icon.
             contentItem: Item {
@@ -263,7 +279,13 @@ Item {
                 border.width: 1
             }
 
-            onClicked: chatMessage.mailReviewRequested()
+            onClicked: {
+                if (chatMessage.canReviewDocument) {
+                    chatMessage.documentReviewRequested()
+                } else {
+                    chatMessage.mailReviewRequested()
+                }
+            }
         }
 
         Button {
@@ -332,13 +354,50 @@ Item {
 
             property var uniqueSourcesList: chatMessage.uniqueSources()
 
-            width: 300
+            // Position the preview relative to the window overlay.
+            parent: Overlay.overlay
+
+            width: Math.min(300, parent.width - 24)
             height: previewContent.implicitHeight + 20
-
-            x: sourceButton.x + sourceButton.width + 6
-            y: sourceButton.y - 20
-
             padding: 10
+
+            onAboutToShow: {
+                const buttonPosition = sourceButton.mapToItem(
+                    sourcePreview.parent,
+                    0,
+                    0
+                )
+
+                const rightPosition =
+                    buttonPosition.x + sourceButton.width + 6
+
+                const leftPosition =
+                    buttonPosition.x - sourcePreview.width - 6
+
+                const preferredX =
+                    rightPosition + sourcePreview.width
+                        <= sourcePreview.parent.width - 12
+                    ? rightPosition
+                    : leftPosition
+
+                sourcePreview.x = Math.max(
+                    12,
+                    Math.min(
+                        preferredX,
+                        sourcePreview.parent.width
+                            - sourcePreview.width - 12
+                    )
+                )
+
+                sourcePreview.y = Math.max(
+                    12,
+                    Math.min(
+                        buttonPosition.y - 20,
+                        sourcePreview.parent.height
+                            - sourcePreview.height - 12
+                    )
+                )
+            }
 
             background: Rectangle {
                 color: chatMessage.surfaceColor
@@ -353,13 +412,22 @@ Item {
 
                 Text {
                     text: sourcePreview.uniqueSourcesList.length
-                        + (sourcePreview.uniqueSourcesList.length === 1
-                            ? " källa, "
-                            : " källor, ")
+                        + " "
+                        + translator.text(
+                            sourcePreview.uniqueSourcesList.length === 1
+                                ? "chat_message.source"
+                                : "chat_message.sources",
+                            translator.language
+                        )
+                        + ", "
                         + chatMessage.sourceCount
-                        + (chatMessage.sourceCount === 1
-                            ? " post"
-                            : " poster")
+                        + " "
+                        + translator.text(
+                            chatMessage.sourceCount === 1
+                                ? "chat_message.entry"
+                                : "chat_message.entries",
+                            translator.language
+                        )
 
                     color: chatMessage.textColor
                     font.pixelSize: 12
@@ -395,7 +463,10 @@ Item {
                 }
 
                 Text {
-                    text: "Klicka för detaljer"
+                    text: translator.text(
+                        "chat_message.click_for_details",
+                        translator.language
+                    )
                     color: chatMessage.secondaryTextColor
                     font.pixelSize: 10
                     font.italic: true

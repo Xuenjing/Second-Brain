@@ -102,11 +102,26 @@ tray_icon.setToolTip("Second Brain")
 # Create the tray icon menu.
 tray_menu = QMenu()
 
-open_action = tray_menu.addAction("Öppna")
+open_action = tray_menu.addAction("")
 open_action.triggered.connect(show_window)
 
-quit_action = tray_menu.addAction("Avsluta")
+quit_action = tray_menu.addAction("")
 quit_action.triggered.connect(app.quit)
+
+
+def update_tray_menu() -> None:
+    """Update tray menu labels using the current interface language."""
+    open_action.setText(
+        translator.text("tray.open", translator.language)
+    )
+    quit_action.setText(
+        translator.text("tray.quit", translator.language)
+    )
+
+
+translator.languageChanged.connect(update_tray_menu)
+update_tray_menu()
+
 
 tray_icon.setContextMenu(tray_menu)
 tray_icon.show()

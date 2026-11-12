@@ -18,7 +18,10 @@ Dialog {
 
     signal loadConfirmed(int modelIndex)
 
-    title: "Byta språkmodell?"
+    title: translator.text(
+        "model_load.title",
+        translator.language
+    )
     modal: true
 
     width: Math.max(parent.width * 0.45, 480)
@@ -68,7 +71,10 @@ Dialog {
                 anchors.fill: parent
                 anchors.margins: 12
 
-                text: "Att ladda en ny modell kan ta från några sekunder till flera minuter beroende på modellstorlek, hårdvara och om modellen redan finns lokalt. Om modellen saknas kan den behöva laddas ner först."
+                text: translator.text(
+                    "model_load.warning",
+                    translator.language
+                )
 
                 color: modelLoadDialog.textColor
                 wrapMode: Text.WordWrap
@@ -88,7 +94,10 @@ Dialog {
             Button {
                 id: cancelButton
 
-                text: "Avbryt"
+                text: translator.text(
+                    "common.cancel",
+                    translator.language
+                )
                 width: 100
                 height: 40
                 hoverEnabled: true
@@ -126,7 +135,10 @@ Dialog {
                 hoverEnabled: true
 
                 contentItem: Text {
-                    text: confirmButton.text
+                    text: translator.text(
+                        "model_load.confirm",
+                        translator.language
+                    )
                     color: "#FFFFFF"
                     font.pixelSize: 14
                     font.bold: true

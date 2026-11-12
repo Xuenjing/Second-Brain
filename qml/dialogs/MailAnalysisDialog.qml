@@ -16,7 +16,10 @@ Dialog {
 
     signal analysisConfirmed(string emailText)
 
-    title: "Analysera mejl med AI?"
+    title: translator.text(
+        "mail_analysis.title",
+        translator.language
+    )
     modal: true
 
     background: Rectangle {
@@ -47,7 +50,10 @@ Dialog {
             anchors.top: parent.top
             anchors.margins: 12
 
-            text: "AI-analysen kan ta flera minuter beroende på mejlets längd, den laddade modellen och datorns prestanda. Du får granska och redigera förslagen innan något sparas."
+            text: translator.text(
+                "mail_analysis.warning",
+                translator.language
+            )
 
             color: mailAnalysisDialog.textColor
             wrapMode: Text.WordWrap
@@ -64,7 +70,16 @@ Dialog {
             spacing: 12
 
             Repeater {
-                model: ["Avbryt", "Analysera mejl"]
+                model: [
+                    translator.text(
+                        "common.cancel",
+                        translator.language
+                    ),
+                    translator.text(
+                        "mail_analysis.analyze",
+                        translator.language
+                    )
+                ]
 
                 delegate: Button {
                     id: actionButton

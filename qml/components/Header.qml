@@ -69,9 +69,15 @@ Item {
 
         hoverEnabled: true
 
-        Accessible.name: "Användarguide"
+        Accessible.name: translator.text(
+            "header.user_guide",
+            translator.language
+        )
         ToolTip.visible: hovered
-        ToolTip.text: "Användarguide"
+        ToolTip.text: translator.text(
+            "header.user_guide",
+            translator.language
+        )
 
         contentItem: Text {
             text: "?"
@@ -109,9 +115,15 @@ Item {
 
         hoverEnabled: true
 
-        Accessible.name: "Inställningar"
+        Accessible.name: translator.text(
+            "settings.title",
+            translator.language
+        )
         ToolTip.visible: hovered
-        ToolTip.text: "Inställningar"
+        ToolTip.text: translator.text(
+            "settings.title",
+            translator.language
+        )
 
         contentItem: Item {
             Canvas {

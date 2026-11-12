@@ -20,6 +20,22 @@ import "dialogs"
 ApplicationWindow {
     id: root
 
+    property bool isDocumentAnalyzing: false
+    property bool documentReviewPending: false
+
+    property int documentAnalysisIndex: -1
+
+    function updateDocumentAnalysisBubble(message, isPending) {
+        if (documentAnalysisIndex < 0
+                || documentAnalysisIndex >= chatModel.count) {
+            return
+        }
+
+        chatModel.setProperty(documentAnalysisIndex, "message", message)
+        chatModel.setProperty(documentAnalysisIndex, "isPending", isPending)
+        chatPanel.scrollToBottom()
+    }
+
     // Choose between dark and light mode.
     property bool darkMode: true
 
@@ -210,6 +226,13 @@ ApplicationWindow {
                 }
             }
 
+            onDocumentReviewRequested: {
+                if (root.documentReviewPending) {
+                    documentPreviewDialog.close()
+                    documentReviewDialog.open()
+                }
+            }
+
             chatModel: chatModel
 
             surfaceColor: root.surfaceColor
@@ -264,6 +287,7 @@ ApplicationWindow {
                     lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
+                    canReviewDocument: false,
                     isPending: false
                 })
 
@@ -271,12 +295,16 @@ ApplicationWindow {
 
                 chatModel.append({
                     sender: "assistant",
-                    message: "Tänker…",
+                    message: translator.text(
+                        "thinking.status",
+                        translator.language
+                    ),
                     sources: [],
                     additionalSources: [],
                     lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
+                    canReviewDocument: false,
                     isPending: true
                 })
 
@@ -565,7 +593,7 @@ ApplicationWindow {
         // Send the selected file URL to Python.
         onAccepted: {
             knowledgeDialog.clearSaveStatus()
-            backend.add_txt_knowledge(selectedFile.toString())
+            backend.preview_txt(selectedFile.toString())
         }
     }
 
@@ -587,7 +615,7 @@ ApplicationWindow {
         // Send the selected file URL to Python.
         onAccepted: {
             knowledgeDialog.clearSaveStatus()
-            backend.add_docx_knowledge(selectedFile)
+            backend.preview_docx(selectedFile.toString())
         }
     }
 
@@ -609,7 +637,7 @@ ApplicationWindow {
         // Send the selected file URL to python.
         onAccepted: {
             knowledgeDialog.clearSaveStatus()
-            backend.add_pdf_knowledge(selectedFile)
+            backend.preview_pdf(selectedFile.toString())
         }
     }
 
@@ -645,6 +673,105 @@ ApplicationWindow {
         onSaveRequested: function(selectedFacts) {
             backend.save_reviewed_mail_facts(selectedFacts)
         }
+    }
+
+    // Confirm before analyzing reviewed document text.
+    DocumentAnalysisDialog {
+        id: documentAnalysisDialog
+
+        property string sourceName: ""
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+        width: Math.min(520, root.width - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        accentColor: root.accentColor
+        assistantBubbleColor: root.assistantBubbleColor
+
+        onAnalysisConfirmed: function(documentText) {
+            backend.analyze_previewed_document(
+                documentText,
+                documentAnalysisDialog.sourceName
+            )
+        }
+    }
+
+    // Review document suggestions before saving selected facts.
+    DocumentReviewDialog {
+        id: documentReviewDialog
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        width: Math.min(900, root.width - 48)
+        height: Math.min(600, root.height - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        accentColor: root.accentColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        assistantBubbleColor: root.assistantBubbleColor
+
+        dangerColor: root.dangerColor
+        dangerBorderColor: root.dangerBorderColor
+        dangerHoverColor: root.dangerHoverColor
+        dangerPressedColor: root.dangerPressedColor
+
+        onSaveRequested: function(selectedFacts) {
+            backend.save_reviewed_document_facts(selectedFacts)
+        }
+
+        onDiscardRequested: backend.discard_document_review()
+    }
+
+    // Preview document text before saving.
+    DocumentPreviewDialog {
+        id: documentPreviewDialog
+
+        parent: root.contentItem
+        anchors.centerIn: parent
+
+        width: Math.min(800, root.width - 48)
+        height: Math.min(550, root.height - 48)
+
+        surfaceColor: root.surfaceColor
+        borderColor: root.borderColor
+        textColor: root.textColor
+        secondaryTextColor: root.secondaryTextColor
+        accentColor: root.accentColor
+        hoverColor: root.hoverColor
+        pressedColor: root.pressedColor
+        assistantBubbleColor: root.assistantBubbleColor
+
+        onSaveRequested: function(text, source) {
+            backend.save_previewed_document(text, source)
+        }
+
+        onSaveChunksRequested: function(text, source) {
+            backend.save_previewed_document_chunks(text, source)
+        }
+
+        onAnalyzeRequested: function(text, source) {
+            documentAnalysisDialog.documentText = text
+            documentAnalysisDialog.sourceName = source
+            documentAnalysisDialog.open()
+        }
+
+        isAnalyzing: root.isDocumentAnalyzing
+        modelBusy: root.isThinking
+            || root.modelLoading
+            || root.isMailAnalyzing
+        reviewPending: root.documentReviewPending
+
+        onReviewRequested: documentReviewDialog.open()
     }
 
     // Preview an email before choosing how to import it.
@@ -717,8 +844,17 @@ ApplicationWindow {
     FileDialog {
         id: mailFileDialog
 
-        title: "Välj ett mejl"
-        nameFilters: ["Mejlfiler (*.eml *.msg)"]
+        title: translator.text(
+            "filedialog.select_mail",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.mail_files",
+                translator.language
+            )
+        ]
         fileMode: FileDialog.OpenFile
 
         onAccepted: {
@@ -753,7 +889,12 @@ ApplicationWindow {
 
         // Send the destination file URL to Python.
         onAccepted: {
-            settingsDialog.setBackupStatus("Exporterar…")
+            settingsDialog.setBackupStatus(
+                translator.text(
+                    "status.exporting",
+                    translator.language
+                )
+            )
             backend.export_knowledge(selectedFile.toString())
         }
     }
@@ -762,8 +903,17 @@ ApplicationWindow {
     FileDialog {
         id: importBackupFileDialog
 
-        title: "Importera backup"
-        nameFilters: ["JSON-filer (*.json)"]
+        title: translator.text(
+            "filedialog.import_backup",
+            translator.language
+        )
+
+        nameFilters: [
+            translator.text(
+                "filedialog.json_files",
+                translator.language
+            )
+        ]
 
         onAccepted: {
             backend.import_knowledge(selectedFile.toString())
@@ -792,17 +942,55 @@ ApplicationWindow {
     Connections {
         target: backend
 
+        // Open the document preview without saving anything.
+        function onDocumentPreviewReady(text, sourceName) {
+            knowledgeDialog.clearSaveStatus()
+            documentPreviewDialog.loadDocument(text, sourceName)
+            documentPreviewDialog.open()
+        }
+
+        // Display the translated result and refresh saved knowledge.
+        function onDocumentSaveResult(success, messageKey) {
+            documentPreviewDialog.statusKey = messageKey
+
+            if (success && knowledgeViewDialog.visible) {
+                knowledgeViewDialog.requestRefresh()
+            }
+        }
+
+        function onDocumentChunksSaveResult(success, messageKey, count) {
+            documentPreviewDialog.statusCount = count
+            documentPreviewDialog.statusKey = messageKey
+
+            if ((success || count > 0) && knowledgeViewDialog.visible) {
+                knowledgeViewDialog.requestRefresh()
+            }
+        }
+
+        function onDocumentPreviewFailed(errorKey) {
+            knowledgeDialog.setSaveStatus(
+                translator.text(errorKey, translator.language)
+            )
+
+            // Restore a pending review without resetting its edits.
+            if (errorKey === "document_analysis.review_pending") {
+                documentReviewDialog.open()
+            }
+        }
+
         // Replace the waiting bubble with the answer.
         function onReplyReady(
-            reply, 
+            reply,
             sources,
             additionalSources,
-            lessRelevantSources) {
+            lessRelevantSources
+        ) {
             root.finishPendingReply(
-                reply, 
-                sources || [],
-                additionalSources || [],
-                lessRelevantSources || [])
+                reply,
+                sources,
+                additionalSources,
+                lessRelevantSources
+            )
         }
 
         // Show the result of saving or importing knowledge.
@@ -849,7 +1037,17 @@ ApplicationWindow {
 
         // Replace the waiting bubble with an error message.
         function onReplyFailed(message) {
-            root.finishPendingReply("Fel: " + message, [], [], [])
+            root.finishPendingReply(
+                translator.text(
+                    "status.error_prefix",
+                    translator.language
+                )
+                + " "
+                + message,
+                [],
+                [],
+                []
+            )
         }
 
         // Open knowledgeview for clicked entry
@@ -891,19 +1089,32 @@ ApplicationWindow {
             root.isMailAnalyzing = analyzing
 
             if (analyzing) {
-                knowledgeDialog.setSaveStatus("Analyserar mejl…")
-                mailPreviewDialog.statusMessage = "Analyserar mejl…"
+                knowledgeDialog.setSaveStatus(
+                    translator.text(
+                        "mail_status.analyzing",
+                        translator.language
+                    )
+                )
+
+                mailPreviewDialog.statusMessage = translator.text(
+                    "mail_status.analyzing",
+                    translator.language
+                )
 
                 root.mailAnalysisIndex = chatModel.count
 
                 chatModel.append({
                     sender: "assistant",
-                    message: "Analyserar mejl…",
+                    message: translator.text(
+                        "mail_status.analyzing",
+                        translator.language
+                    ),
                     sources: [],
                     additionalSources: [],
                     lessRelevantSources: [],
                     sourceCount: 0,
                     canReviewMail: false,
+                    canReviewDocument: false,
                     isPending: true
                 })
 
@@ -912,7 +1123,10 @@ ApplicationWindow {
                     && chatModel.get(root.mailAnalysisIndex).isPending) {
                 // Successful analysis updates the bubble in onMailReviewReady.
                 root.updateMailAnalysisBubble(
-                    "Mejlet kunde inte analyseras. Försök igen.",
+                    translator.text(
+                        "mail_status.analysis_failed",
+                        translator.language
+                    ),
                     false
                 )
                 root.mailAnalysisIndex = -1
@@ -928,9 +1142,26 @@ ApplicationWindow {
             
 
             const reviewMessage = facts.length > 0
-                ? "Mejlanalysen är klar. " + facts.length
-                    + " förslag att granska."
-                : "Mejlanalysen är klar. Inga faktauppgifter föreslogs."
+                ? translator.text(
+                    "mail_status.analysis_done",
+                    translator.language
+                )
+                    + " "
+                    + facts.length
+                    + " "
+                    + translator.text(
+                        "mail_status.suggestions_to_review",
+                        translator.language
+                    )
+                : translator.text(
+                    "mail_status.analysis_done",
+                    translator.language
+                )
+                    + " "
+                    + translator.text(
+                        "mail_status.no_facts",
+                        translator.language
+                    )
 
             knowledgeDialog.setSaveStatus(reviewMessage)
             mailPreviewDialog.statusMessage = reviewMessage
@@ -938,8 +1169,24 @@ ApplicationWindow {
             mailReviewDialog.loadSuggestions(facts)
 
             root.updateMailAnalysisBubble(
-                "Analysen av mejlet ”" + source + "” är klar. "
-                    + facts.length + " förslag att granska.",
+                translator.text(
+                    "mail_status.analysis_of",
+                    translator.language
+                )
+                + " ”"
+                + source
+                + "” "
+                + translator.text(
+                    "mail_status.is_done",
+                    translator.language
+                )
+                + " "
+                + facts.length
+                + " "
+                + translator.text(
+                    "mail_status.suggestions_to_review",
+                    translator.language
+                ),
                 false
             )
 
@@ -965,7 +1212,10 @@ ApplicationWindow {
             }
 
             root.updateMailAnalysisBubble(
-                "Mejlgranskningen är avslutad.",
+                translator.text(
+                    "mail_status.review_finished",
+                    translator.language
+                ),
                 false
             )
             root.mailAnalysisIndex = -1
@@ -1015,6 +1265,135 @@ ApplicationWindow {
 
             if (success) {
                 knowledgeViewDialog.requestRefresh()
+            }
+        }
+
+        function onDocumentAnalysisChanged(analyzing) {
+            root.isDocumentAnalyzing = analyzing
+
+            if (analyzing) {
+                documentPreviewDialog.statusKey =
+                    "document_analysis.analyzing"
+
+                root.documentAnalysisIndex = chatModel.count
+
+                chatModel.append({
+                    sender: "assistant",
+                    message: translator.text(
+                        "document_analysis.analyzing",
+                        translator.language
+                    ),
+                    sources: [],
+                    additionalSources: [],
+                    lessRelevantSources: [],
+                    sourceCount: 0,
+                    canReviewMail: false,
+                    canReviewDocument: false,
+                    isPending: true
+                })
+
+                chatPanel.scrollToBottom()
+            }
+        }
+
+        function onDocumentAnalysisFailed(messageKey) {
+            documentPreviewDialog.statusKey = messageKey
+
+            const index = root.documentAnalysisIndex
+
+            // Update only a bubble still waiting for its analysis result.
+            if (index >= 0
+                    && index < chatModel.count
+                    && chatModel.get(index).isPending
+                    && messageKey === "document_analysis.failed") {
+                root.updateDocumentAnalysisBubble(
+                    translator.text(messageKey, translator.language),
+                    false
+                )
+                root.documentAnalysisIndex = -1
+            }
+        }
+
+        function onDocumentReviewReady(text, facts, source) {
+            root.documentReviewPending = true
+
+            documentPreviewDialog.statusKey =
+                facts.length > 0
+                    ? "document_analysis.ready"
+                    : "document_analysis.no_facts"
+
+            documentReviewDialog.documentReviewText = text
+            documentReviewDialog.documentReviewSource = source
+            documentReviewDialog.clearSuggestions()
+            documentReviewDialog.loadSuggestions(facts)
+
+            documentPreviewDialog.open()
+
+            root.updateDocumentAnalysisBubble(
+                source + ": "
+                    + translator.text(
+                        facts.length > 0
+                            ? "document_analysis.ready"
+                            : "document_analysis.no_facts",
+                        translator.language
+                    ),
+                false
+            )
+
+            if (root.documentAnalysisIndex >= 0
+                    && root.documentAnalysisIndex < chatModel.count) {
+                chatModel.setProperty(
+                    root.documentAnalysisIndex,
+                    "canReviewDocument",
+                    true
+                )
+            }
+        }
+
+        function onDocumentReviewFinished() {
+            root.updateDocumentAnalysisBubble(
+                translator.text(
+                    "document_review.finished",
+                    translator.language
+                ),
+                false
+            )
+
+            if (root.documentAnalysisIndex >= 0
+                    && root.documentAnalysisIndex < chatModel.count) {
+                chatModel.setProperty(
+                    root.documentAnalysisIndex,
+                    "canReviewDocument",
+                    false
+                )
+            }
+
+            root.documentAnalysisIndex = -1
+            
+            root.documentReviewPending = false
+
+            documentReviewDialog.close()
+            documentReviewDialog.clearSuggestions()
+            documentReviewDialog.documentReviewText = ""
+            documentReviewDialog.documentReviewSource = ""
+
+            documentPreviewDialog.statusKey = ""
+            documentPreviewDialog.open()
+        }
+
+        function onDocumentFactsSaveResult(success, messageKey, count) {
+            if (success) {
+                documentPreviewDialog.statusCount = count
+                documentPreviewDialog.statusKey = messageKey
+
+                if (knowledgeViewDialog.visible) {
+                    knowledgeViewDialog.requestRefresh()
+                }
+            } else {
+                documentReviewDialog.statusMessage = translator.text(
+                    messageKey,
+                    translator.language
+                ).replace("{count}", count.toString())
             }
         }      
 
