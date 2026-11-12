@@ -354,13 +354,50 @@ Item {
 
             property var uniqueSourcesList: chatMessage.uniqueSources()
 
-            width: 300
+            // Position the preview relative to the window overlay.
+            parent: Overlay.overlay
+
+            width: Math.min(300, parent.width - 24)
             height: previewContent.implicitHeight + 20
-
-            x: sourceButton.x + sourceButton.width + 6
-            y: sourceButton.y - 20
-
             padding: 10
+
+            onAboutToShow: {
+                const buttonPosition = sourceButton.mapToItem(
+                    sourcePreview.parent,
+                    0,
+                    0
+                )
+
+                const rightPosition =
+                    buttonPosition.x + sourceButton.width + 6
+
+                const leftPosition =
+                    buttonPosition.x - sourcePreview.width - 6
+
+                const preferredX =
+                    rightPosition + sourcePreview.width
+                        <= sourcePreview.parent.width - 12
+                    ? rightPosition
+                    : leftPosition
+
+                sourcePreview.x = Math.max(
+                    12,
+                    Math.min(
+                        preferredX,
+                        sourcePreview.parent.width
+                            - sourcePreview.width - 12
+                    )
+                )
+
+                sourcePreview.y = Math.max(
+                    12,
+                    Math.min(
+                        buttonPosition.y - 20,
+                        sourcePreview.parent.height
+                            - sourcePreview.height - 12
+                    )
+                )
+            }
 
             background: Rectangle {
                 color: chatMessage.surfaceColor
