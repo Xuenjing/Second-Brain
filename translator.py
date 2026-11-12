@@ -44,6 +44,9 @@ TRANSLATIONS = {
         "settings.similarity_threshold": "Likhetströskel",
         "settings.save_rag": "Spara RAG-inställningar",
         "settings.reset_rag": "Återställ standardvärden",
+        "settings.invalid_threshold": (
+            "Likhetströskeln måste vara ett giltigt tal mellan 0 och 1."
+        ),
 
         # Knowledge dialog
         "knowledge.add_title": "Lägg till kunskap",
@@ -532,6 +535,9 @@ TRANSLATIONS = {
         "settings.similarity_threshold": "Similarity threshold",
         "settings.save_rag": "Save RAG settings",
         "settings.reset_rag": "Reset to defaults",
+        "settings.invalid_threshold": (
+            "Similarity threshold must be a valid number between 0 and 1."
+        ),
 
         # Knowledge dialog
         "knowledge.add_title": "Add knowledge",

@@ -635,7 +635,10 @@ Dialog {
 
                             settingsDialog.showRagStatus(
                                 false,
-                                "Threshold måste vara ett giltigt tal mellan 0 och 1."
+                                translator.text(
+                                    "settings.invalid_threshold",
+                                    translator.language
+                                )
                             )
                             return
                         }
