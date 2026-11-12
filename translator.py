@@ -452,6 +452,8 @@ TRANSLATIONS = {
             "Filen måste vara en DOCX-fil.",
         "document_parser.invalid_document":
             "Filen är inte ett giltigt DOCX-dokument.",
+        "document_parser.no_text":
+            "Ingen läsbar text hittades i DOCX-filen.",
 
         # PDF parser.
         "pdf_parser.file_not_found":
@@ -939,6 +941,8 @@ TRANSLATIONS = {
             "The file must be a DOCX file.",
         "document_parser.invalid_document":
             "The file is not a valid DOCX document.",
+        "document_parser.no_text":
+            "No readable text was found in the DOCX file.",
 
         # PDF parser.
         "pdf_parser.file_not_found":
