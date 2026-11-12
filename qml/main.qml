@@ -615,7 +615,7 @@ ApplicationWindow {
         // Send the selected file URL to Python.
         onAccepted: {
             knowledgeDialog.clearSaveStatus()
-            backend.add_docx_knowledge(selectedFile)
+            backend.preview_docx(selectedFile.toString())
         }
     }
 
