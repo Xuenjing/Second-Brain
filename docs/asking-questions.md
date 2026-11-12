@@ -10,6 +10,12 @@ Second Brain searches the knowledge base for relevant information and uses the s
 
 While the answer is being generated, the application displays a thinking indicator.
 
+<p align="center">
+  <img src="images/chat-answer.png"
+       alt="Second Brain answering a question using stored knowledge"
+       width="900">
+</p>
+
 ## How answers are generated
 
 Second Brain uses retrieval-augmented generation, or RAG.
@@ -33,6 +39,12 @@ Select the source indicator to inspect the information behind the answer.
 
 This makes it possible to check where an answer came from and compare it with the original stored knowledge.
 
+<p align="center">
+  <img src="images/source-details.png"
+       alt="Source details for a generated answer"
+       width="850">
+</p>
+
 ## Additional relevant sources
 
 Second Brain may also identify information that is related to the question but was not used directly in the generated answer.
@@ -51,6 +63,9 @@ In that case, you can:
 - import another document or email
 - rephrase the question
 - review the stored information
+
+!!! tip
+    If Second Brain cannot answer a question, try adding more relevant knowledge or rephrasing the question.
 
 ## RAG settings
 

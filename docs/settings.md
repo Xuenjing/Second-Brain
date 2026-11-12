@@ -8,6 +8,12 @@ Open **Settings** from the application header.
 
 Changes to interface language and appearance are applied immediately.
 
+<p align="center">
+  <img src="images/settings.png"
+       alt="Second Brain settings"
+       width="800">
+</p>
+
 ## Language
 
 Second Brain currently supports:
@@ -51,6 +57,9 @@ The currently loaded model is used for question answering and AI-assisted docume
 Second Brain uses retrieval-augmented generation to find relevant information before generating an answer.
 
 Two retrieval settings can be adjusted.
+
+!!! note
+    The default RAG settings are a good starting point for normal use. Change them only if you want to experiment with retrieval behavior.
 
 ### Top-K
 

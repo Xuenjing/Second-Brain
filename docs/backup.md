@@ -4,6 +4,9 @@ Second Brain can export and restore the knowledge database using JSON backup fil
 
 Backups are useful before making larger changes to the knowledge base or when moving saved knowledge between installations.
 
+!!! tip
+    Create a backup before deleting large amounts of knowledge or making major changes to the database.
+
 ## Export a backup
 
 Open **Settings** and select the option to export the database.

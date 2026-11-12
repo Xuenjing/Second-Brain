@@ -1,0 +1,110 @@
+
+:root > * {
+    --md-primary-fg-color: #6ea8d7;
+    --md-primary-fg-color--light: #a9cbe7;
+    --md-primary-fg-color--dark: #477da8;
+
+    --md-accent-fg-color: #5f9fcf;
+}
+
+/* Slightly cooler page background */
+[data-md-color-scheme="default"] {
+    --md-default-bg-color: #f6f8fa;
+    --md-default-fg-color: #2f343b;
+}
+
+/* Content area */
+.md-content__inner {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 1.5rem 1rem;
+}
+
+/* Screenshots */
+.md-typeset img {
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(40, 65, 85, 0.14);
+}
+
+
+.md-typeset p > img {
+    margin-top: 0.8rem;
+    margin-bottom: 1.4rem;
+}
+
+
+/* Cards */
+
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > div {
+    border-radius: 12px;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid.cards > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
+}
+
+
+/* Headings and spacing */
+
+.md-typeset h1 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.md-typeset h2 {
+    margin-top: 2.2rem;
+}
+
+.md-typeset h3 {
+    margin-top: 1.6rem;
+}
+
+/* Hero section */
+.second-brain-hero {
+    padding: 2rem 2.2rem;
+    margin-bottom: 2rem;
+    border-radius: 16px;
+
+    background: linear-gradient(
+        135deg,
+        #eef5fa,
+        #f7f9fb
+    );
+
+    border: 1px solid rgba(80, 130, 165, 0.15);
+}
+
+.second-brain-hero h1 {
+    margin-bottom: 0.3rem;
+}
+
+.second-brain-hero h3 {
+    margin-top: 0;
+    color: #58758c;
+}
+
+.second-brain-hero p {
+    max-width: 760px;
+}
+
+
+
+/* Keep home-page cards in a 2x2 grid on larger screens */
+.md-typeset .grid.cards > ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+/* Stack cards on smaller screens */
+@media screen and (max-width: 700px) {
+    .md-typeset .grid.cards > ul {
+        grid-template-columns: 1fr;
+    }
+}
