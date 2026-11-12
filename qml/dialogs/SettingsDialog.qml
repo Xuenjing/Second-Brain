@@ -433,6 +433,8 @@ Dialog {
                     )
                     color: settingsDialog.textColor
                     font.pixelSize: 14
+                    height: 40
+                    verticalAlignment: Text.AlignVCenter
                 }
 
             Item {
@@ -442,8 +444,8 @@ Dialog {
                 property int from: 1
                 property int to: 20
 
-                width: 140
-                height: 42
+                width: 180
+                height: 40
 
                 Rectangle {
                     anchors.fill: parent
@@ -545,22 +547,35 @@ Dialog {
                     )
                     color: settingsDialog.textColor
                     font.pixelSize: 14
+                    height: 40
+                    verticalAlignment: Text.AlignVCenter
                 }
 
                 TextField {
                     id: thresholdInput
 
-                    width: 120
+                    width: 180
+                    height: 40
                     text: "0.82"
+
                     color: settingsDialog.textColor
+                    font.pixelSize: 14
+                    leftPadding: 12
+                    rightPadding: 12
+                    verticalAlignment: TextInput.AlignVCenter
+                    hoverEnabled: true
+
+                    selectionColor: settingsDialog.accentColor
+                    selectedTextColor: settingsDialog.surfaceColor
 
                     background: Rectangle {
-                        radius: 6
+                        radius: 8
                         color: settingsDialog.surfaceColor
 
                         border.color: thresholdInput.activeFocus
-                            ? settingsDialog.accentColor
-                            : settingsDialog.borderColor
+                            || thresholdInput.hovered
+                                ? settingsDialog.accentColor
+                                : settingsDialog.borderColor
 
                         border.width: 1
                     }
