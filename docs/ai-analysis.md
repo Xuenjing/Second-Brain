@@ -4,6 +4,9 @@ Second Brain can use the selected local language model to suggest useful factual
 
 The purpose of AI analysis is to help identify information that may be worth saving without automatically adding unreviewed AI output to the knowledge base.
 
+!!! warning
+    Always review AI-generated suggestions before saving them. The model may miss, omit or misinterpret information.
+
 ## How AI analysis works
 
 When you analyze a supported document or email, Second Brain:
@@ -57,6 +60,12 @@ Before saving, you can:
 - discard the suggestions entirely
 
 You should always review the suggestions before saving them.
+
+<p align="center">
+  <img src="images/ai-review.png"
+       alt="Reviewing AI-generated factual suggestions"
+       width="850">
+</p>
 
 ## Why manual review matters
 

@@ -1,8 +1,56 @@
+<div class="second-brain-hero" markdown>
+
 # Second Brain
 
-Second Brain is a local desktop application for storing, organizing and retrieving personal knowledge with the help of AI.
+### Your local AI-powered knowledge base
 
-The application allows you to import information from documents and emails, review AI-generated factual suggestions, and ask questions based on the knowledge stored in your local database.
+Store, review and retrieve information from documents, emails and manually entered knowledge — using local AI and source-aware retrieval.
+
+[Get started :material-arrow-right:](getting-started.md){ .md-button .md-button--primary }
+[Explore features](adding-knowledge.md){ .md-button }
+
+</div>
+
+
+---
+
+## What can you do with Second Brain?
+
+<div class="grid cards" markdown>
+
+-   :material-database-plus:{ .lg .middle } **Add knowledge**
+
+    ---
+
+    Add information manually or import TXT, DOCX, PDF, EML and MSG files.
+
+    [Learn more](adding-knowledge.md)
+
+-   :material-chat-question:{ .lg .middle } **Ask questions**
+
+    ---
+
+    Ask natural-language questions based on information stored in your local knowledge base.
+
+    [Learn more](asking-questions.md)
+
+-   :material-brain:{ .lg .middle } **AI-assisted review**
+
+    ---
+
+    Let the local language model suggest useful facts from documents and emails before you save them.
+
+    [Learn more](ai-analysis.md)
+
+-   :material-database-edit:{ .lg .middle } **Manage knowledge**
+
+    ---
+
+    Search, edit, filter and remove stored information or complete sources.
+
+    [Learn more](managing-knowledge.md)
+
+</div>
 
 <p align="center">
   <img src="images/main-window.png"
@@ -10,25 +58,22 @@ The application allows you to import information from documents and emails, revi
        width="900">
 </p>
 
-## What can Second Brain do?
+## Key features
 
-With Second Brain you can:
-
-- add knowledge manually
-- import TXT, DOCX and PDF documents
-- import EML and MSG email files
-- review and edit imported information
-- let AI suggest useful facts from documents and emails
-- ask questions based on your saved knowledge
-- inspect the sources used for an answer
-- search, edit and delete stored knowledge
-- switch between Swedish and English
-- change the local language model and RAG settings
-- export and restore database backups
+- Local knowledge storage
+- Local language models
+- Retrieval-augmented generation
+- Source traceability
+- Document and email analysis
+- Swedish and English interface
+- Configurable RAG settings
+- JSON backup and restore
 
 ## Getting started
 
-If this is your first time using Second Brain, start with the [Getting Started](getting-started.md) guide.
+New to Second Brain?
+
+Start with the [Getting Started](getting-started.md) guide.
 
 You can then continue with:
 
@@ -38,7 +83,3 @@ You can then continue with:
 - [AI Analysis](ai-analysis.md)
 - [Settings](settings.md)
 - [Backup](backup.md)
-
-## Local and private
-
-Second Brain is designed as a local desktop application. Knowledge is stored locally and the application uses locally loaded language models for its AI features.

@@ -90,6 +90,9 @@ Deleting a source removes all knowledge entries associated with that source.
 
 This action cannot be undone.
 
+!!! warning
+    Deleting a source removes all knowledge entries associated with that source and cannot be undone.
+
 ## Keeping the knowledge base useful
 
 For best results:
