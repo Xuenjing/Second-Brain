@@ -1,0 +1,26 @@
+[project]
+site_name = "Second Brain User Manual"
+docs_dir = "docs"
+
+nav = [
+    { "Home" = "index.md" },
+    { "Getting Started" = "getting-started.md" },
+    { "Using Second Brain" = [
+        { "Adding Knowledge" = "adding-knowledge.md" },
+        { "Asking Questions" = "asking-questions.md" },
+        { "Managing Knowledge" = "managing-knowledge.md" },
+        { "AI Analysis" = "ai-analysis.md" },
+    ] },
+    { "Settings" = "settings.md" },
+    { "Backup" = "backup.md" },
+]
+
+[project.theme]
+features = [
+    "navigation.sections",
+    "navigation.expand",
+    "navigation.path",
+    "navigation.top",
+    "toc.follow",
+]
+
