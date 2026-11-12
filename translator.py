@@ -492,6 +492,10 @@ TRANSLATIONS = {
         "json_importer.missing_fields":
             "En eller flera kunskapsposter saknar obligatoriska fält.",
 
+        # System tray.
+        "tray.open": "Öppna",
+        "tray.quit": "Avsluta",
+
     },
 
     "en": {
@@ -980,6 +984,10 @@ TRANSLATIONS = {
             "Each knowledge entry must be a JSON object.",
         "json_importer.missing_fields":
             "One or more knowledge entries are missing required fields.",
+
+        # System tray.
+        "tray.open": "Open",
+        "tray.quit": "Exit",
         
     },
 }
