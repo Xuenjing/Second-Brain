@@ -105,6 +105,8 @@ Row {
         width: 305
         height: 40
 
+        property int selectedModelIndex: 1
+
         model: [
             translator.text(
                 "toolbar.model_fast",
@@ -120,7 +122,15 @@ Row {
             )
         ]
 
-        currentIndex: 1
+        currentIndex: selectedModelIndex
+
+        onActivated: function(index) {
+            selectedModelIndex = index
+        }
+
+        onModelChanged: {
+            currentIndex = selectedModelIndex
+        }        
 
         indicator: Text {
             x: modelSelector.width - width - 12
