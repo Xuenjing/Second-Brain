@@ -499,6 +499,151 @@ TRANSLATIONS = {
         "tray.open": "Öppna",
         "tray.quit": "Avsluta",
 
+        # User guide
+        "help.title": "Användarguide",
+        "help.close": "Stäng användarguiden",
+        "help.intro": (
+            "Second Brain hjälper dig att spara kunskap och ställa frågor "
+            "om informationen."
+        ),
+
+        "help.add_heading": "Lägg till kunskap",
+        "help.add_body": (
+            "Öppna Lägg till kunskap. Skriv eller klistra in information "
+            "och klicka på disketten för att spara.\n\n"
+            "Tom text sparas inte. Dubbletter med samma text, även med "
+            "skillnader i blanksteg, hoppas över."
+        ),
+
+        "help.documents_heading": "Importera och granska dokument",
+        "help.documents_body": (
+            "Importera en TXT-, PDF- eller DOCX-fil med filknapparna "
+            "i Lägg till kunskap, eller dra filen till den markerade "
+            "släppytan. Släpp en fil åt gången.\n\n"
+            "Dokumentets text visas före sparande och kan redigeras. "
+            "Välj sedan ett av tre alternativ:\n\n"
+            "Överlappande dokument – Spara uppdelat: sparar texten "
+            "som flera kunskapsposter. TXT delas vid tomma rader. "
+            "DOCX delas vid stycken och tabeller. PDF delas utifrån "
+            "sidgränser och stycken, med grundläggande tabellhantering.\n\n"
+            "Disketten – Spara som en post: sparar hela den granskade "
+            "texten som en enda kunskapspost.\n\n"
+            "Hjärnan – Föreslå fakta med AI: låter den laddade "
+            "språkmodellen föreslå fakta. Analysen kan ta flera minuter. "
+            "Stora dokument kan ta lång tid eller misslyckas.\n\n"
+            "Öppna granskningen när analysen är klar. Jämför förslagen "
+            "med texten, redigera vid behov och avmarkera sådant du inte "
+            "vill spara. Spara valda förslag eller kasta granskningen. "
+            "Analysen i sig sparar inga poster och kan ge noll förslag.\n\n"
+            "TXT-filer behöver vara UTF-8-kodade. PDF-import kräver "
+            "läsbar text; skannade bilder behandlas inte med OCR. "
+            "Kontrollera alltid importerad text och tabeller."
+        ),
+
+        "help.mail_heading": "Importera och granska mejl",
+        "help.mail_body": (
+            "Importera en EML- eller MSG-fil med mejlknappen i "
+            "Lägg till kunskap, eller släpp filen på släppytan.\n\n"
+            "Granska mejltexten före sparande. Du kan spara hela "
+            "mejltexten eller klicka på hjärnan för att få AI-förslag. "
+            "Analysen använder den laddade språkmodellen och kan "
+            "ta flera minuter.\n\n"
+            "När analysen är klar öppnar du granskningen. Jämför "
+            "förslagen med originalet, redigera och välj bort sådant "
+            "du inte vill spara. Spara valda förslag eller kasta "
+            "granskningen. Ett mejl utan användbara fakta kan ge "
+            "noll förslag.\n\n"
+            "Kontrollera särskilt namn, datum, kontaktuppgifter och "
+            "formuleringar med exempelvis inte eller får inte. "
+            "AI:n kan också ta med onödiga fraser."
+        ),
+
+        "help.chat_heading": "Ställ frågor och granska källor",
+        "help.chat_body": (
+            "Skriv din fråga i chattfältet och klicka på Skicka. "
+            "Vänta medan modellen arbetar.\n\n"
+            "Second Brain söker efter relevant sparad kunskap och "
+            "använder den som underlag för svaret. Tydliga frågor med "
+            "namn eller andra detaljer gör det lättare att hitta rätt "
+            "information.\n\n"
+            "Hovra över informationsikonen vid ett svar för att se "
+            "en sammanfattning av källorna. Klicka på ikonen för "
+            "att granska kunskapsposterna som användes. Där kan du "
+            "också söka och undersöka fler poster.\n\n"
+            "AI:n kan missa eller misstolka information. Kontrollera "
+            "viktiga uppgifter mot källorna."
+        ),
+
+        "help.knowledge_heading": "Visa och hantera kunskap",
+        "help.knowledge_body": (
+            "Öppna Visa kunskapsposter för att se sparad information. "
+            "Använd sökfältet, filtren för källtyp och sorteringen "
+            "för att hitta poster.\n\n"
+            "Antalet ovanför sökfältet visar hur många poster som "
+            "matchar det aktuella urvalet. Varje post visar också "
+            "sin källa och tidpunkt.\n\n"
+            "Använd pennan för att redigera en post och papperskorgen "
+            "för att ta bort den. Bekräfta borttagningen eller välj "
+            "Avbryt för att behålla posten.\n\n"
+            "Växla till Visa källor för att hantera poster per källa. "
+            "Ta bort källa tar bort samtliga kunskapsposter från "
+            "den valda källan efter bekräftelse. "
+            "Borttagningen kan inte ångras."
+        ),
+
+        "help.model_heading": "Byt språkmodell",
+        "help.model_body": (
+            "Välj en modell i modellistan i huvudfönstret och klicka "
+            "på Ladda modell. Bekräfta modellbytet och vänta tills "
+            "laddningen är klar. Att bara välja ett namn i listan "
+            "laddar inte modellen.\n\n"
+            "Den laddade modellen används för chatsvar och "
+            "AI-analys av dokument och mejl.\n\n"
+            "Första gången kan modellen behöva laddas ner, vilket "
+            "kräver internetanslutning. Laddnings- och svarstider "
+            "beror på modellens storlek och datorns prestanda."
+        ),
+
+        "help.rag_heading": "Ändra RAG-inställningar",
+        "help.rag_body": (
+            "Öppna inställningarna med kugghjulet.\n\n"
+            "Top-K anger hur många kunskapsposter som högst väljs "
+            "ut som underlag för ett svar.\n\n"
+            "Likhetströskeln anger hur väl informationen behöver "
+            "matcha frågan. Värdet ska vara mellan 0 och 1. "
+            "En högre tröskel gör urvalet striktare och kan ge "
+            "färre träffar. Både decimalpunkt och decimalkomma "
+            "kan användas.\n\n"
+            "Klicka på Spara RAG-inställningar för att spara. "
+            "Ogiltiga värden ger ett felmeddelande och sparas inte.\n\n"
+            "Återställ standardvärden återställer och sparar "
+            "Top-K 5 och likhetströskeln 0.82. Sparade "
+            "RAG-inställningar finns kvar efter omstart."
+        ),
+
+        "help.settings_heading": "Språk, utseende och säkerhetskopiering",
+        "help.settings_body": (
+            "I inställningarna kan du välja svenska eller engelska "
+            "och växla mellan ljust och mörkt tema. Användarguiden "
+            "följer det valda språket. Språkvalet översätter "
+            "inte innehållet i dina sparade kunskapsposter.\n\n"
+            "Använd Exportera databas för att spara en säkerhetskopia "
+            "som JSON-fil. Använd Importera databas för att läsa "
+            "in en sådan fil. Importen lägger till poster i den "
+            "befintliga kunskapsbasen. Dubbletter kan hoppas över."
+        ),
+
+        "help.tray_heading": "Stäng och avsluta",
+        "help.tray_body": (
+            "När du stänger huvudfönstret fortsätter appen att "
+            "köras i systemfältet vid klockan.\n\n"
+            "Högerklicka på Second Brains ikon och välj Öppna "
+            "för att visa fönstret igen, eller Avsluta för "
+            "att stänga programmet helt."
+        ),
+
+        "help.online_manual": "Öppna hela manualen i webbläsaren",
+
     },
 
     "en": {
@@ -994,6 +1139,155 @@ TRANSLATIONS = {
         # System tray.
         "tray.open": "Open",
         "tray.quit": "Exit",
+
+        # User guide
+        "help.title": "User guide",
+        "help.close": "Close the user guide",
+        "help.intro": (
+            "Second Brain helps you store knowledge and ask questions "
+            "about the information."
+        ),
+
+        "help.add_heading": "Add knowledge",
+        "help.add_body": (
+            "Open Add knowledge. Type or paste information and click "
+            "the floppy disk to save it.\n\n"
+            "Empty text is not saved. Duplicate text, including text "
+            "that differs only in whitespace, is skipped."
+        ),
+
+        "help.documents_heading": "Import and review documents",
+        "help.documents_body": (
+            "Import a TXT, PDF or DOCX file using the file buttons "
+            "in Add knowledge, or drag the file onto the marked "
+            "drop area. Drop one file at a time.\n\n"
+            "The document text is displayed for review and can be "
+            "edited before saving. Choose one of three options:\n\n"
+            "Overlapping documents – Save in chunks: saves the text "
+            "as several knowledge entries. TXT is split at blank lines. "
+            "DOCX is split at paragraph and table boundaries. PDF "
+            "is split using page and paragraph boundaries, with "
+            "basic table handling.\n\n"
+            "Floppy disk – Save as one entry: saves all the reviewed "
+            "text as a single knowledge entry.\n\n"
+            "Brain – Suggest facts with AI: uses the loaded language "
+            "model to suggest facts. Analysis can take several minutes. "
+            "Large documents may take a long time or fail to complete.\n\n"
+            "Open the review when analysis is complete. Compare the "
+            "suggestions with the text, edit them if needed and uncheck "
+            "anything you do not want to save. Save the selected "
+            "suggestions or discard the review. Analysis itself "
+            "does not save any entries and may produce no suggestions.\n\n"
+            "TXT files must use UTF-8 encoding. PDF import requires "
+            "readable text; scanned images are not processed using OCR. "
+            "Always check imported text and tables."
+        ),
+
+        "help.mail_heading": "Import and review emails",
+        "help.mail_body": (
+            "Import an EML or MSG file using the email button in "
+            "Add knowledge, or drop the file onto the drop area.\n\n"
+            "Review the email text before saving. You can save the "
+            "entire email text or click the brain to get AI suggestions. "
+            "Analysis uses the loaded language model and can take "
+            "several minutes.\n\n"
+            "When analysis is complete, open the review. Compare the "
+            "suggestions with the original, edit them and uncheck "
+            "anything you do not want to save. Save the selected "
+            "suggestions or discard the review. An email without "
+            "useful facts may produce no suggestions.\n\n"
+            "Pay particular attention to names, dates, contact details "
+            "and wording such as not or must not. The AI may also "
+            "include unnecessary phrases."
+        ),
+
+        "help.chat_heading": "Ask questions and inspect sources",
+        "help.chat_body": (
+            "Type your question in the chat field and click Send. "
+            "Wait while the model processes your question.\n\n"
+            "Second Brain searches for relevant stored knowledge "
+            "and uses it as context for the answer. Clear questions "
+            "with names or other details make it easier to find "
+            "the right information.\n\n"
+            "Hover over the information icon beside an answer to "
+            "see a summary of its sources. Click the icon to inspect "
+            "the knowledge entries used. You can also search "
+            "and explore additional entries there.\n\n"
+            "The AI may miss or misinterpret information. Check "
+            "important details against the sources."
+        ),
+
+        "help.knowledge_heading": "View and manage knowledge",
+        "help.knowledge_body": (
+            "Open View knowledge entries to see stored information. "
+            "Use the search field, source-type filters and sorting "
+            "to find entries.\n\n"
+            "The count above the search field shows how many entries "
+            "match the current selection. Each entry also displays "
+            "its source and timestamp.\n\n"
+            "Use the pencil to edit an entry and the trash can "
+            "to delete it. Confirm deletion or select Cancel "
+            "to keep the entry.\n\n"
+            "Switch to Show sources to manage entries by source. "
+            "Delete source removes all knowledge entries from "
+            "the selected source after confirmation. "
+            "This deletion cannot be undone."
+        ),
+
+        "help.model_heading": "Change the language model",
+        "help.model_body": (
+            "Select a model from the dropdown in the main window "
+            "and click Load model. Confirm the change and wait "
+            "until loading is complete. Selecting a name in "
+            "the dropdown does not load the model by itself.\n\n"
+            "The loaded model is used for chat answers and "
+            "AI analysis of documents and emails.\n\n"
+            "The model may need to be downloaded the first time, "
+            "which requires an internet connection. Loading "
+            "and response times depend on the model size "
+            "and your computer's performance."
+        ),
+
+        "help.rag_heading": "Change RAG settings",
+        "help.rag_body": (
+            "Open settings using the gear icon.\n\n"
+            "Top-K sets the maximum number of knowledge entries "
+            "selected as context for an answer.\n\n"
+            "Similarity threshold determines how closely information "
+            "needs to match the question. The value must be between "
+            "0 and 1. A higher threshold makes selection stricter "
+            "and may return fewer matches. You can use either "
+            "a decimal point or a decimal comma.\n\n"
+            "Click Save RAG settings to save your changes. "
+            "Invalid values display an error and are not saved.\n\n"
+            "Reset to defaults restores and saves Top-K 5 "
+            "and similarity threshold 0.82. Saved RAG settings "
+            "are retained after restarting."
+        ),
+
+        "help.settings_heading": "Language, appearance and backup",
+        "help.settings_body": (
+            "In settings, you can select Swedish or English "
+            "and switch between light and dark appearance. "
+            "The user guide follows the selected language. "
+            "Changing the interface language does not translate "
+            "the content of your stored knowledge entries.\n\n"
+            "Use Export database to save a backup as a JSON file. "
+            "Use Import database to read a file of that type. "
+            "Importing adds entries to the existing knowledge base. "
+            "Duplicates may be skipped."
+        ),
+
+        "help.tray_heading": "Close and exit",
+        "help.tray_body": (
+            "Closing the main window leaves the application "
+            "running in the system tray near the clock.\n\n"
+            "Right-click the Second Brain icon and select Open "
+            "to show the window again, or Exit to close "
+            "the application completely."
+        ),
+
+        "help.online_manual": "Open the full manual in your browser",
         
     },
 }
