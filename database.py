@@ -15,6 +15,10 @@ import numpy as np
 
 DATABASE_PATH = "knowledge.db"
 
+def normalize_knowledge_text(text: str) -> str:
+    """Normalize whitespace for duplicate comparison only."""
+    return " ".join(text.split())
+
 def initialize_database() -> None:
     """
     Create the SQLite knowledge database unless already created.
@@ -35,40 +39,54 @@ def initialize_database() -> None:
     connection.close()
 
 
-def add_knowledge(text: str, embedding: np.ndarray, source: str = "manual") -> bool:
-    """Add a knowledge entry to the database.
-    Embedding is converted from NumPy array to JSON before storage.
-    Duplicate entries are ignored.
+def add_knowledge(
+    text: str,
+    embedding: np.ndarray,
+    source: str = "manual",
+) -> bool:
+    """Add knowledge while ignoring duplicates with different whitespace.
 
-    Args:
-        text: Knowledge text to store.
-        embedding: Embedding vector associated with the text.
-        source: Source of the entry (manually or from a file).
-    
-    Returns: 
+    Original text formatting is preserved in storage.
+
+    Returns:
         True if an entry was added, otherwise False.
     """
+    normalized_text = normalize_knowledge_text(text)
+
+    if not normalized_text:
+        return False
 
     connection = sqlite3.connect(DATABASE_PATH)
-    cursor = connection.cursor()
-    created_at = datetime.now().isoformat()
 
-    # Convert the NumPy embedding to a JSON string for database storage
-    embedding_json = json.dumps(embedding.tolist()) 
-    cursor.execute(
-        '''
-        INSERT OR IGNORE INTO knowledge (text, source, created_at, embedding)
-        VALUES (?, ?, ?, ?)
-        ''',
-        (text, source, created_at, embedding_json)
-    )
+    try:
+        with connection:
+            # Keep duplicate checking and insertion in one transaction.
+            connection.execute("BEGIN IMMEDIATE")
 
-    added = cursor.rowcount > 0
+            cursor = connection.execute(
+                "SELECT text FROM knowledge"
+            )
 
-    connection.commit()
-    connection.close()
+            for (existing_text,) in cursor:
+                if normalize_knowledge_text(existing_text) == normalized_text:
+                    return False
 
-    return added
+            created_at = datetime.now().isoformat()
+            embedding_json = json.dumps(embedding.tolist())
+
+            cursor = connection.execute(
+                """
+                INSERT OR IGNORE INTO knowledge (
+                    text, source, created_at, embedding
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (text, source, created_at, embedding_json),
+            )
+
+            return cursor.rowcount > 0
+    finally:
+        connection.close()
 
 
 def get_all_knowledge(sort_order: str = "desc") -> list[dict]:
@@ -230,32 +248,55 @@ def delete_knowledge_by_source(source: str) -> int:
     return deleted_count
 
 
-def edit_knowledge(knowledge_id: int, new_text: str, new_embedding: np.ndarray) -> bool:
-    """Update the text and embedding of an existing knowledge entry.
+def edit_knowledge(
+    knowledge_id: int,
+    new_text: str,
+    new_embedding: np.ndarray,
+) -> bool:
+    """Update knowledge while preventing whitespace-only duplicates.
 
-    Args:
-        knowledge_id: Database ID of the entry to update.
-        new_text: Replacement text for the entry.
-        new_embedding: Embedding vector for the updated text.
+    Original text formatting is preserved in storage.
 
     Returns:
-        True if an entry was updated, False if not.
+        True if an entry was updated, otherwise False.
+
+    Raises:
+        sqlite3.IntegrityError: If another entry has equivalent text.
     """
+    normalized_text = normalize_knowledge_text(new_text)
+
+    if not normalized_text:
+        return False
+
     connection = sqlite3.connect(DATABASE_PATH)
 
     try:
-        # Commit on success and roll back if an error occurs.
         with connection:
-            cursor = connection.cursor()
-            embedding_json = json.dumps(new_embedding.tolist())
-            cursor.execute("""
-            UPDATE knowledge
-            SET text = ?, embedding = ?
-            WHERE id = ?
-            
-            """, (new_text, embedding_json, knowledge_id))
+            connection.execute("BEGIN IMMEDIATE")
 
-            # true if updated, false if not
+            # Exclude the entry being edited from duplicate checking.
+            cursor = connection.execute(
+                "SELECT text FROM knowledge WHERE id != ?",
+                (knowledge_id,),
+            )
+
+            for (existing_text,) in cursor:
+                if normalize_knowledge_text(existing_text) == normalized_text:
+                    raise sqlite3.IntegrityError(
+                        "UNIQUE constraint failed: knowledge.text"
+                    )
+
+            embedding_json = json.dumps(new_embedding.tolist())
+
+            cursor = connection.execute(
+                """
+                UPDATE knowledge
+                SET text = ?, embedding = ?
+                WHERE id = ?
+                """,
+                (new_text, embedding_json, knowledge_id),
+            )
+
             return cursor.rowcount > 0
     finally:
         connection.close()
