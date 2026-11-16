@@ -118,7 +118,7 @@ Second Brain is built using:
 
 Installation instructions will be added when the Windows installer is completed.
 
-For information about using the application, see the [**User Manual**](https://xuenjing.github.io/Second-Brain---LIA-PROJECT/).
+For information about using the application, see the [**User Manual**](https://xuenjing.github.io/Second-Brain/).
 
 ---
 
@@ -151,7 +151,7 @@ Core development is complete. Remaining work primarily consists of:
 
 ## 📚 Documentation
 
-- [**User Manual**](https://xuenjing.github.io/Second-Brain---LIA-PROJECT/)
+- [**User Manual**](https://xuenjing.github.io/Second-Brain/)
 - Developer documentation — coming soon
 
 ---
