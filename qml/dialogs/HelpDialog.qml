@@ -12,7 +12,10 @@ Dialog {
     property color hoverColor
     property color pressedColor
 
-    title: "Användarguide"
+    title: translator.text(
+        "help.title",
+        translator.language
+    )
     modal: true
     padding: 20
     closePolicy: Popup.CloseOnEscape
@@ -52,9 +55,15 @@ Dialog {
             height: 40
             hoverEnabled: true
 
-            Accessible.name: "Stäng användarguiden"
+            Accessible.name: translator.text(
+                "help.close",
+                translator.language
+            )
             ToolTip.visible: hovered
-            ToolTip.text: "Stäng"
+            ToolTip.text: translator.text(
+                "common.close",
+                translator.language
+            )
 
             contentItem: Text {
                 text: "×"
@@ -92,110 +101,100 @@ Dialog {
 
             Label {
                 width: parent.width
-                text: "Second Brain hjälper dig att spara kunskap "
-                    + "och ställa frågor om informationen."
+                text: translator.text(
+                    "help.intro",
+                    translator.language
+                )
                 color: helpDialog.secondaryTextColor
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 textFormat: Text.PlainText
             }
 
+            Button {
+                id: onlineManualButton
+
+                width: parent.width
+                height: manualButtonText.implicitHeight + 28
+                padding: 14
+                hoverEnabled: true
+
+                text: translator.text(
+                    "help.online_manual",
+                    translator.language
+                )
+
+                Accessible.name: text
+
+                contentItem: Text {
+                    id: manualButtonText
+
+                    text: onlineManualButton.text
+                    color: helpDialog.accentColor
+                    font.pixelSize: 14
+                    font.bold: true
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+
+                    color: onlineManualButton.down
+                        ? helpDialog.pressedColor
+                        : onlineManualButton.hovered
+                            ? helpDialog.hoverColor
+                            : helpDialog.surfaceColor
+
+                    border.color: helpDialog.accentColor
+                    border.width: onlineManualButton.visualFocus ? 2 : 1
+                }
+
+                onClicked: {
+                    Qt.openUrlExternally(
+                        "https://xuenjing.github.io/Second-Brain/"
+                    )
+                }
+            }
+
             Repeater {
                 model: [
                     {
-                        heading: "Lägg till kunskap",
-                        body: "Öppna 'Lägg till kunskap'. Skriv eller "
-                            + "klistra in information och klicka på "
-                            + "disketten för att spara.\n\n"
-                            + "Du kan också importera TXT-, PDF- och "
-                            + "DOCX-filer med filknapparna, eller dra "
-                            + "en fil till den markerade släppytan. "
-                            + "Släpp en fil åt gången."
+                        heading: "help.add_heading",
+                        body: "help.add_body"
                     },
                     {
-                        heading: "Importera och granska mejl",
-                        body: "Importera en EML- eller MSG-fil med "
-                            + "mejlknappen eller släpp den på släppytan. "
-                            + "Mejlet visas för granskning före sparande.\n\n"
-                            + "Du kan spara hela mejltexten eller låta "
-                            + "AI:n föreslå fakta. Analysen använder "
-                            + "den laddade språkmodellen och kan ta "
-                            + "flera minuter.\n\n"
-                            + "När analysen är klar öppnar du "
-                            + "granskningen. Jämför förslagen med "
-                            + "originalet, redigera vid behov och "
-                            + "avmarkera sådant du inte vill spara. "
-                            + "Spara de valda förslagen eller kasta "
-                            + "granskningen. Ett mejl utan användbara "
-                            + "fakta kan ge noll förslag."
+                        heading: "help.documents_heading",
+                        body: "help.documents_body"
                     },
                     {
-                        heading: "Ställ frågor och granska källor",
-                        body: "Skriv din fråga i chattfältet och "
-                            + "klicka på Skicka. Vänta medan modellen "
-                            + "arbetar.\n\n"
-                            + "Öppna svarets källor för att granska "
-                            + "kunskapsposterna som användes. Där kan "
-                            + "du också söka och undersöka fler poster.\n\n"
-                            + "AI:n kan missa eller misstolka "
-                            + "information. Kontrollera viktiga "
-                            + "uppgifter mot källorna."
+                        heading: "help.mail_heading",
+                        body: "help.mail_body"
                     },
                     {
-                        heading: "Visa och hantera kunskap",
-                        body: "Öppna Visa kunskap för att se sparade "
-                            + "poster. Använd sökfältet och filtren "
-                            + "för att hitta information.\n\n"
-                            + "Antalet ovanför sökfältet visar hur "
-                            + "många poster som matchar det aktuella "
-                            + "urvalet. Använd pennan för att redigera "
-                            + "en post och papperskorgen för att "
-                            + "ta bort den."
+                        heading: "help.chat_heading",
+                        body: "help.chat_body"
                     },
                     {
-                        heading: "Byt språkmodell",
-                        body: "Välj en modell i modellistan och "
-                            + "klicka på Ladda modell. Bekräfta "
-                            + "modellbytet och vänta tills laddningen "
-                            + "är klar.\n\n"
-                            + "Första gången kan modellen behöva "
-                            + "laddas ner. Tiden beror på modellens "
-                            + "storlek och datorns prestanda."
+                        heading: "help.knowledge_heading",
+                        body: "help.knowledge_body"
                     },
                     {
-                        heading: "Ändra RAG-inställningar",
-                        body: "Öppna kugghjulet för inställningar.\n\n"
-                            + "Top-K anger hur många kunskapsposter "
-                            + "som högst väljs ut som underlag för "
-                            + "ett svar.\n\n"
-                            + "Threshold är likhetströskeln för "
-                            + "urvalet, mellan 0 och 1. En högre "
-                            + "tröskel gör urvalet striktare och kan "
-                            + "ge färre träffar.\n\n"
-                            + "Klicka på Spara RAG-inställningar för "
-                            + "att spara ändringar. Återställ återgår "
-                            + "till Top-K 5 och threshold 0.82. "
-                            + "RAG-inställningarna finns kvar "
-                            + "efter omstart."
+                        heading: "help.model_heading",
+                        body: "help.model_body"
                     },
                     {
-                        heading: "Utseende och back-up",
-                        body: "I inställningarna kan du växla mellan "
-                            + "ljust och mörkt tema.\n\n"
-                            + "Använd Exportera databas för att "
-                            + "spara en säkerhetskopia som JSON-fil. "
-                            + "Använd Importera databas för att "
-                            + "läsa in en sådan fil."
+                        heading: "help.rag_heading",
+                        body: "help.rag_body"
                     },
                     {
-                        heading: "Stäng och avsluta",
-                        body: "När du stänger huvudfönstret fortsätter "
-                            + "appen att köras i systemfältet vid "
-                            + "klockan.\n\n"
-                            + "Högerklicka på Second Brains ikon "
-                            + "och välj Öppna för att visa fönstret "
-                            + "igen, eller Avsluta för att "
-                            + "stänga programmet helt."
+                        heading: "help.settings_heading",
+                        body: "help.settings_body"
+                    },
+                    {
+                        heading: "help.tray_heading",
+                        body: "help.tray_body"
                     }
                 ]
 
@@ -207,7 +206,10 @@ Dialog {
 
                     Label {
                         width: parent.width
-                        text: modelData.heading
+                        text: translator.text(
+                            modelData.heading,
+                            translator.language
+                        )
                         color: helpDialog.accentColor
                         font.pixelSize: 17
                         font.bold: true
@@ -217,7 +219,10 @@ Dialog {
 
                     Label {
                         width: parent.width
-                        text: modelData.body
+                        text: translator.text(
+                            modelData.body,
+                            translator.language
+                        )
                         color: helpDialog.textColor
                         font.pixelSize: 14
                         wrapMode: Text.WordWrap
