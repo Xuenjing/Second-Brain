@@ -4,7 +4,7 @@ Second Brain is a local desktop knowledge-base application that uses retrieval-a
 
 The project was developed as part of a LIA internship project and is built around local knowledge storage, semantic retrieval and local AI.
 
-\<p align="center">   \<img src="docs/images/main-window\.png"        alt="Second Brain main window"        width="900"> \</p>
+<p align="center">   \<img src="docs/images/main-window\.png"        alt="Second Brain main window"        width="900"> \</p>
 
 ## 📖 User Manual
 
