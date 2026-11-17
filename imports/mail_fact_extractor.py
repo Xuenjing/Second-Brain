@@ -78,10 +78,6 @@ Copy the original wording and retain necessary context.
         max_new_tokens=400
     )
 
-    # Print the raw model output while debugging.
-    print("Raw email analysis output:")
-    print(repr(response))
-
     try:
         facts = json.loads(response)
     except json.JSONDecodeError as error:
