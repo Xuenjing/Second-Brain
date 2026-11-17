@@ -37,7 +37,7 @@ ApplicationWindow {
     }
 
     // Choose between dark and light mode.
-    property bool darkMode: true
+    readonly property bool darkMode: backend.dark_mode
 
     // Shared colors for dark mode and the Ice Blue light theme.
     readonly property color windowColor: darkMode ? "#0B1220" : "#EFF6FF"
@@ -353,7 +353,7 @@ ApplicationWindow {
         pressedColor: root.pressedColor
 
         onThemeToggleRequested: {
-            root.darkMode = !root.darkMode
+            backend.set_dark_mode(!root.darkMode)
         }
 
         onExportRequested: {
