@@ -10,7 +10,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal, Slot, QUrl, QThread, QSettings
+from PySide6.QtCore import QObject, Signal, Slot, QUrl, QThread, QSettings, Property
 
 from retrieval import (
     retrieve_knowledge,
@@ -274,6 +274,13 @@ class Backend(QObject):
             "SecondBrain",
         )
 
+        # Restore the saved appearance, defaulting to dark mode.
+        self._dark_mode = self.settings.value(
+            "ui/dark_mode",
+            True,
+            type=bool,
+        )
+
         self.rag_top_k = self.settings.value(
             "rag/top_k",
             5,
@@ -368,6 +375,9 @@ class Backend(QObject):
 
     # Show settings for top_k and similarity_threshold.
     ragSettingsLoaded = Signal(int, float)
+
+    # Notify QML when the appearance changes.
+    darkModeChanged = Signal()
 
     # Send list of sources to QML.
     knowledgeSourcesLoaded = Signal(list)
@@ -489,6 +499,20 @@ class Backend(QObject):
 
         self.modelLoadingChanged.emit(False)
 
+    @Property(bool, notify=darkModeChanged)
+    def dark_mode(self) -> bool:
+        """Return the current appearance setting."""
+        return self._dark_mode
+
+    @Slot(bool)
+    def set_dark_mode(self, dark_mode: bool) -> None:
+        """Save the selected appearance and notify QML."""
+        if self._dark_mode == dark_mode:
+            return
+
+        self.settings.setValue("ui/dark_mode", dark_mode)
+        self._dark_mode = dark_mode
+        self.darkModeChanged.emit()
 
     @Slot()
     def get_rag_settings(self) -> None:
