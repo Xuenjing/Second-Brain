@@ -135,7 +135,7 @@ class TestRagSettings(unittest.TestCase):
             1.5
         )
 
-        # Assert that the above function never completes.
+        # Verify that invalid input leaves settings unchanged.
         self.assertEqual(app_backend.rag_top_k, 5)
         self.assertEqual(app_backend.rag_similarity_threshold, 0.82)
         settings.setValue.assert_not_called()
@@ -203,6 +203,47 @@ class TestRagSettings(unittest.TestCase):
 
         self.assertEqual(received_values, [(5, 0.82)])
 
+    @patch("backend.LocalLLMProvider")
+    @patch("backend.get_embedding_model")
+    @patch("backend.initialize_database")
+    @patch("backend.QSettings")
+    def test_reset_rag_settings_saves_defaults(
+        self,
+        mock_qsettings,
+        mock_initialize_database,
+        mock_get_embedding_model,
+        mock_llm_provider,
+    ):
+        """Restore and save defaults after loading custom settings."""
+        settings = MagicMock()
+        mock_qsettings.return_value = settings
+
+        saved_values = {
+            "rag/top_k": 8,
+            "rag/similarity_threshold": 0.75,
+        }
+        settings.value.side_effect = (
+            lambda key, default, type=None:
+                saved_values.get(key, default)
+        )
+
+        app_backend = backend.Backend()
+
+        self.assertEqual(app_backend.rag_top_k, 8)
+        self.assertEqual(app_backend.rag_similarity_threshold, 0.75)
+        settings.setValue.reset_mock()
+
+        # Use the same values sent by the reset button.
+        app_backend.set_rag_settings(5, 0.82)
+
+        self.assertEqual(app_backend.rag_top_k, 5)
+        self.assertEqual(app_backend.rag_similarity_threshold, 0.82)
+
+        settings.setValue.assert_any_call("rag/top_k", 5)
+        settings.setValue.assert_any_call(
+            "rag/similarity_threshold",
+            0.82,
+        )
 
 if __name__ == "__main__":
     unittest.main()

@@ -182,5 +182,54 @@ class TestImporter(unittest.TestCase):
 
             mock_add_knowledge.assert_called_once_with("Test knowledge", [0.1, 0.2, 0.3], source="manual")
 
+    @patch("json_importer.create_embedding")
+    @patch("json_importer.add_knowledge")
+    def test_invalid_values_are_rejected_before_import(
+        self,
+        mock_add_knowledge,
+        mock_create_embedding,
+    ):
+        """Reject invalid values before embedding or saving any entries."""
+        invalid_values = [
+            ("text", None),
+            ("text", 123),
+            ("text", ""),
+            ("text", " \n\t "),
+            ("source", None),
+            ("source", 123),
+            ("created_at", None),
+            ("created_at", 123),
+        ]
+
+        with TemporaryDirectory() as temp_dir:
+            file_path = Path(temp_dir) / "invalid_values.json"
+
+            for field, value in invalid_values:
+                with self.subTest(field=field, value=value):
+                    valid_entry = {
+                        "text": "Valid knowledge",
+                        "source": "manual",
+                        "created_at": "2026-11-18T10:00:00",
+                    }
+                    invalid_entry = {
+                        **valid_entry,
+                        "text": "Another entry",
+                        field: value,
+                    }
+
+                    file_path.write_text(
+                        json.dumps([valid_entry, invalid_entry]),
+                        encoding="utf-8",
+                    )
+
+                    with self.assertRaisesRegex(
+                        ValueError,
+                        r"^json_importer\.invalid_entry$",
+                    ):
+                        import_knowledge_from_json_file(str(file_path))
+
+                    mock_create_embedding.assert_not_called()
+                    mock_add_knowledge.assert_not_called()
+
 if __name__ == "__main__":
     unittest.main()
