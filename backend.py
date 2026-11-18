@@ -298,14 +298,8 @@ class Backend(QObject):
         # Preload embedding model during application startup.
         get_embedding_model()
 
-        # lighter and faster model
-        # self.llm = LocalLLMProvider("Qwen/Qwen3-0.6B")
-
-        # medium model
+        # Load the default language model.
         self.llm = LocalLLMProvider("Qwen/Qwen3-1.7B")
-        
-        # more demanding model
-        # self.llm = LocalLLMProvider("Qwen/Qwen3-4B-Instruct-2507")
 
 
     def _language(self) -> str:
@@ -370,7 +364,7 @@ class Backend(QObject):
     # Import JSON file from backup.
     importResult = Signal(str)
 
-    # Send the rag settings to QML.
+    # Report whether saving RAG settings succeeded.
     ragSettingsResult = Signal(bool, str)
 
     # Show settings for top_k and similarity_threshold.
@@ -382,7 +376,7 @@ class Backend(QObject):
     # Send list of sources to QML.
     knowledgeSourcesLoaded = Signal(list)
 
-    # Send number of entries deleted.
+    # Send the source-deletion result and message to QML.
     knowledgeSourceDeleteResult = Signal(bool, str)  
 
     # Send document text and its source filename for review.
@@ -411,11 +405,11 @@ class Backend(QObject):
 
 
     @Slot(int)
-    def load_model(self, model_index: str) -> None:
+    def load_model(self, model_index: int) -> None:
         """Load the language model selected from the interface.
-        
-            Args:
-                model_index: Name of the model that will be loaded.
+
+        Args:
+            model_index: Index of the model selected in the interface.
         """
         if (self.thinker is not None or self.mail_worker is not None or self.document_worker is not None):
             self.modelLoadStatus.emit(
@@ -603,26 +597,13 @@ class Backend(QObject):
 
     @Slot(str, list, list, list)
     def handle_answer(
-        self, 
-        answer: str,
-        used_sources: list,
-        additional_sources: list, 
-        less_relevant_sources: list,
-    ) -> None:
-        """Send the answer to QML.
-        
-        Args:
-            answer: generated answer to display in QML interface.
-        """
-    def handle_answer(
         self,
         answer: str,
         used_sources: list,
         additional_sources: list,
         less_relevant_sources: list,
     ) -> None:
-        """Send the answer to QML."""
-
+        """Send the answer and its source groups to QML."""
         if not used_sources and answer == "backend.answer.not_enough_info":
             answer = self._text(answer)
 
@@ -630,7 +611,7 @@ class Backend(QObject):
             answer,
             used_sources,
             additional_sources,
-            less_relevant_sources
+            less_relevant_sources,
         )
 
     @Slot(str)
@@ -638,7 +619,7 @@ class Backend(QObject):
         """Send the error message to QML.
         
         Args:
-            message: error message to display in QML interface.
+            message_key: Translation key for the error message.
         """
         self.replyFailed.emit(
             self._text(message_key)
@@ -742,26 +723,27 @@ class Backend(QObject):
     
     @Slot(str)
     def add_manual_knowledge(self, text: str) -> None:
-        """
-        Add manually added text to knowledge database.
-
-        Args:
-            text: knowledge text received from QML.
-        """
-
+        """Save manually entered knowledge and report the result."""
         if not text.strip():
             self.knowledgeSaveResult.emit(
                 self._text("backend.manual.empty")
             )
             return
 
-        embedding = create_embedding(text)
+        try:
+            embedding = create_embedding(text)
 
-        added = add_knowledge(
-            text, 
-            embedding,
-            source="manual"
-        )
+            added = add_knowledge(
+                text,
+                embedding,
+                source="manual",
+            )
+        except Exception as error:
+            print(f"Saving manual knowledge failed: {error}")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.manual.save_failed")
+            )
+            return
 
         if added:
             self.knowledgeSaveResult.emit(
@@ -774,7 +756,7 @@ class Backend(QObject):
 
     @Slot(str)
     def import_dropped_document(self, file_url: str) -> None:
-        """Validate a dropped document and use its existing importer."""
+        """Validate a dropped file and open the appropriate preview."""
         url = QUrl(file_url)
 
         if not url.isLocalFile():
@@ -1853,7 +1835,7 @@ class Backend(QObject):
         """Import all knowledge entries from a JSON backup file.
         
             Args:
-                file_path: Destination file URL received from QML.
+                file_path: Source JSON backup file URL received from QML.
         """
 
         local_path = QUrl(file_path).toLocalFile()

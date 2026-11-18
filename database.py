@@ -7,13 +7,23 @@ Embeddings are serialized as JSON before being stored in the database.
 """
 
 import json
+import os
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 
-DATABASE_PATH = "knowledge.db"
+
+LOCAL_APP_DATA = Path(
+    os.environ.get(
+        "LOCALAPPDATA",
+        Path.home() / "AppData" / "Local"
+    )
+)
+
+APP_DATA_DIRECTORY = LOCAL_APP_DATA / "SecondBrain"
+DATABASE_PATH = APP_DATA_DIRECTORY / "knowledge.db"
 
 def normalize_knowledge_text(text: str) -> str:
     """Normalize whitespace for duplicate comparison only."""
@@ -23,6 +33,11 @@ def initialize_database() -> None:
     """
     Create the SQLite knowledge database unless already created.
     """
+
+    APP_DATA_DIRECTORY.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
