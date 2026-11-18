@@ -31,23 +31,21 @@ def retrieve_knowledge(
     top_k: int = 5,
     similarity_threshold: float = 0.82,
 ) -> dict[str, list[dict]]:
-    """Retrieve knowledge entries similar to a query.
+    """Retrieve and group knowledge entries by relevance.
 
-    Query is embedded and compared to knowledge embeddings
-    using cosine similarity. Results below threshold are removed,
-    and the highest ranked results are returned.
-
-    Exact word-number identifiers, such as "Matsal 18" or
-    "Reception 12", receive a ranking bonus when they match
-    between the query and a knowledge entry.
+    Entries are ranked by semantic similarity with a bonus
+    for matching word-number identifiers, such as "Matsal 18".
 
     Args:
-        query: A query used to search the knowledge database.
-        top_k: Maximum number of posts that can be retrieved.
-        similarity_threshold: Minimum semantic score required for a result.
+        query: Question used to search the knowledge database.
+        top_k: Maximum number of entries used for answer generation.
+        similarity_threshold: Minimum semantic score for relevant entries.
 
     Returns:
-        A list of matching knowledge entries with similarity scores.
+        A dictionary containing three lists:
+        used_sources: Relevant entries selected for answer generation.
+        additional_sources: Relevant entries beyond the Top-K limit.
+        less_relevant_sources: Entries below the similarity threshold.
     """
 
     # Ranking bonus for matching word-number identifiers.
@@ -138,7 +136,7 @@ def retrieve_knowledge(
 def create_embedding(text: str) -> np.ndarray:
     """Create an embedding vector for stored knowledge.
 
-    Text is prefixed by "passage:" by the E5 model.
+    Text is prefixed with "passage: " before encoding.
 
     Args:
         text: Text to embed.
@@ -153,7 +151,7 @@ def create_embedding(text: str) -> np.ndarray:
 def create_query_embedding(query: str) -> np.ndarray:
     """Create an embedding for a search query.
     
-    The query is prefixed with "query by the E5 model.
+    The query is prefixed with "query: " before encoding.
 
     Args:
         query: Search query to embed.
@@ -208,7 +206,7 @@ def split_retrieval_results(
         similarity_threshold: float,
         top_k: int,
 ) -> tuple[list[dict], list[dict], list[dict]]:
-    """Split ranked results inte relevance levels.
+    """Split ranked results into relevance levels.
     
     Args:
         ranked_results: Retrieval results sorted by hybrid score.
@@ -268,9 +266,12 @@ def filter_and_rank_results(
     return used_sources
 
 
-# testing purposes
+# Run a manual retrieval check when executing this module directly.
 if __name__ == "__main__":
     results = retrieve_knowledge("When does school open?")
 
-    for result in results:
-        print(result)
+    for group_name, entries in results.items():
+        print(f"\n{group_name}: {len(entries)} entries")
+
+        for entry in entries:
+            print(entry)

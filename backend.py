@@ -723,26 +723,27 @@ class Backend(QObject):
     
     @Slot(str)
     def add_manual_knowledge(self, text: str) -> None:
-        """
-        Add manually added text to knowledge database.
-
-        Args:
-            text: knowledge text received from QML.
-        """
-
+        """Save manually entered knowledge and report the result."""
         if not text.strip():
             self.knowledgeSaveResult.emit(
                 self._text("backend.manual.empty")
             )
             return
 
-        embedding = create_embedding(text)
+        try:
+            embedding = create_embedding(text)
 
-        added = add_knowledge(
-            text, 
-            embedding,
-            source="manual"
-        )
+            added = add_knowledge(
+                text,
+                embedding,
+                source="manual",
+            )
+        except Exception as error:
+            print(f"Saving manual knowledge failed: {error}")
+            self.knowledgeSaveResult.emit(
+                self._text("backend.manual.save_failed")
+            )
+            return
 
         if added:
             self.knowledgeSaveResult.emit(

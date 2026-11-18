@@ -123,12 +123,17 @@ Dialog {
         }
     }
 
-    footer: Column {
-        spacing: 8
+    footer: Control {
         padding: 12
 
+        implicitHeight: contentItem.implicitHeight
+            + topPadding + bottomPadding
+
+        contentItem: Column {
+            spacing: 8
+
         Label {
-            width: parent.width - 24
+            width: parent.width
             text: mailReviewDialog.statusMessage
             visible: text.length > 0
             color: mailReviewDialog.textColor
@@ -340,6 +345,7 @@ Dialog {
                     mailReviewDialog.saveRequested(selectedFacts)
                 }
             }
+        }
         }
     }
 

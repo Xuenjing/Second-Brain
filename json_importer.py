@@ -59,6 +59,21 @@ def load_knowledge_from_json(file_path: str) -> list[dict]:
                 "json_importer.missing_fields"
             )
 
+        # Validate field types before importing any entries.
+        if not all(
+            isinstance(item[field], str)
+            for field in required_fields
+        ):
+            raise ValueError(
+                "json_importer.invalid_entry"
+            )
+
+        # Reject empty text, including whitespace-only values.
+        if not item["text"].strip():
+            raise ValueError(
+                "json_importer.invalid_entry"
+            )
+
         validated_entries.append({
             "text": item["text"],
             "source": item["source"],

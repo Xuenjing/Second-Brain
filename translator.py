@@ -352,6 +352,8 @@ TRANSLATIONS = {
             "Kunskap har lagts till.",
         "backend.manual.no_new":
             "Ingen ny kunskap lades till.",
+        "backend.manual.save_failed":
+            "Kunskapen kunde inte sparas. Försök igen.",
 
         # Backend - dropped documents
         "backend.drop.local_only":
@@ -993,6 +995,8 @@ TRANSLATIONS = {
             "Knowledge added.",
         "backend.manual.no_new":
             "No new knowledge was added.",
+        "backend.manual.save_failed":
+            "The knowledge could not be saved. Please try again.",
 
         # Backend - dropped documents
         "backend.drop.local_only":
@@ -1340,7 +1344,3 @@ class Translator(QObject):
     @Slot(str, str, result=str)
     def text(self, key:str, language:str) -> str:
         return translate(key, language)
-
-
-    
-    
