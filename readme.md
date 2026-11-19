@@ -95,6 +95,8 @@ Embeddings are generated using:
 
 Both knowledge retrieval and language-model generation are designed to run locally.
 
+AI models are downloaded locally when required. The first startup or first model load may therefore take longer depending on internet connection and hardware.
+
 ---
 
 ## 🛠️ Technology
@@ -116,9 +118,20 @@ Second Brain is built using:
 
 ## 📦 Installation
 
-Installation instructions will be added when the Windows installer is completed.
+Second Brain is distributed as a Windows installer.
 
-For information about using the application, see the [**User Manual**](https://xuenjing.github.io/Second-Brain/).
+### Windows
+
+1. Go to the [**latest GitHub Release**](https://github.com/Xuenjing/Second-Brain/releases/latest).
+2. Download `SecondBrain-Setup.exe`.
+3. Run the installer.
+4. Start **Second Brain** from the Windows Start menu.
+
+The application stores its local knowledge database separately in the user's application-data directory, so application updates or reinstalls do not require the database to be stored inside the installation folder.
+
+AI models are downloaded locally when required and may take some time to download and load on first use.
+
+For instructions on using the application, see the [**User Manual**](https://xuenjing.github.io/Second-Brain/).
 
 ---
 
@@ -135,17 +148,17 @@ GitHub Actions is used for continuous test execution.
 
 The retrieval pipeline has also been evaluated using larger heterogeneous knowledge bases containing approximately 1,200 and 10,000 entries.
 
+The packaged Windows application and installer have additionally been tested through the main application workflows.
+
 ---
 
-## 🚧 Project Status
+## ✅ Project Status
 
-Second Brain is a functional end-to-end desktop application.
+**Second Brain v1.0.0 is complete.**
 
-Core development is complete. Remaining work primarily consists of:
+The application provides an end-to-end local RAG workflow, knowledge management, document and email import, AI-assisted review, configurable local models, backup functionality and a Windows installer.
 
-- Windows packaging and installation
-- final testing and bug fixes
-- developer documentation
+Further development may include additional model evaluation, improved document processing, performance improvements and other usability enhancements.
 
 ---
 
@@ -173,6 +186,6 @@ Major dependencies include:
 | scikit-learn              | BSD license                 |
 | extract-msg               | GPL-3.0                     |
 
-Additional transitive dependencies retain their respective licenses.
+Additional dependencies retain their respective licenses.
 
-The licensing requirements of bundled dependencies should be reviewed when distributing packaged versions of the application.
+Third-party components and models remain subject to their own license terms. Licensing requirements should be reviewed when modifying or redistributing packaged versions of the application.
