@@ -165,7 +165,7 @@ Further development may include additional model evaluation, improved document p
 ## 📚 Documentation
 
 - [**User Manual**](https://xuenjing.github.io/Second-Brain/)
-- - [**Developer Guide**](DEVELOPER.md)
+- [**Developer Guide**](developer.md)
 
 ---
 
